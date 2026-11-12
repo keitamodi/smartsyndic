@@ -1,0 +1,113 @@
+{
+  "name": "Resolution",
+  "type": "object",
+  "properties": {
+    "syndic_id": {
+      "type": "string"
+    },
+    "assembly_id": {
+      "type": "string"
+    },
+    "label": {
+      "type": "string"
+    },
+    "majority": {
+      "type": "string",
+      "enum": [
+        "article_24",
+        "article_25",
+        "article_26",
+        "unanimite"
+      ],
+      "enumColors": [
+        "blue",
+        "purple",
+        "yellow",
+        "red"
+      ]
+    },
+    "votes_for": {
+      "type": "number"
+    },
+    "votes_against": {
+      "type": "number"
+    },
+    "votes_abstain": {
+      "type": "number"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "en_attente",
+        "adoptee",
+        "rejetee"
+      ],
+      "enumColors": [
+        "gray",
+        "green",
+        "red"
+      ],
+      "default": "en_attente"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "label"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "user"
+          }
+        }
+      ]
+    },
+    "create": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "user"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

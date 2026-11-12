@@ -1,0 +1,134 @@
+{
+  "name": "Invoice",
+  "type": "object",
+  "properties": {
+    "syndic_id": {
+      "type": "string"
+    },
+    "building_id": {
+      "type": "string"
+    },
+    "building_name": {
+      "type": "string"
+    },
+    "reference": {
+      "type": "string"
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "appel_fonds",
+        "facture",
+        "regularisation"
+      ],
+      "enumColors": [
+        "blue",
+        "purple",
+        "yellow"
+      ]
+    },
+    "lot_number": {
+      "type": "string"
+    },
+    "period": {
+      "type": "string",
+      "description": "P\u00e9riode concern\u00e9e, ex. T4 2026"
+    },
+    "issue_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "due_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "amount": {
+      "type": "number"
+    },
+    "paid_amount": {
+      "type": "number"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "brouillon",
+        "envoyee",
+        "partiellement_payee",
+        "payee",
+        "en_retard"
+      ],
+      "enumColors": [
+        "gray",
+        "blue",
+        "yellow",
+        "green",
+        "red"
+      ],
+      "default": "brouillon"
+    },
+    "recipient_email": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "reference",
+    "amount"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "user"
+          }
+        }
+      ]
+    },
+    "create": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "user"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

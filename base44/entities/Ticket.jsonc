@@ -1,0 +1,197 @@
+{
+  "name": "Ticket",
+  "type": "object",
+  "properties": {
+    "syndic_id": {
+      "type": "string"
+    },
+    "building_id": {
+      "type": "string"
+    },
+    "building_name": {
+      "type": "string"
+    },
+    "lot_number": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "plomberie",
+        "electricite",
+        "ascenseur",
+        "chauffage",
+        "toiture",
+        "parties_communes",
+        "nuisances",
+        "autre"
+      ],
+      "enumColors": [
+        "blue",
+        "yellow",
+        "purple",
+        "pink",
+        "gray",
+        "blue",
+        "yellow",
+        "gray"
+      ]
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "basse",
+        "normale",
+        "haute",
+        "urgente"
+      ],
+      "enumColors": [
+        "gray",
+        "blue",
+        "yellow",
+        "red"
+      ],
+      "default": "normale"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "nouveau",
+        "qualifie",
+        "en_cours",
+        "en_attente",
+        "resolu",
+        "clos"
+      ],
+      "enumColors": [
+        "blue",
+        "yellow",
+        "purple",
+        "gray",
+        "green",
+        "gray"
+      ],
+      "default": "nouveau"
+    },
+    "requester_name": {
+      "type": "string"
+    },
+    "requester_email": {
+      "type": "string"
+    },
+    "requester_kind": {
+      "type": "string",
+      "enum": [
+        "coproprietaire",
+        "proprietaire",
+        "occupant",
+        "autre"
+      ],
+      "enumColors": [
+        "blue",
+        "purple",
+        "green",
+        "gray"
+      ]
+    },
+    "assignee_kind": {
+      "type": "string",
+      "enum": [
+        "technicien",
+        "prestataire",
+        "interne"
+      ],
+      "enumColors": [
+        "blue",
+        "purple",
+        "gray"
+      ]
+    },
+    "provider_id": {
+      "type": "string"
+    },
+    "assigned_name": {
+      "type": "string"
+    },
+    "due_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "attachments": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "resolution_note": {
+      "type": "string"
+    },
+    "closed_date": {
+      "type": "string",
+      "format": "date"
+    }
+  },
+  "required": [
+    "title"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "user"
+          }
+        }
+      ]
+    },
+    "create": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "user"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

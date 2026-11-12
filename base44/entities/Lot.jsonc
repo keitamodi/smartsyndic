@@ -1,0 +1,134 @@
+{
+  "name": "Lot",
+  "type": "object",
+  "properties": {
+    "syndic_id": {
+      "type": "string"
+    },
+    "building_id": {
+      "type": "string"
+    },
+    "number": {
+      "type": "string"
+    },
+    "floor": {
+      "type": "string"
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "appartement",
+        "parking",
+        "cave",
+        "local"
+      ],
+      "enumColors": [
+        "blue",
+        "gray",
+        "gray",
+        "purple"
+      ]
+    },
+    "area": {
+      "type": "number"
+    },
+    "tantiemes": {
+      "type": "number"
+    },
+    "occupancy": {
+      "type": "string",
+      "enum": [
+        "proprietaire_occupant",
+        "loue",
+        "vacant"
+      ],
+      "enumColors": [
+        "green",
+        "blue",
+        "yellow"
+      ]
+    },
+    "resident_id": {
+      "type": "string"
+    },
+    "owner_name": {
+      "type": "string"
+    },
+    "owner_email": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "occupe",
+        "vacant",
+        "travaux"
+      ],
+      "enumColors": [
+        "green",
+        "yellow",
+        "red"
+      ]
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "number"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "user"
+          }
+        }
+      ]
+    },
+    "create": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "user"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

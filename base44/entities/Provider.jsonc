@@ -1,0 +1,139 @@
+{
+  "name": "Provider",
+  "type": "object",
+  "properties": {
+    "syndic_id": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "technicien_interne",
+        "prestataire_externe"
+      ],
+      "enumColors": [
+        "blue",
+        "purple"
+      ]
+    },
+    "specialty": {
+      "type": "string",
+      "enum": [
+        "plomberie",
+        "electricite",
+        "chauffage",
+        "ascenseur",
+        "toiture",
+        "espaces_verts",
+        "nettoyage",
+        "securite",
+        "multiservices"
+      ],
+      "enumColors": [
+        "blue",
+        "yellow",
+        "pink",
+        "purple",
+        "gray",
+        "green",
+        "green",
+        "red",
+        "blue"
+      ]
+    },
+    "contact_name": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "address": {
+      "type": "string"
+    },
+    "siret": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "actif",
+        "inactif"
+      ],
+      "enumColors": [
+        "green",
+        "gray"
+      ],
+      "default": "actif"
+    },
+    "rating": {
+      "type": "number",
+      "description": "Note interne de 1 \u00e0 5"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "name"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "user"
+          }
+        }
+      ]
+    },
+    "create": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "user"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

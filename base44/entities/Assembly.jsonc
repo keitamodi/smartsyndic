@@ -1,0 +1,132 @@
+{
+  "name": "Assembly",
+  "type": "object",
+  "properties": {
+    "syndic_id": {
+      "type": "string"
+    },
+    "building_id": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "ordinaire",
+        "extraordinaire"
+      ],
+      "enumColors": [
+        "blue",
+        "purple"
+      ]
+    },
+    "date": {
+      "type": "string",
+      "format": "date"
+    },
+    "time": {
+      "type": "string",
+      "description": "Heure de d\u00e9but, format HH:MM"
+    },
+    "location": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "preparation",
+        "convoquee",
+        "en_cours",
+        "cloturee",
+        "annulee"
+      ],
+      "enumColors": [
+        "gray",
+        "blue",
+        "yellow",
+        "green",
+        "red"
+      ],
+      "default": "preparation"
+    },
+    "agenda": {
+      "type": "string",
+      "description": "Ordre du jour, une r\u00e9solution par ligne"
+    },
+    "convocation_sent": {
+      "type": "boolean"
+    },
+    "convoked_at": {
+      "type": "string",
+      "format": "date"
+    },
+    "minutes_uri": {
+      "type": "string"
+    },
+    "quorum_percent": {
+      "type": "number"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "title"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "user"
+          }
+        }
+      ]
+    },
+    "create": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "user"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}
