@@ -9,6 +9,19 @@ import ScrollToTop from './components/ScrollToTop';
 // Add page imports here
 import Layout from '@/components/Layout';
 import Dashboard from '@/pages/Dashboard';
+import Buildings from '@/pages/Buildings';
+import Maintenance from '@/pages/Maintenance';
+import Tickets from '@/pages/Tickets';
+import Contracts from '@/pages/Contracts';
+import Assemblies from '@/pages/Assemblies';
+import AgentIA from '@/pages/AgentIA';
+import Residents from '@/pages/Residents';
+import Providers from '@/pages/Providers';
+import Team from '@/pages/Team';
+import Billing from '@/pages/Billing';
+import Guide from '@/pages/Guide';
+import Help from '@/pages/Help';
+import About from '@/pages/About';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -39,6 +52,19 @@ const AuthenticatedApp = () => {
       {/* Add your page Route elements here */}
       <Route element={<Layout />}>
         <Route path="/" element={<Dashboard />} />
+        <Route path="/immeubles" element={<Buildings />} />
+        <Route path="/maintenance" element={<Maintenance />} />
+        <Route path="/tickets" element={<Tickets />} />
+        <Route path="/contrats" element={<Contracts />} />
+        <Route path="/assemblees" element={<Assemblies />} />
+        <Route path="/agent-ia" element={<AgentIA />} />
+        <Route path="/residents" element={<Residents />} />
+        <Route path="/prestataires" element={<Providers />} />
+        <Route path="/equipe" element={<Team />} />
+        <Route path="/facturation" element={<Billing />} />
+        <Route path="/guide" element={<Guide />} />
+        <Route path="/aide" element={<Help />} />
+        <Route path="/a-propos" element={<About />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
