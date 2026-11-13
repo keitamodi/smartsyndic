@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Building2, Home, Layers, MapPin, Pencil, Plus, Trash2 } from 'lucide-react';
+import { Building2, Home, Layers, Pencil, Plus, Trash2 } from 'lucide-react';
 import Page from '@/components/Page';
 import StatStrip from '@/components/StatStrip';
 import TablePanel from '@/components/TablePanel';

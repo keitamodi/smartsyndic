@@ -7,7 +7,6 @@ import RowActions from '@/components/RowActions';
 import StatusBadge from '@/components/StatusBadge';
 import FormDialog from '@/components/FormDialog';
 import WorkspaceRequired from '@/components/WorkspaceRequired';
-import EmptyState from '@/components/EmptyState';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,

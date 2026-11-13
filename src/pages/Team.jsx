@@ -57,8 +57,9 @@ export default function Team() {
     { name: 'status', label: 'Statut', type: 'select', options: options(TEAM_STATUS) },
     {
       name: 'building_ids',
-      label: '',
+      label: "Périmètre d'immeubles",
       type: 'multiselect',
+      span: 2,
       options: buildings.map((building) => ({ value: building.id, label: building.name })),
     },
     { name: 'notes', label: 'Notes', type: 'textarea', span: 2, rows: 3 },
