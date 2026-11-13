@@ -195,6 +195,23 @@ export const APPOINTMENT_STATUS = {
   annule: 'Annulé',
 };
 
+export const THREAD_STATUS = {
+  ouvert: 'Ouverte',
+  en_attente: 'En attente de réponse',
+  clos: 'Close',
+};
+
+export const THREAD_KIND = {
+  coproprietaire: 'Copropriétaire',
+  proprietaire: 'Propriétaire',
+  occupant: 'Occupant',
+  technicien: 'Technicien',
+  prestataire: 'Prestataire',
+  equipe: 'Équipe syndic',
+};
+
+export const THREAD_TONE = { ouvert: 'blue', en_attente: 'yellow', clos: 'gray' };
+
 export const STATUS_TONES = {
   actif: 'green',
   essai: 'yellow',

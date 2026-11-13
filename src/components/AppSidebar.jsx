@@ -7,6 +7,7 @@ import {
   FileSignature,
   Gavel,
   Sparkles,
+  MessageCircle,
   Users,
   HardHat,
   UserCog,
@@ -37,6 +38,7 @@ const GROUPS = [
     label: 'Relation',
     items: [
       { to: '/agent-ia', label: 'Agent IA', icon: Sparkles },
+      { to: '/messagerie', label: 'Messagerie', icon: MessageCircle },
       { to: '/residents', label: 'Copropriétaires & propriétaires', icon: Users },
       { to: '/prestataires', label: 'Techniciens & prestataires', icon: HardHat },
       { to: '/equipe', label: 'Équipe', icon: UserCog },

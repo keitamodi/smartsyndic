@@ -13,6 +13,19 @@
     },
     "last_message": {
       "type": "string"
+    },
+    "mode": {
+      "type": "string",
+      "enum": [
+        "syndic",
+        "resident"
+      ],
+      "enumColors": [
+        "blue",
+        "green"
+      ],
+      "default": "syndic",
+      "description": "syndic : assistance interne ; resident : questions de copropri\u00e9taires sur leurs droits et devoirs"
     }
   },
   "required": [

@@ -1,0 +1,125 @@
+{
+  "name": "Thread",
+  "type": "object",
+  "properties": {
+    "syndic_id": {
+      "type": "string"
+    },
+    "subject": {
+      "type": "string"
+    },
+    "contact_name": {
+      "type": "string"
+    },
+    "contact_email": {
+      "type": "string"
+    },
+    "contact_kind": {
+      "type": "string",
+      "enum": [
+        "coproprietaire",
+        "proprietaire",
+        "occupant",
+        "technicien",
+        "prestataire",
+        "equipe"
+      ],
+      "enumColors": [
+        "blue",
+        "purple",
+        "green",
+        "yellow",
+        "pink",
+        "gray"
+      ],
+      "default": "coproprietaire"
+    },
+    "building_id": {
+      "type": "string"
+    },
+    "building_name": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "ouvert",
+        "en_attente",
+        "clos"
+      ],
+      "enumColors": [
+        "blue",
+        "yellow",
+        "gray"
+      ],
+      "default": "ouvert"
+    },
+    "last_message": {
+      "type": "string"
+    },
+    "last_author": {
+      "type": "string"
+    },
+    "unread_count": {
+      "type": "number"
+    }
+  },
+  "required": [
+    "subject",
+    "contact_name"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "user"
+          }
+        }
+      ]
+    },
+    "create": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "user"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

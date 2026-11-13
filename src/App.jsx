@@ -15,6 +15,7 @@ import Tickets from '@/pages/Tickets';
 import Contracts from '@/pages/Contracts';
 import Assemblies from '@/pages/Assemblies';
 import AgentIA from '@/pages/AgentIA';
+import Messagerie from '@/pages/Messagerie';
 import Residents from '@/pages/Residents';
 import Providers from '@/pages/Providers';
 import Team from '@/pages/Team';
@@ -58,6 +59,7 @@ const AuthenticatedApp = () => {
         <Route path="/contrats" element={<Contracts />} />
         <Route path="/assemblees" element={<Assemblies />} />
         <Route path="/agent-ia" element={<AgentIA />} />
+        <Route path="/messagerie" element={<Messagerie />} />
         <Route path="/residents" element={<Residents />} />
         <Route path="/prestataires" element={<Providers />} />
         <Route path="/equipe" element={<Team />} />
