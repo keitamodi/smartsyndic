@@ -33,6 +33,36 @@
         "purple"
       ]
     },
+    "origin": {
+      "type": "string",
+      "enum": [
+        "entretien",
+        "depannage"
+      ],
+      "enumColors": [
+        "blue",
+        "red"
+      ],
+      "default": "entretien",
+      "description": "Entretien programm\u00e9 ou d\u00e9pannage"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "basse",
+        "normale",
+        "haute",
+        "urgente"
+      ],
+      "enumColors": [
+        "gray",
+        "blue",
+        "yellow",
+        "red"
+      ],
+      "default": "normale",
+      "description": "Degr\u00e9 d'urgence : urgente (rouge), haute (orange), normale (bleu), basse (gris)"
+    },
     "status": {
       "type": "string",
       "enum": [
@@ -52,6 +82,15 @@
     "scheduled_date": {
       "type": "string",
       "format": "date"
+    },
+    "scheduled_time": {
+      "type": "string",
+      "description": "Heure de d\u00e9but, format HH:MM"
+    },
+    "duration_minutes": {
+      "type": "number",
+      "default": 60,
+      "description": "Dur\u00e9e pr\u00e9vue en minutes"
     },
     "completed_date": {
       "type": "string",
@@ -74,6 +113,23 @@
       "items": {
         "type": "string"
       }
+    },
+    "contact_email": {
+      "type": "string",
+      "description": "Personne \u00e0 pr\u00e9venir (propri\u00e9taire) pour un d\u00e9pannage"
+    },
+    "reminder_days": {
+      "type": "number",
+      "default": 7,
+      "description": "Nombre de jours avant l'\u00e9ch\u00e9ance pour envoyer l'alerte"
+    },
+    "reminder_sent": {
+      "type": "boolean",
+      "default": false
+    },
+    "late_alert_sent": {
+      "type": "boolean",
+      "default": false
     }
   },
   "required": [

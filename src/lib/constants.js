@@ -212,6 +212,14 @@ export const THREAD_KIND = {
 
 export const THREAD_TONE = { ouvert: 'blue', en_attente: 'yellow', clos: 'gray' };
 
+export const INTERVENTION_PRIORITY = { basse: 'Basse', normale: 'Normale', haute: 'Haute', urgente: 'Urgente' };
+
+export const INTERVENTION_ORIGIN = { entretien: 'Entretien programmé', depannage: 'Dépannage' };
+
+export const PRIORITY_TONE = { basse: 'gray', normale: 'blue', haute: 'orange', urgente: 'red' };
+
+export const PRIORITY_ICON_TONE = { basse: 'bg-zinc-400', normale: 'bg-sky-500', haute: 'bg-orange-500', urgente: 'bg-rose-600' };
+
 export const STATUS_TONES = {
   actif: 'green',
   essai: 'yellow',

@@ -1,0 +1,417 @@
+/* Planning mensuel des interventions.
+   Structure conservée : 7 colonnes égales, bandeau des jours, événements en haut de
+   la cellule, date en bas à gauche, « + » au survol, liste jour par jour sous 860px. */
+
+.ivc-section {
+  container: ivc-root / inline-size;
+  --ivc-urgente: #f6d7ce;
+  --ivc-urgente-ink: #8a3a28;
+  --ivc-haute: #f9e3c4;
+  --ivc-haute-ink: #85531a;
+  --ivc-normale: #dce6f1;
+  --ivc-normale-ink: #2e5273;
+  --ivc-basse: #e9e5de;
+  --ivc-basse-ink: #5a5449;
+}
+
+.ivc-card {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: calc(var(--radius) + 6px);
+  overflow: hidden;
+  max-height: 760px;
+  overflow-y: auto;
+}
+
+.ivc-head {
+  display: none;
+}
+
+.ivc-grid {
+  display: block;
+  margin: 0;
+  padding: 0;
+}
+
+/* ---------- Cellule jour (liste mobile par défaut) ---------- */
+.ivc-day {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid hsl(var(--border));
+  cursor: pointer;
+}
+
+.ivc-day:last-child {
+  border-bottom: 0;
+}
+
+.ivc-day--out {
+  background: hsl(var(--muted) / 0.7);
+  cursor: default;
+}
+
+.ivc-day--empty {
+  height: 56px;
+  padding-block: 0;
+  justify-content: center;
+}
+
+.ivc-day--empty .ivc-add {
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.ivc-meta {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin: 0;
+}
+
+.ivc-meta-day {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: hsl(var(--muted-foreground));
+}
+
+.ivc-date {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  color: hsl(var(--foreground));
+}
+
+.ivc-date--today {
+  color: hsl(var(--primary));
+}
+
+.ivc-events {
+  order: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ivc-events:empty {
+  display: none;
+}
+
+/* ---------- Apparition des événements ---------- */
+@keyframes ivc-pop {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.ivc-item {
+  animation: ivc-pop 0.45s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  animation-delay: calc(var(--ivc-i, 0) * 45ms);
+}
+
+/* ---------- Carte événement ---------- */
+.ivc-ev {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  width: 100%;
+  min-width: 0;
+  min-height: 50px;
+  margin: 0;
+  padding: 10px;
+  border: 0;
+  border-radius: 10px;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: filter 0.2s ease, transform 0.2s ease;
+}
+
+.ivc-ev:hover {
+  filter: brightness(0.97);
+  transform: translateY(-1px);
+}
+
+.ivc-ev:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+.ivc-ev--urgente {
+  background: var(--ivc-urgente);
+  color: var(--ivc-urgente-ink);
+}
+
+.ivc-ev--haute {
+  background: var(--ivc-haute);
+  color: var(--ivc-haute-ink);
+}
+
+.ivc-ev--normale {
+  background: var(--ivc-normale);
+  color: var(--ivc-normale-ink);
+}
+
+.ivc-ev--basse {
+  background: var(--ivc-basse);
+  color: var(--ivc-basse-ink);
+}
+
+.ivc-ev--inline {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  column-gap: 8px;
+  min-height: 29px;
+  padding: 6px 10px;
+}
+
+.ivc-ev--tall {
+  min-height: 87px;
+}
+
+.ivc-ev-title {
+  min-width: 0;
+  font-weight: 600;
+  font-size: 12px;
+  line-height: 1.2;
+  overflow-wrap: break-word;
+}
+
+.ivc-ev-time {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  line-height: 1.2;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  opacity: 0.85;
+}
+
+/* ---------- Bouton « ajouter » ---------- */
+.ivc-add {
+  position: absolute;
+  top: 6px;
+  right: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 26px;
+  margin: 0;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: hsl(var(--muted-foreground));
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 11px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: opacity 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+}
+
+.ivc-add:hover {
+  background: hsl(var(--accent));
+  color: hsl(var(--accent-foreground));
+}
+
+.ivc-add:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 0;
+}
+
+/* ---------- Large : grille mensuelle à 7 colonnes ---------- */
+@container ivc-root (width >= 860px) {
+  .ivc-card {
+    max-height: none;
+  }
+
+  .ivc-head {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    border-bottom: 1px solid hsl(var(--border));
+  }
+
+  .ivc-head-cell {
+    display: flex;
+    align-items: center;
+    height: 64px;
+    margin: 0;
+    padding-inline: 16px;
+    border-right: 1px solid hsl(var(--border));
+    font-family: var(--font-heading);
+    font-weight: 600;
+    font-size: clamp(12px, 1.5cqi, 16px);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: hsl(var(--muted-foreground) / 0.7);
+  }
+
+  .ivc-head-cell:last-child {
+    border-right: 0;
+  }
+
+  .ivc-head-cell--today {
+    color: hsl(var(--primary));
+  }
+
+  .ivc-grid {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+  }
+
+  .ivc-day {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    min-height: 132px;
+    height: auto;
+    gap: 0;
+    padding: 0;
+    border-bottom: 1px solid hsl(var(--border));
+    border-right: 1px solid hsl(var(--border));
+  }
+
+  .ivc-day:nth-child(7n) {
+    border-right: 0;
+  }
+
+  .ivc-day--empty {
+    height: auto;
+    justify-content: flex-start;
+  }
+
+  .ivc-day--empty .ivc-add {
+    top: auto;
+    transform: none;
+  }
+
+  .ivc-events {
+    order: 1;
+    flex: 1 0 auto;
+    padding: 8px;
+  }
+
+  .ivc-events:empty {
+    display: flex;
+  }
+
+  .ivc-meta {
+    order: 2;
+    margin-top: auto;
+    padding: 8px;
+  }
+
+  .ivc-meta-day {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .ivc-add {
+    top: auto;
+    right: 4px;
+    bottom: 4px;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    opacity: 0;
+  }
+
+  .ivc-add-label {
+    display: none;
+  }
+
+  .ivc-day:hover .ivc-add,
+  .ivc-add:focus-visible {
+    opacity: 1;
+  }
+
+  @media (hover: none) {
+    .ivc-add {
+      opacity: 0.6;
+    }
+  }
+
+  .ivc-ev {
+    padding-inline: clamp(8px, 0.94cqi, 10px);
+  }
+
+  .ivc-ev-title {
+    font-size: clamp(11px, 0.9cqi, 12px);
+  }
+}
+
+/* ---------- Pastilles de priorité + liste d'heures (dialogue) ---------- */
+.ivc-swatch {
+  position: relative;
+  display: block;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: inset 0 0 0 1px hsl(var(--foreground) / 0.18);
+  transition: box-shadow 0.15s ease;
+}
+
+.ivc-swatch--urgente {
+  background: var(--ivc-urgente);
+}
+
+.ivc-swatch--haute {
+  background: var(--ivc-haute);
+}
+
+.ivc-swatch--normale {
+  background: var(--ivc-normale);
+}
+
+.ivc-swatch--basse {
+  background: var(--ivc-basse);
+}
+
+.ivc-swatch--active {
+  box-shadow: inset 0 0 0 1px hsl(var(--foreground) / 0.18), 0 0 0 2px hsl(var(--card)),
+    0 0 0 3.5px hsl(var(--foreground));
+}
+
+.ivc-swatch:focus-within {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 4px;
+}
+
+.ivc-timelist {
+  max-height: 172px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+}
+
+.ivc-timelist::-webkit-scrollbar {
+  width: 8px;
+}
+
+.ivc-timelist::-webkit-scrollbar-thumb {
+  background: hsl(var(--border));
+  border-radius: 99px;
+}
