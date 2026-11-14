@@ -1,0 +1,162 @@
+{
+  "name": "QuoteRequest",
+  "type": "object",
+  "properties": {
+    "syndic_id": {
+      "type": "string"
+    },
+    "building_id": {
+      "type": "string"
+    },
+    "building_name": {
+      "type": "string"
+    },
+    "reference": {
+      "type": "string",
+      "description": "R\u00e9f\u00e9rence de la demande, ex. DEV-2026-014"
+    },
+    "title": {
+      "type": "string"
+    },
+    "work_type": {
+      "type": "string",
+      "enum": [
+        "plomberie",
+        "electricite",
+        "toiture",
+        "chauffage",
+        "ascenseur",
+        "ravalement",
+        "espaces_verts",
+        "nettoyage",
+        "autre"
+      ],
+      "enumColors": [
+        "blue",
+        "yellow",
+        "gray",
+        "pink",
+        "purple",
+        "green",
+        "green",
+        "blue",
+        "gray"
+      ]
+    },
+    "description": {
+      "type": "string"
+    },
+    "city": {
+      "type": "string"
+    },
+    "postal_code": {
+      "type": "string"
+    },
+    "photos": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Photos du besoin (stockage priv\u00e9)"
+    },
+    "deadline": {
+      "type": "string",
+      "format": "date",
+      "description": "Date souhait\u00e9e de remise des devis"
+    },
+    "budget_max": {
+      "type": "number"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "brouillon",
+        "envoyee",
+        "reponses_recues",
+        "cloturee",
+        "annulee"
+      ],
+      "enumColors": [
+        "gray",
+        "blue",
+        "yellow",
+        "green",
+        "red"
+      ],
+      "default": "brouillon"
+    },
+    "selected_offer_id": {
+      "type": "string"
+    },
+    "selected_company_name": {
+      "type": "string"
+    },
+    "selected_amount": {
+      "type": "number"
+    },
+    "decided_at": {
+      "type": "string",
+      "format": "date"
+    },
+    "decision_note": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "title"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "user"
+          }
+        }
+      ]
+    },
+    "create": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "user"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

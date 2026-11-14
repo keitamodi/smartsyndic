@@ -1,0 +1,202 @@
+{
+  "name": "PartnerCompany",
+  "type": "object",
+  "properties": {
+    "syndic_id": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string",
+      "description": "Nom commercial utilis\u00e9 par le syndic"
+    },
+    "legal_name": {
+      "type": "string",
+      "description": "Raison sociale renvoy\u00e9e par l'API Recherche d'entreprises"
+    },
+    "siret": {
+      "type": "string"
+    },
+    "siren": {
+      "type": "string"
+    },
+    "legal_form": {
+      "type": "string",
+      "description": "Code nature juridique INSEE"
+    },
+    "naf_code": {
+      "type": "string"
+    },
+    "address": {
+      "type": "string"
+    },
+    "postal_code": {
+      "type": "string"
+    },
+    "city": {
+      "type": "string"
+    },
+    "contact_name": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "work_types": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "plomberie",
+          "electricite",
+          "toiture",
+          "chauffage",
+          "ascenseur",
+          "ravalement",
+          "espaces_verts",
+          "nettoyage",
+          "autre"
+        ]
+      }
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "a_verifier",
+        "valide",
+        "refuse",
+        "inactif"
+      ],
+      "enumColors": [
+        "yellow",
+        "green",
+        "red",
+        "gray"
+      ],
+      "default": "a_verifier"
+    },
+    "siret_status": {
+      "type": "string",
+      "enum": [
+        "non_verifie",
+        "valide",
+        "ferme",
+        "introuvable"
+      ],
+      "enumColors": [
+        "gray",
+        "green",
+        "red",
+        "red"
+      ],
+      "default": "non_verifie"
+    },
+    "siret_checked_at": {
+      "type": "string",
+      "format": "date"
+    },
+    "google_status": {
+      "type": "string",
+      "enum": [
+        "non_verifie",
+        "disponible",
+        "indisponible"
+      ],
+      "enumColors": [
+        "gray",
+        "green",
+        "gray"
+      ],
+      "default": "non_verifie"
+    },
+    "google_rating": {
+      "type": "number"
+    },
+    "google_reviews_count": {
+      "type": "number"
+    },
+    "google_place_id": {
+      "type": "string"
+    },
+    "google_checked_at": {
+      "type": "string",
+      "format": "date"
+    },
+    "google_reviews": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Extraits d'avis Google, un avis par entr\u00e9e"
+    },
+    "validated_by": {
+      "type": "string"
+    },
+    "validated_at": {
+      "type": "string",
+      "format": "date"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "name"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "user"
+          }
+        }
+      ]
+    },
+    "create": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "user"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

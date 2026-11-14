@@ -1,0 +1,129 @@
+{
+  "name": "QuoteOffer",
+  "type": "object",
+  "properties": {
+    "syndic_id": {
+      "type": "string"
+    },
+    "request_id": {
+      "type": "string"
+    },
+    "company_id": {
+      "type": "string"
+    },
+    "company_name": {
+      "type": "string"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Montant total du devis en euros"
+    },
+    "duration_days": {
+      "type": "number",
+      "description": "D\u00e9lai d'ex\u00e9cution annonc\u00e9 en jours"
+    },
+    "validity_days": {
+      "type": "number",
+      "description": "Dur\u00e9e de validit\u00e9 du devis en jours"
+    },
+    "conditions": {
+      "type": "string"
+    },
+    "received_channel": {
+      "type": "string",
+      "enum": [
+        "email",
+        "telephone",
+        "courrier",
+        "autre"
+      ],
+      "enumColors": [
+        "blue",
+        "purple",
+        "gray",
+        "gray"
+      ],
+      "default": "email"
+    },
+    "file_uri": {
+      "type": "string",
+      "description": "Devis PDF joint (stockage priv\u00e9)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "recu",
+        "retenu",
+        "ecarte"
+      ],
+      "enumColors": [
+        "blue",
+        "green",
+        "gray"
+      ],
+      "default": "recu"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "request_id",
+    "company_name",
+    "amount"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "user"
+          }
+        }
+      ]
+    },
+    "create": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "user"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

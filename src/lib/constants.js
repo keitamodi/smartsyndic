@@ -91,6 +91,56 @@ export const PROVIDER_SPECIALTY = {
 
 export const PROVIDER_STATUS = { actif: 'Actif', inactif: 'Inactif' };
 
+export const WORK_TYPE = {
+  plomberie: 'Plomberie',
+  electricite: 'Électricité',
+  toiture: 'Toiture & façades',
+  chauffage: 'Chauffage',
+  ascenseur: 'Ascenseur',
+  ravalement: 'Ravalement',
+  espaces_verts: 'Espaces verts',
+  nettoyage: 'Nettoyage',
+  autre: 'Travaux divers',
+};
+
+export const PARTNER_STATUS = {
+  a_verifier: 'À vérifier',
+  valide: 'Validée',
+  refuse: 'Refusée',
+  inactif: 'Inactive',
+};
+
+export const SIRET_STATUS = {
+  non_verifie: 'SIRET non vérifié',
+  valide: 'SIRET vérifié',
+  ferme: 'Établissement fermé',
+  introuvable: 'SIRET introuvable',
+};
+
+export const GOOGLE_STATUS = {
+  non_verifie: 'Avis non consultés',
+  disponible: 'Note Google disponible',
+  indisponible: 'Avis indisponibles',
+};
+
+export const QUOTE_REQUEST_STATUS = {
+  brouillon: 'Brouillon',
+  envoyee: 'Envoyée',
+  reponses_recues: 'Réponses reçues',
+  cloturee: 'Clôturée',
+  annulee: 'Annulée',
+};
+
+export const QUOTE_INVITE_STATUS = {
+  a_contacter: 'À contacter',
+  envoyee: 'Demande envoyée',
+  repondue: 'Devis reçu',
+};
+
+export const QUOTE_CHANNEL = { email: 'E-mail', telephone: 'Téléphone' };
+
+export const QUOTE_OFFER_STATUS = { recu: 'Reçu', retenu: 'Retenu', ecarte: 'Écarté' };
+
 export const TEAM_ROLE = {
   administrateur: 'Administrateur du syndic',
   directeur: 'Directeur',
@@ -269,4 +319,17 @@ export const STATUS_TONES = {
   professionnel: 'blue',
   benevole: 'green',
   cooperatif: 'purple',
+  a_verifier: 'yellow',
+  valide: 'green',
+  refuse: 'red',
+  non_verifie: 'gray',
+  ferme: 'red',
+  introuvable: 'red',
+  disponible: 'green',
+  indisponible: 'gray',
+  a_contacter: 'yellow',
+  repondue: 'green',
+  retenu: 'green',
+  ecarte: 'gray',
+  reponses_recues: 'yellow',
 };
