@@ -18,6 +18,8 @@ import AgentIA from '@/pages/AgentIA';
 import Messagerie from '@/pages/Messagerie';
 import Residents from '@/pages/Residents';
 import Providers from '@/pages/Providers';
+import Devis from '@/pages/Devis';
+import Partenaires from '@/pages/Partenaires';
 import Team from '@/pages/Team';
 import Billing from '@/pages/Billing';
 import Guide from '@/pages/Guide';
@@ -62,6 +64,8 @@ const AuthenticatedApp = () => {
         <Route path="/messagerie" element={<Messagerie />} />
         <Route path="/residents" element={<Residents />} />
         <Route path="/prestataires" element={<Providers />} />
+        <Route path="/devis" element={<Devis />} />
+        <Route path="/partenaires" element={<Partenaires />} />
         <Route path="/equipe" element={<Team />} />
         <Route path="/facturation" element={<Billing />} />
         <Route path="/guide" element={<Guide />} />

@@ -5,6 +5,8 @@ import {
   Wrench,
   Ticket,
   FileSignature,
+  FileText,
+  Handshake,
   Gavel,
   Sparkles,
   MessageCircle,
@@ -42,6 +44,13 @@ const GROUPS = [
       { to: '/residents', label: 'Copropriétaires & propriétaires', icon: Users },
       { to: '/prestataires', label: 'Techniciens & prestataires', icon: HardHat },
       { to: '/equipe', label: 'Équipe', icon: UserCog },
+    ],
+  },
+  {
+    label: 'Travaux',
+    items: [
+      { to: '/devis', label: 'Demandes de devis', icon: FileText },
+      { to: '/partenaires', label: 'Entreprises partenaires', icon: Handshake },
     ],
   },
   {
