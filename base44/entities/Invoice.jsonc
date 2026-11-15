@@ -48,6 +48,24 @@
     "paid_amount": {
       "type": "number"
     },
+    "arrears_amount": {
+      "type": "number",
+      "description": "Arri\u00e9r\u00e9s de ce lot repris dans le montant appel\u00e9"
+    },
+    "reminder_level": {
+      "type": "number",
+      "default": 0,
+      "description": "0 = rappel amiable, 1 = relance, 2 = mise en demeure, 3 = contentieux"
+    },
+    "last_reminder_at": {
+      "type": "string",
+      "format": "date"
+    },
+    "reminder_days": {
+      "type": "number",
+      "default": 7,
+      "description": "Nombre de jours apr\u00e8s l'\u00e9ch\u00e9ance avant le premier rappel"
+    },
     "status": {
       "type": "string",
       "enum": [

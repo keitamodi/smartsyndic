@@ -8,6 +8,8 @@ import StatusBadge from '@/components/StatusBadge';
 import FormDialog from '@/components/FormDialog';
 import WorkspaceRequired from '@/components/WorkspaceRequired';
 import AppelFondsDialog from '@/components/billing/AppelFondsDialog';
+import ImpayesPanel from '@/components/billing/ImpayesPanel';
+import { summaryOf } from '@/lib/impayes';
 import { downloadAvisPdf } from '@/lib/appelFondsPdf';
 import { Button } from '@/components/ui/button';
 import {
@@ -79,7 +81,7 @@ export default function Billing() {
 
   const totalAmount = items.reduce((sum, row) => sum + (Number(row.amount) || 0), 0);
   const totalPaid = items.reduce((sum, row) => sum + (Number(row.paid_amount) || 0), 0);
-  const lateCount = items.filter((row) => row.status === 'en_retard').length;
+  const impayes = summaryOf(items);
 
   const fields = [
     { name: 'reference', label: 'Référence', required: true, placeholder: 'AF-2026-11-001' },
@@ -218,8 +220,19 @@ export default function Billing() {
           { label: 'Montant appelé', value: formatEUR(totalAmount), hint: `${formatNumber(items.length)} document(s)` },
           { label: 'Encaissé', value: formatEUR(totalPaid), hint: totalAmount ? `${Math.round((totalPaid / totalAmount) * 100)} % du total` : '—' },
           { label: 'Reste à recouvrer', value: formatEUR(Math.max(totalAmount - totalPaid, 0)), hint: 'toutes échéances' },
-          { label: 'En retard', value: formatNumber(lateCount), hint: 'relances à effectuer' },
+          {
+            label: 'En retard',
+            value: formatNumber(impayes.late.length),
+            hint: `${formatEUR(impayes.lateTotal, 2)} à relancer`,
+          },
         ]}
+      />
+
+      <ImpayesPanel
+        syndicId={syndicId}
+        invoices={items}
+        onOpenInvoice={setDetail}
+        onChanged={reload}
       />
 
       <TablePanel
@@ -336,6 +349,7 @@ export default function Billing() {
         onOpenChange={setAppelOpen}
         syndicId={syndicId}
         buildings={buildings}
+        invoices={items}
         onGenerated={reload}
       />
 
