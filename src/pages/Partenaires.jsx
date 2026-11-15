@@ -9,7 +9,7 @@ import WorkspaceRequired from '@/components/WorkspaceRequired';
 import { Button } from '@/components/ui/button';
 import PartnerDialog from '@/components/partners/PartnerDialog';
 import PartnerDetail from '@/components/partners/PartnerDetail';
-import CompanyDirectory from '@/components/partners/CompanyDirectory';
+import PartnerSearchHeader from '@/components/partners/PartnerSearchHeader';
 import useCollection from '@/hooks/useCollection';
 import { useWorkspace } from '@/lib/workspace';
 import { base44 } from '@/api/base44Client';
@@ -159,6 +159,28 @@ export default function Partenaires() {
         </Button>
       }
     >
+      <PartnerSearchHeader
+        directory={{
+          knownSirets: items.map((row) => (row.siret || '').replace(/\D/g, '')).filter(Boolean),
+          contacts: contactsBySiret,
+          onAdd: addFromDirectory,
+        }}
+        filters={{
+          search,
+          onSearch: setSearch,
+          status: statusFilter,
+          onStatus: setStatusFilter,
+          statusOptions,
+          statusAllLabel: `Tous les statuts · ${items.length}`,
+          work: workFilter,
+          onWork: setWorkFilter,
+          workOptions,
+          workAllLabel: 'Tous les métiers',
+          onReset: resetFilters,
+          active: filtersActive,
+        }}
+      />
+
       <StatStrip
         items={[
           { label: 'Entreprises', value: formatNumber(items.length), hint: 'au répertoire' },
@@ -182,36 +204,8 @@ export default function Partenaires() {
         ]}
       />
 
-      <CompanyDirectory
-        knownSirets={items
-          .map((row) => (row.siret || '').replace(/\D/g, ''))
-          .filter(Boolean)}
-        contacts={contactsBySiret}
-        onAdd={addFromDirectory}
-      />
-
       <TablePanel
-        search={search}
-        onSearchChange={setSearch}
-        searchPlaceholder="Rechercher une entreprise, une ville, un SIRET…"
-        filters={[
-          {
-            key: 'status',
-            value: statusFilter,
-            onChange: setStatusFilter,
-            placeholder: 'Statut',
-            allLabel: `Tous les statuts · ${items.length}`,
-            options: statusOptions,
-          },
-          {
-            key: 'work_type',
-            value: workFilter,
-            onChange: setWorkFilter,
-            placeholder: 'Métier',
-            allLabel: 'Tous les métiers',
-            options: workOptions,
-          },
-        ]}
+        title="Répertoire des entreprises"
         columns={[
           {
             key: 'name',

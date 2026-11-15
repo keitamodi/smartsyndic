@@ -21,6 +21,7 @@ import { cn } from '@/lib/utils';
 const ALL = '__all__';
 
 export default function TablePanel({
+  title,
   search,
   onSearchChange,
   searchPlaceholder = 'Rechercher…',
@@ -36,7 +37,13 @@ export default function TablePanel({
 }) {
   return (
     <section className="overflow-hidden rounded-[24px] border border-border bg-card">
+      {(title || onSearchChange || filters.length > 0 || actions) && (
       <div className="flex flex-col gap-2 border-b border-border/70 p-3 sm:flex-row sm:items-center sm:gap-2.5">
+        {title && (
+          <span className="shrink-0 px-1 font-heading text-[13px] font-semibold text-foreground">
+            {title}
+          </span>
+        )}
         {onSearchChange && (
           <div className="relative min-w-0 flex-1">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -71,6 +78,7 @@ export default function TablePanel({
 
         {actions && <div className="flex shrink-0 items-center gap-2">{actions}</div>}
       </div>
+      )}
 
       {error && (
         <p className="border-b border-border/70 bg-destructive/5 px-4 py-2.5 text-[12.5px] text-destructive">
