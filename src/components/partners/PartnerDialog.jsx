@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { BadgeCheck, Loader2, Star } from 'lucide-react';
 import {
   Dialog,
@@ -23,6 +23,26 @@ import { base44 } from '@/api/base44Client';
 import { options, PARTNER_STATUS, SIRET_STATUS, WORK_TYPE } from '@/lib/constants';
 import { cn } from '@/lib/utils';
 
+const EMPTY_LEGAL = {
+  legal_name: '',
+  legal_form: '',
+  legal_form_label: '',
+  naf_code: '',
+  naf_label: '',
+  siren: '',
+  address: '',
+  website: '',
+  employees: '',
+  company_created_at: '',
+  dirigeants: [],
+  siret_status: 'non_verifie',
+  siret_checked_at: '',
+  google_status: 'non_verifie',
+  google_place_id: '',
+  validated_by: '',
+  validated_at: '',
+};
+
 const EMPTY = {
   name: '',
   siret: '',
@@ -41,11 +61,13 @@ const EMPTY = {
 
 export default function PartnerDialog({ open, onOpenChange, initial, onSubmit }) {
   const [values, setValues] = useState(EMPTY);
-  const [legal, setLegal] = useState({ siret_status: 'non_verifie', google_status: 'non_verifie' });
+  const [legal, setLegal] = useState(EMPTY_LEGAL);
+  const [contact, setContact] = useState(null);
   const [lookup, setLookup] = useState(null);
   const [verifying, setVerifying] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const checkedSiret = useRef('');
 
   useEffect(() => {
     if (!open) return;
@@ -59,11 +81,18 @@ export default function PartnerDialog({ open, onOpenChange, initial, onSubmit })
         google_reviews_text: (initial.google_reviews || []).join('\n'),
       });
       setLegal({
+        ...EMPTY_LEGAL,
         legal_name: initial.legal_name || '',
         legal_form: initial.legal_form || '',
+        legal_form_label: initial.legal_form_label || '',
         naf_code: initial.naf_code || '',
+        naf_label: initial.naf_label || '',
         siren: initial.siren || '',
         address: initial.address || '',
+        website: initial.website || '',
+        employees: initial.employees || '',
+        company_created_at: initial.company_created_at || '',
+        dirigeants: initial.dirigeants || [],
         siret_status: initial.siret_status || 'non_verifie',
         siret_checked_at: initial.siret_checked_at || '',
         google_status: initial.google_status || 'non_verifie',
@@ -73,25 +102,30 @@ export default function PartnerDialog({ open, onOpenChange, initial, onSubmit })
       });
     } else {
       setValues(EMPTY);
-      setLegal({ siret_status: 'non_verifie', google_status: 'non_verifie' });
+      setLegal(EMPTY_LEGAL);
     }
     setLookup(null);
+    setContact(null);
+    checkedSiret.current = (initial?.siret || '').replace(/\D/g, '');
     setError('');
   }, [open, initial]);
 
   const update = (name, value) => setValues((previous) => ({ ...previous, [name]: value }));
 
-  const verify = async () => {
-    if (!values.siret.replace(/\D/g, '') && !values.name.trim()) {
+  const verify = async (rawSiret) => {
+    const targetSiret = String(rawSiret ?? values.siret);
+    if (!targetSiret.replace(/\D/g, '') && !values.name.trim()) {
       setError("Renseignez un SIRET ou le nom de l'entreprise avant de vérifier.");
       return;
     }
+    checkedSiret.current = targetSiret.replace(/\D/g, '');
     setVerifying(true);
     setError('');
     setLookup(null);
+    setContact(null);
     try {
       const response = await base44.functions.invoke('companyLookup', {
-        siret: values.siret,
+        siret: targetSiret,
         name: values.name,
         postal_code: values.postal_code,
         city: values.city,
@@ -100,20 +134,34 @@ export default function PartnerDialog({ open, onOpenChange, initial, onSubmit })
       if (data.error) throw new Error(data.error);
       setLookup(data);
       if (data.company) {
+        const company = data.company;
+        const found = data.contact || null;
+        setContact(found);
         setValues((previous) => ({
           ...previous,
-          name: previous.name || data.company.name,
-          siret: data.company.siret || previous.siret,
-          city: previous.city || data.company.city,
-          postal_code: previous.postal_code || data.company.postal_code,
+          name: previous.name.trim() ? previous.name : company.name,
+          siret: company.siret || previous.siret,
+          city: previous.city || company.city,
+          postal_code: previous.postal_code || company.postal_code,
+          contact_name: previous.contact_name || company.contact_name || '',
+          phone: previous.phone || found?.phone || '',
+          email: previous.email || found?.email || '',
+          work_types:
+            previous.work_types.length > 0 ? previous.work_types : company.work_types || [],
         }));
         setLegal((previous) => ({
           ...previous,
-          legal_name: data.company.legal_name,
-          legal_form: data.company.legal_form,
-          naf_code: data.company.naf_code,
-          siren: data.company.siren,
-          address: data.company.address,
+          legal_name: company.legal_name,
+          legal_form: company.legal_form,
+          legal_form_label: company.legal_form_label,
+          naf_code: company.naf_code,
+          naf_label: company.naf_label,
+          siren: company.siren,
+          address: company.address,
+          employees: company.employees,
+          company_created_at: company.created_at,
+          dirigeants: company.dirigeants || [],
+          website: previous.website || found?.website || '',
           siret_status: data.siret_status,
           siret_checked_at: data.checked_at,
         }));
@@ -130,6 +178,13 @@ export default function PartnerDialog({ open, onOpenChange, initial, onSubmit })
       setVerifying(false);
     }
   };
+
+  useEffect(() => {
+    const siretDigits = values.siret.replace(/\D/g, '');
+    if (siretDigits.length !== 14 || siretDigits === checkedSiret.current) return undefined;
+    const timer = setTimeout(() => verify(siretDigits), 700);
+    return () => clearTimeout(timer);
+  }, [values.siret]);
 
   const save = async () => {
     if (!values.name.trim()) {
@@ -178,12 +233,18 @@ export default function PartnerDialog({ open, onOpenChange, initial, onSubmit })
             {initial ? "Modifier l'entreprise" : 'Ajouter une entreprise'}
           </DialogTitle>
           <DialogDescription>
-            Vérifiez le SIRET auprès de l’API officielle de l’État, puis validez l’entreprise manuellement pour
-            pouvoir la solliciter.
+            Saisissez le SIRET : la fiche se complète automatiquement avec les données officielles de l’État,
+            puis validez l’entreprise manuellement pour pouvoir la solliciter.
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
+          {verifying && (
+            <p className="flex items-center gap-2 rounded-xl bg-secondary/60 px-3 py-2 text-[12px] text-muted-foreground">
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              Recherche de l’entreprise et de ses coordonnées…
+            </p>
+          )}
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="sm:col-span-2">
               <Label className="mb-1.5 block text-xs text-foreground/80">Nom de l’entreprise *</Label>
@@ -203,7 +264,13 @@ export default function PartnerDialog({ open, onOpenChange, initial, onSubmit })
               />
             </div>
             <div className="flex items-end">
-              <Button type="button" variant="outline" className="w-full gap-1.5" onClick={verify} disabled={verifying}>
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full gap-1.5"
+                onClick={() => verify()}
+                disabled={verifying}
+              >
                 {verifying ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <BadgeCheck className="h-3.5 w-3.5" />}
                 Vérifier le SIRET
               </Button>
@@ -245,6 +312,26 @@ export default function PartnerDialog({ open, onOpenChange, initial, onSubmit })
                 placeholder="devis@toiture-rhone.fr"
               />
             </div>
+            <div className="sm:col-span-2">
+              <Label className="mb-1.5 block text-xs text-foreground/80">Adresse</Label>
+              <Input
+                value={legal.address}
+                onChange={(event) =>
+                  setLegal((previous) => ({ ...previous, address: event.target.value }))
+                }
+                placeholder="12 rue de la République"
+              />
+            </div>
+            <div className="sm:col-span-2">
+              <Label className="mb-1.5 block text-xs text-foreground/80">Site web</Label>
+              <Input
+                value={legal.website}
+                onChange={(event) =>
+                  setLegal((previous) => ({ ...previous, website: event.target.value }))
+                }
+                placeholder="https://www.toiture-rhone.fr"
+              />
+            </div>
           </div>
 
           {lookup && (
@@ -258,11 +345,51 @@ export default function PartnerDialog({ open, onOpenChange, initial, onSubmit })
             >
               <p className="font-medium">{SIRET_STATUS[legal.siret_status] || 'Vérification terminée'}</p>
               {lookup.company ? (
-                <p className="mt-0.5">
-                  {lookup.company.legal_name}
-                  {lookup.company.naf_code ? ` · NAF ${lookup.company.naf_code}` : ''}
-                  {lookup.company.address ? ` · ${lookup.company.address}` : ''}
-                </p>
+                <div className="mt-0.5 space-y-0.5">
+                  <p>{lookup.company.legal_name}</p>
+                  <p className="text-[11.5px] opacity-90">
+                    {[
+                      lookup.company.legal_form_label || lookup.company.legal_form,
+                      lookup.company.naf_label ||
+                        (lookup.company.naf_code ? `NAF ${lookup.company.naf_code}` : ''),
+                      lookup.company.employees,
+                      lookup.company.address,
+                    ]
+                      .filter(Boolean)
+                      .join(' · ')}
+                  </p>
+                  {lookup.company.dirigeants?.length > 0 && (
+                    <p className="text-[11.5px] opacity-90">
+                      Dirigeant(s) : {lookup.company.dirigeants.join(', ')}
+                    </p>
+                  )}
+                  {lookup.company.created_at && (
+                    <p className="text-[11px] opacity-80">
+                      Établissement créé le {lookup.company.created_at}
+                    </p>
+                  )}
+                  {contact ? (
+                    <p className="mt-1 text-[11.5px]">
+                      Téléphone, e-mail et site trouvés sur le web
+                      {contact.source ? ` (${contact.source})` : ''} : à vérifier avant de solliciter
+                      l’entreprise.
+                    </p>
+                  ) : (
+                    <p className="mt-1 text-[11px] opacity-80">
+                      Aucune coordonnée publiée trouvée : complétez le téléphone et l’e-mail à la main.
+                    </p>
+                  )}
+                  {legal.website && (
+                    <a
+                      href={legal.website}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-block break-all text-[11.5px] underline underline-offset-2"
+                    >
+                      {legal.website}
+                    </a>
+                  )}
+                </div>
               ) : (
                 <p className="mt-0.5">Aucun établissement trouvé pour ce SIRET ou ce nom.</p>
               )}

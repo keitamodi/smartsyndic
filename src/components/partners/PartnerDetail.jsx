@@ -1,4 +1,4 @@
-import { BadgeCheck, Mail, MapPin, Phone, Star } from 'lucide-react';
+import { BadgeCheck, Globe, Mail, MapPin, Phone, Star } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -53,6 +53,30 @@ export default function PartnerDetail({ open, onOpenChange, partner, onEdit, onV
             <p className="flex items-start gap-1.5 text-foreground/75">
               <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
               {partner.address}
+            </p>
+          )}
+
+          {(partner.legal_form_label || partner.employees || partner.dirigeants?.length > 0) && (
+            <div className="space-y-0.5 text-[12px] text-foreground/75">
+              {partner.legal_form_label && <p>Forme juridique : {partner.legal_form_label}</p>}
+              {partner.employees && <p>Effectif : {partner.employees}</p>}
+              {partner.dirigeants?.length > 0 && (
+                <p>Dirigeant(s) : {partner.dirigeants.join(', ')}</p>
+              )}
+            </div>
+          )}
+
+          {partner.website && (
+            <p className="flex items-center gap-2 text-foreground/75">
+              <Globe className="h-3.5 w-3.5 text-muted-foreground" />
+              <a
+                href={partner.website}
+                target="_blank"
+                rel="noreferrer"
+                className="break-all hover:text-primary"
+              >
+                {partner.website}
+              </a>
             </p>
           )}
 

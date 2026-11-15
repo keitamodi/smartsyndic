@@ -23,8 +23,32 @@
       "type": "string",
       "description": "Code nature juridique INSEE"
     },
+    "legal_form_label": {
+      "type": "string",
+      "description": "Forme juridique lisible, ex. SAS"
+    },
     "naf_code": {
       "type": "string"
+    },
+    "naf_label": {
+      "type": "string",
+      "description": "Libell\u00e9 de l'activit\u00e9 principale"
+    },
+    "employees": {
+      "type": "string",
+      "description": "Tranche d'effectif salari\u00e9"
+    },
+    "company_created_at": {
+      "type": "string",
+      "format": "date",
+      "description": "Date de cr\u00e9ation de l'\u00e9tablissement"
+    },
+    "dirigeants": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Dirigeants renvoy\u00e9s par l'API, un par entr\u00e9e"
     },
     "address": {
       "type": "string"
@@ -33,6 +57,9 @@
       "type": "string"
     },
     "city": {
+      "type": "string"
+    },
+    "website": {
       "type": "string"
     },
     "contact_name": {
