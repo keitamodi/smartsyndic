@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
-import { Loader2, Mail, Phone, Search } from 'lucide-react';
+import { Loader2, Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import ContactActions from '@/components/messaging/ContactActions';
 import { THREAD_KIND, THREAD_TONE, THREAD_STATUS } from '@/lib/constants';
 import { initials, relativeTime } from '@/lib/format';
 import { cn } from '@/lib/utils';
@@ -12,7 +13,7 @@ const FILTERS = [
   { value: 'clos', label: 'Closes' },
 ];
 
-const phoneHref = (phone) => `tel:${String(phone).replace(/[^+\d]/g, '')}`;
+
 
 export default function ThreadList({ threads, selectedId, onSelect, loading }) {
   const [search, setSearch] = useState('');
@@ -108,25 +109,14 @@ export default function ThreadList({ threads, selectedId, onSelect, loading }) {
                     </div>
                   </div>
                 </button>
-                <div className="flex flex-col items-center justify-center gap-1 pr-1.5">
-                  {thread.contact_phone && (
-                    <a
-                      href={phoneHref(thread.contact_phone)}
-                      title={`Appeler ${thread.contact_name} — ${thread.contact_phone}`}
-                      className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-card hover:text-primary"
-                    >
-                      <Phone className="h-3.5 w-3.5" strokeWidth={1.8} />
-                    </a>
-                  )}
-                  {thread.contact_email && (
-                    <a
-                      href={`mailto:${thread.contact_email}?subject=${encodeURIComponent(`SyndicVibe — ${thread.subject}`)}`}
-                      title={`Écrire à ${thread.contact_name} — ${thread.contact_email}`}
-                      className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-card hover:text-primary"
-                    >
-                      <Mail className="h-3.5 w-3.5" strokeWidth={1.8} />
-                    </a>
-                  )}
+                <div className="flex flex-col items-center justify-center gap-0.5 pr-1">
+                  <ContactActions
+                    compact
+                    phone={thread.contact_phone}
+                    email={thread.contact_email}
+                    name={thread.contact_name}
+                    subject={`SyndicVibe — ${thread.subject}`}
+                  />
                 </div>
               </div>
             </li>
