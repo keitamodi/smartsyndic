@@ -47,6 +47,15 @@ export const DEFAULT_SETTINGS = {
   team_invite_email: true,
   team_scope_restricted: false,
   team_validation_required: true,
+
+  access_copro: 'complet',
+  access_proprio: 'complet',
+  access_tech: 'complet',
+  access_team: 'complet',
+
+  team_access_finance: true,
+  team_access_partners: true,
+  team_access_settings: true,
 };
 
 export const normalizeSettings = (raw = {}) =>
@@ -104,4 +113,10 @@ export const AGENT_RETENTION_OPTIONS = [
   { value: 'jours_90', label: '90 jours' },
   { value: 'jours_365', label: '1 an' },
   { value: 'illimite', label: 'Sans limite' },
+];
+
+export const ACCESS_LEVEL_OPTIONS = [
+  { value: 'complet', label: 'Accès complet' },
+  { value: 'limite', label: 'Accès limité' },
+  { value: 'bloque', label: 'Accès bloqué' },
 ];

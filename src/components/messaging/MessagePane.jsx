@@ -5,6 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import StatusBadge from '@/components/StatusBadge';
+import ContactActions from '@/components/messaging/ContactActions';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { THREAD_KIND, THREAD_STATUS, THREAD_TONE } from '@/lib/constants';
 import { formatDateTime, initials } from '@/lib/format';
@@ -81,11 +82,18 @@ export default function MessagePane({ thread, messages, loading, onSend, onDraft
             <p className="truncate text-[11px] text-muted-foreground">
               {THREAD_KIND[thread.contact_kind] || 'Contact'}
               {thread.building_name ? ` · ${thread.building_name}` : ''}
+              {thread.contact_phone ? ` · ${thread.contact_phone}` : ''}
               {thread.contact_email ? ` · ${thread.contact_email}` : ''}
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <ContactActions
+            email={thread.contact_email}
+            phone={thread.contact_phone}
+            name={thread.contact_name}
+            subject={`SyndicVibe — ${thread.subject}`}
+          />
           <StatusBadge value={thread.status} map={THREAD_STATUS} tone={THREAD_TONE[thread.status]} />
           <Select value={thread.status || 'ouvert'} onValueChange={onStatus}>
             <SelectTrigger className="h-8 w-[132px] text-[11.5px]">

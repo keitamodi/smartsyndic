@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import ContactActions from '@/components/messaging/ContactActions';
 
 export default function NewThreadDialog({ open, onOpenChange, contacts, onCreate }) {
   const [contactId, setContactId] = useState('');
@@ -39,6 +40,8 @@ export default function NewThreadDialog({ open, onOpenChange, contacts, onCreate
       setSaving(false);
     }
   }, [open]);
+
+  const selectedContact = contacts.find((item) => item.id === contactId) || null;
 
   const submit = async () => {
     const contact = contacts.find((item) => item.id === contactId);
@@ -98,6 +101,24 @@ export default function NewThreadDialog({ open, onOpenChange, contacts, onCreate
               </SelectContent>
             </Select>
           </div>
+
+          {selectedContact && (
+            <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border/70 bg-secondary/40 px-3 py-2">
+              <div className="min-w-0 space-y-0.5 text-[11.5px] text-muted-foreground">
+                {selectedContact.phone && <p className="truncate">Tél. {selectedContact.phone}</p>}
+                {selectedContact.email && <p className="truncate">{selectedContact.email}</p>}
+                {!selectedContact.phone && !selectedContact.email && (
+                  <p className="text-[11px]">Aucune coordonnée enregistrée pour ce contact.</p>
+                )}
+              </div>
+              <ContactActions
+                email={selectedContact.email}
+                phone={selectedContact.phone}
+                name={selectedContact.name}
+                subject={`SyndicVibe — ${subject || 'Votre copropriété'}`}
+              />
+            </div>
+          )}
 
           <div className="space-y-1.5">
             <Label className="text-[12px]">Objet</Label>

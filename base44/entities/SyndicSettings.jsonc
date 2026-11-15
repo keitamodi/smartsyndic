@@ -160,6 +160,66 @@
       "type": "boolean",
       "default": false
     },
+    "access_copro": {
+      "type": "string",
+      "enum": [
+        "complet",
+        "limite",
+        "bloque"
+      ],
+      "enumColors": [
+        "green",
+        "yellow",
+        "red"
+      ],
+      "default": "complet",
+      "description": "Niveau d'acc\u00e8s des copropri\u00e9taires"
+    },
+    "access_proprio": {
+      "type": "string",
+      "enum": [
+        "complet",
+        "limite",
+        "bloque"
+      ],
+      "enumColors": [
+        "green",
+        "yellow",
+        "red"
+      ],
+      "default": "complet",
+      "description": "Niveau d'acc\u00e8s des propri\u00e9taires bailleurs"
+    },
+    "access_tech": {
+      "type": "string",
+      "enum": [
+        "complet",
+        "limite",
+        "bloque"
+      ],
+      "enumColors": [
+        "green",
+        "yellow",
+        "red"
+      ],
+      "default": "complet",
+      "description": "Niveau d'acc\u00e8s des techniciens et prestataires"
+    },
+    "access_team": {
+      "type": "string",
+      "enum": [
+        "complet",
+        "limite",
+        "bloque"
+      ],
+      "enumColors": [
+        "green",
+        "yellow",
+        "red"
+      ],
+      "default": "complet",
+      "description": "Niveau d'acc\u00e8s de l'\u00e9quipe du cabinet"
+    },
     "r_copro_tickets": {
       "type": "boolean",
       "default": true
@@ -205,6 +265,18 @@
       "default": true
     },
     "r_tech_reports": {
+      "type": "boolean",
+      "default": true
+    },
+    "team_access_finance": {
+      "type": "boolean",
+      "default": true
+    },
+    "team_access_partners": {
+      "type": "boolean",
+      "default": true
+    },
+    "team_access_settings": {
       "type": "boolean",
       "default": true
     },
