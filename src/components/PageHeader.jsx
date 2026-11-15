@@ -1,7 +1,10 @@
+import BackButton from '@/components/BackButton';
+
 export default function PageHeader({ kicker, title, description, actions }) {
   return (
     <header className="flex flex-col gap-4 border-b border-border/70 pb-5 sm:flex-row sm:items-end sm:justify-between">
       <div className="min-w-0">
+        <BackButton />
         {kicker && <p className="kicker mb-2">{kicker}</p>}
         <h1 className="text-[26px] leading-tight text-foreground sm:text-[32px]">{title}</h1>
         {description && (
