@@ -84,6 +84,20 @@ export default function Messagerie() {
     return list;
   }, [residents, providers, team, buildings]);
 
+  // Les conversations anciennes ne stockent pas le téléphone : on le retrouve via le contact.
+  const enrichedThreads = useMemo(() => {
+    const byName = new Map(contacts.map((contact) => [contact.name?.toLowerCase(), contact]));
+    return threads.map((thread) => {
+      const match = byName.get(thread.contact_name?.toLowerCase());
+      if (!match) return thread;
+      return {
+        ...thread,
+        contact_phone: thread.contact_phone || match.phone || '',
+        contact_email: thread.contact_email || match.email || '',
+      };
+    });
+  }, [threads, contacts]);
+
   useEffect(() => {
     if (!threads.some((thread) => thread.id === selectedId)) {
       setSelectedId(threads[0]?.id || '');
@@ -92,7 +106,7 @@ export default function Messagerie() {
 
   if (!syndicId) return <WorkspaceRequired />;
 
-  const selectedThread = threads.find((thread) => thread.id === selectedId) || null;
+  const selectedThread = enrichedThreads.find((thread) => thread.id === selectedId) || null;
 
   const createThread = async ({ contact, subject, message }) => {
     const thread = await base44.entities.Thread.create({
@@ -164,7 +178,7 @@ export default function Messagerie() {
     <Page
       kicker="Relation"
       title="Messagerie"
-      description="Échangez avec vos copropriétaires, propriétaires bailleurs, techniciens et prestataires. L’agent IA peut préparer une réponse à partir de vos documents."
+      description="Échangez avec vos copropriétaires, propriétaires bailleurs, techniciens et prestataires — par message, par téléphone ou par e-mail. L’agent IA peut préparer une réponse à partir de vos documents."
       actions={
         <Button className="gap-2" onClick={() => setDialogOpen(true)}>
           <Plus className="h-4 w-4" />
@@ -175,7 +189,7 @@ export default function Messagerie() {
     >
       <div className="grid gap-4 lg:grid-cols-[290px_minmax(0,1fr)]">
         <ThreadList
-          threads={threads}
+          threads={enrichedThreads}
           selectedId={selectedId}
           onSelect={setSelectedId}
           loading={loadingThreads}

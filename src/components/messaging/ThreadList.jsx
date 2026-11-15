@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Loader2, Search } from 'lucide-react';
+import { Loader2, Mail, Phone, Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { THREAD_KIND, THREAD_TONE, THREAD_STATUS } from '@/lib/constants';
 import { initials, relativeTime } from '@/lib/format';
@@ -11,6 +11,8 @@ const FILTERS = [
   { value: 'en_attente', label: 'En attente' },
   { value: 'clos', label: 'Closes' },
 ];
+
+const phoneHref = (phone) => `tel:${String(phone).replace(/[^+\d]/g, '')}`;
 
 export default function ThreadList({ threads, selectedId, onSelect, loading }) {
   const [search, setSearch] = useState('');
@@ -74,35 +76,59 @@ export default function ThreadList({ threads, selectedId, onSelect, loading }) {
         <ul className="space-y-0.5">
           {filtered.map((thread) => (
             <li key={thread.id}>
-              <button
-                type="button"
-                onClick={() => onSelect(thread.id)}
+              <div
                 className={cn(
-                  'w-full rounded-xl px-2.5 py-2 text-left transition-colors',
+                  'flex items-stretch rounded-xl transition-colors',
                   selectedId === thread.id ? 'bg-accent' : 'hover:bg-secondary/60',
                 )}
               >
-                <div className="flex items-start gap-2">
-                  <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-secondary font-mono text-[10px] font-semibold text-foreground/70">
-                    {initials(thread.contact_name)}
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-baseline justify-between gap-2">
-                      <p className="truncate text-[12.5px] font-medium text-foreground">{thread.contact_name}</p>
-                      <span className="shrink-0 text-[10px] text-muted-foreground">
-                        {relativeTime(thread.updated_date)}
-                      </span>
-                    </div>
-                    <p className="truncate text-[11px] font-medium text-foreground/70">{thread.subject}</p>
-                    <div className="mt-0.5 flex items-center gap-1.5">
-                      <span className="shrink-0 rounded-full bg-secondary px-1.5 py-0.5 text-[9.5px] uppercase tracking-wide text-muted-foreground">
-                        {THREAD_KIND[thread.contact_kind] || 'Contact'}
-                      </span>
-                      <p className="truncate text-[10.5px] text-muted-foreground">{thread.last_message || '—'}</p>
+                <button
+                  type="button"
+                  onClick={() => onSelect(thread.id)}
+                  className="min-w-0 flex-1 rounded-l-xl px-2.5 py-2 text-left"
+                >
+                  <div className="flex items-start gap-2">
+                    <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-secondary font-mono text-[10px] font-semibold text-foreground/70">
+                      {initials(thread.contact_name)}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-baseline justify-between gap-2">
+                        <p className="truncate text-[12.5px] font-medium text-foreground">{thread.contact_name}</p>
+                        <span className="shrink-0 text-[10px] text-muted-foreground">
+                          {relativeTime(thread.updated_date)}
+                        </span>
+                      </div>
+                      <p className="truncate text-[11px] font-medium text-foreground/70">{thread.subject}</p>
+                      <div className="mt-0.5 flex items-center gap-1.5">
+                        <span className="shrink-0 rounded-full bg-secondary px-1.5 py-0.5 text-[9.5px] uppercase tracking-wide text-muted-foreground">
+                          {THREAD_KIND[thread.contact_kind] || 'Contact'}
+                        </span>
+                        <p className="truncate text-[10.5px] text-muted-foreground">{thread.last_message || '—'}</p>
+                      </div>
                     </div>
                   </div>
+                </button>
+                <div className="flex flex-col items-center justify-center gap-1 pr-1.5">
+                  {thread.contact_phone && (
+                    <a
+                      href={phoneHref(thread.contact_phone)}
+                      title={`Appeler ${thread.contact_name} — ${thread.contact_phone}`}
+                      className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-card hover:text-primary"
+                    >
+                      <Phone className="h-3.5 w-3.5" strokeWidth={1.8} />
+                    </a>
+                  )}
+                  {thread.contact_email && (
+                    <a
+                      href={`mailto:${thread.contact_email}?subject=${encodeURIComponent(`SyndicVibe — ${thread.subject}`)}`}
+                      title={`Écrire à ${thread.contact_name} — ${thread.contact_email}`}
+                      className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-card hover:text-primary"
+                    >
+                      <Mail className="h-3.5 w-3.5" strokeWidth={1.8} />
+                    </a>
+                  )}
                 </div>
-              </button>
+              </div>
             </li>
           ))}
         </ul>
