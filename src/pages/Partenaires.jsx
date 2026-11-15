@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Building2, Mail, Phone, Plus, RotateCcw, Star } from 'lucide-react';
+import { BadgeCheck, Building2, Clock3, Mail, Phone, Plus, RotateCcw, Star } from 'lucide-react';
 import Page from '@/components/Page';
 import StatStrip from '@/components/StatStrip';
 import TablePanel from '@/components/TablePanel';
@@ -159,6 +159,37 @@ export default function Partenaires() {
         </Button>
       }
     >
+      <StatStrip
+        items={[
+          {
+            icon: Building2,
+            label: 'Entreprises',
+            value: formatNumber(items.length),
+            hint: 'au répertoire',
+          },
+          {
+            icon: BadgeCheck,
+            label: 'Validées',
+            value: formatNumber(items.filter((row) => row.status === 'valide').length),
+            hint: 'sollicitables pour un devis',
+          },
+          {
+            icon: Clock3,
+            label: 'À vérifier',
+            value: formatNumber(items.filter((row) => row.status === 'a_verifier').length),
+            hint: 'validation en attente',
+          },
+          {
+            icon: Star,
+            label: 'Avis Google',
+            value: formatNumber(
+              items.reduce((total, row) => total + (row.google_reviews_count || 0), 0),
+            ),
+            hint: 'avis cumulés',
+          },
+        ]}
+      />
+
       <PartnerSearchHeader
         directory={{
           knownSirets: items.map((row) => (row.siret || '').replace(/\D/g, '')).filter(Boolean),
@@ -179,29 +210,6 @@ export default function Partenaires() {
           onReset: resetFilters,
           active: filtersActive,
         }}
-      />
-
-      <StatStrip
-        items={[
-          { label: 'Entreprises', value: formatNumber(items.length), hint: 'au répertoire' },
-          {
-            label: 'Validées',
-            value: formatNumber(items.filter((row) => row.status === 'valide').length),
-            hint: 'sollicitables pour un devis',
-          },
-          {
-            label: 'À vérifier',
-            value: formatNumber(items.filter((row) => row.status === 'a_verifier').length),
-            hint: 'validation en attente',
-          },
-          {
-            label: 'Avis Google',
-            value: formatNumber(
-              items.reduce((total, row) => total + (row.google_reviews_count || 0), 0),
-            ),
-            hint: 'avis cumulés',
-          },
-        ]}
       />
 
       <TablePanel
