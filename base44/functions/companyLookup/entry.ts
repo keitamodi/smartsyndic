@@ -45,6 +45,7 @@ async function findPublicContact(base44, company) {
     const result = await base44.asServiceRole.integrations.Core.InvokeLLM({
       prompt,
       add_context_from_internet: true,
+      model: 'gemini_3_flash',
       response_json_schema: {
         type: 'object',
         properties: {

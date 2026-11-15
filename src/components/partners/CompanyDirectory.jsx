@@ -19,7 +19,7 @@ const TRADES = [
   'Espaces verts',
 ];
 
-export default function CompanyDirectory({ knownSirets = [], onAdd }) {
+export default function CompanyDirectory({ knownSirets = [], contacts = {}, onAdd }) {
   const [query, setQuery] = useState('');
   const [city, setCity] = useState('');
   const [loading, setLoading] = useState(false);
@@ -54,7 +54,8 @@ export default function CompanyDirectory({ knownSirets = [], onAdd }) {
       </h2>
       <p className="mt-1 text-[12.5px] text-muted-foreground">
         Choisissez un métier et une commune : toutes les entreprises actives qui y sont répertoriées
-        s’affichent, prêtes à être ajoutées au répertoire.
+        s’affichent, prêtes à être ajoutées au répertoire. Le bouton « Coordonnées » affiche le
+        téléphone et l’e-mail publiés pour joindre directement l’entreprise.
       </p>
 
       <div className="mt-3 flex flex-wrap gap-1.5">
@@ -119,6 +120,7 @@ export default function CompanyDirectory({ knownSirets = [], onAdd }) {
                   key={item.siret}
                   item={item}
                   known={knownSirets.includes(item.siret)}
+                  savedContact={contacts[item.siret]}
                   onAdd={onAdd}
                 />
               ))}

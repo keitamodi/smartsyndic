@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Building2, Mail, Phone, Plus, Star } from 'lucide-react';
+import { Building2, Mail, Phone, Plus, RotateCcw, Star } from 'lucide-react';
 import Page from '@/components/Page';
 import StatStrip from '@/components/StatStrip';
 import TablePanel from '@/components/TablePanel';
@@ -15,7 +15,7 @@ import { useWorkspace } from '@/lib/workspace';
 import { base44 } from '@/api/base44Client';
 import { logAction } from '@/lib/audit';
 import { formatNumber } from '@/lib/format';
-import { options, PARTNER_STATUS, SIRET_STATUS, WORK_TYPE } from '@/lib/constants';
+import { PARTNER_STATUS, SIRET_STATUS, WORK_TYPE } from '@/lib/constants';
 
 export default function Partenaires() {
   const { syndicId } = useWorkspace();
@@ -40,11 +40,51 @@ export default function Partenaires() {
     return items.filter((row) => {
       if (statusFilter && row.status !== statusFilter) return false;
       if (workFilter && !(row.work_types || []).includes(workFilter)) return false;
-      return `${row.name} ${row.city} ${row.postal_code} ${row.siret} ${row.email}`
+      return `${row.name} ${row.city} ${row.postal_code} ${row.siret} ${row.email} ${row.phone}`
         .toLowerCase()
         .includes(term);
     });
   }, [items, search, statusFilter, workFilter]);
+
+  const contactsBySiret = useMemo(() => {
+    const map = {};
+    items.forEach((row) => {
+      const key = (row.siret || '').replace(/\D/g, '');
+      if (!key || (!row.phone && !row.email && !row.website)) return;
+      map[key] = { phone: row.phone || '', email: row.email || '', website: row.website || '' };
+    });
+    return map;
+  }, [items]);
+
+  const filtersActive = !!(search || statusFilter || workFilter);
+  const resetFilters = () => {
+    setSearch('');
+    setStatusFilter('');
+    setWorkFilter('');
+  };
+
+  const countPartners = (field, value) =>
+    items.filter((row) =>
+      field === 'work_type' ? (row.work_types || []).includes(value) : row[field] === value,
+    ).length;
+
+  const statusOptions = useMemo(
+    () =>
+      Object.entries(PARTNER_STATUS).map(([value, label]) => ({
+        value,
+        label: `${label} · ${countPartners('status', value)}`,
+      })),
+    [items],
+  );
+
+  const workOptions = useMemo(
+    () =>
+      Object.entries(WORK_TYPE).map(([value, label]) => ({
+        value,
+        label: `${label} · ${countPartners('work_type', value)}`,
+      })),
+    [items],
+  );
 
   if (!syndicId) return <WorkspaceRequired />;
 
@@ -146,6 +186,7 @@ export default function Partenaires() {
         knownSirets={items
           .map((row) => (row.siret || '').replace(/\D/g, ''))
           .filter(Boolean)}
+        contacts={contactsBySiret}
         onAdd={addFromDirectory}
       />
 
@@ -159,8 +200,8 @@ export default function Partenaires() {
             value: statusFilter,
             onChange: setStatusFilter,
             placeholder: 'Statut',
-            allLabel: 'Tous les statuts',
-            options: options(PARTNER_STATUS),
+            allLabel: `Tous les statuts · ${items.length}`,
+            options: statusOptions,
           },
           {
             key: 'work_type',
@@ -168,7 +209,7 @@ export default function Partenaires() {
             onChange: setWorkFilter,
             placeholder: 'Métier',
             allLabel: 'Tous les métiers',
-            options: options(WORK_TYPE),
+            options: workOptions,
           },
         ]}
         columns={[
@@ -222,10 +263,31 @@ export default function Partenaires() {
             key: 'contact',
             header: 'Contact',
             render: (row) => (
-              <span className="inline-flex items-center gap-1.5 text-[12px] text-foreground/75">
-                {row.email ? <Mail className="h-3 w-3 text-muted-foreground" /> : <Phone className="h-3 w-3 text-muted-foreground" />}
-                <span className="truncate">{row.email || row.phone || '—'}</span>
-              </span>
+              <div className="space-y-1">
+                {row.phone && (
+                  <a
+                    href={`tel:${row.phone.replace(/[^\d+]/g, '')}`}
+                    onClick={(event) => event.stopPropagation()}
+                    className="flex items-center gap-1.5 text-[12px] font-medium text-foreground/85 hover:text-primary"
+                  >
+                    <Phone className="h-3 w-3 shrink-0 text-muted-foreground" />
+                    <span className="truncate">{row.phone}</span>
+                  </a>
+                )}
+                {row.email && (
+                  <a
+                    href={`mailto:${row.email}`}
+                    onClick={(event) => event.stopPropagation()}
+                    className="flex items-center gap-1.5 text-[11.5px] text-foreground/70 hover:text-primary"
+                  >
+                    <Mail className="h-3 w-3 shrink-0 text-muted-foreground" />
+                    <span className="truncate">{row.email}</span>
+                  </a>
+                )}
+                {!row.phone && !row.email && (
+                  <span className="text-[11.5px] text-muted-foreground">—</span>
+                )}
+              </div>
             ),
           },
           {
@@ -251,18 +313,55 @@ export default function Partenaires() {
         loading={loading}
         error={error}
         onRowClick={(row) => setDetailId(row.id)}
-        empty={{
-          icon: Building2,
-          title: 'Aucune entreprise partenaire',
-          description:
-            'Ajoutez une entreprise, vérifiez son SIRET auprès de l’API de l’État, puis validez-la pour la solliciter.',
-          action: (
-            <Button className="gap-2" onClick={() => openForm()}>
-              <Plus className="h-4 w-4" />
-              Ajouter une entreprise
-            </Button>
-          ),
-        }}
+        footer={
+          <div className="flex flex-wrap items-center justify-between gap-2 text-[11.5px] text-muted-foreground">
+            <span>
+              {formatNumber(rows.length)} entreprise{rows.length > 1 ? 's' : ''} affichée
+              {rows.length > 1 ? 's' : ''}
+              {rows.length !== items.length ? ` sur ${formatNumber(items.length)}` : ''}
+              {statusFilter ? ` · ${PARTNER_STATUS[statusFilter]}` : ''}
+              {workFilter ? ` · ${WORK_TYPE[workFilter]}` : ''}
+            </span>
+            {filtersActive && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 gap-1.5 px-2 text-[11.5px]"
+                onClick={resetFilters}
+              >
+                <RotateCcw className="h-3 w-3" />
+                Réinitialiser les filtres
+              </Button>
+            )}
+          </div>
+        }
+        empty={
+          filtersActive
+            ? {
+                icon: Building2,
+                title: 'Aucune entreprise pour ces filtres',
+                description:
+                  'Aucun partenaire du répertoire ne correspond à la recherche, au statut et au métier sélectionnés.',
+                action: (
+                  <Button variant="outline" className="gap-2" onClick={resetFilters}>
+                    <RotateCcw className="h-4 w-4" />
+                    Réinitialiser les filtres
+                  </Button>
+                ),
+              }
+            : {
+                icon: Building2,
+                title: 'Aucune entreprise partenaire',
+                description:
+                  'Ajoutez une entreprise, vérifiez son SIRET auprès de l’API de l’État, puis validez-la pour la solliciter.',
+                action: (
+                  <Button className="gap-2" onClick={() => openForm()}>
+                    <Plus className="h-4 w-4" />
+                    Ajouter une entreprise
+                  </Button>
+                ),
+              }
+        }
       />
 
       <PartnerDialog
