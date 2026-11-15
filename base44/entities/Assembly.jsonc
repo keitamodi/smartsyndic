@@ -55,6 +55,10 @@
       "type": "string",
       "description": "Ordre du jour, une r\u00e9solution par ligne"
     },
+    "budget_amount": {
+      "type": "number",
+      "description": "Budget pr\u00e9visionnel annuel vot\u00e9 en assembl\u00e9e g\u00e9n\u00e9rale, en euros"
+    },
     "convocation_sent": {
       "type": "boolean"
     },

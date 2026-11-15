@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Banknote, Plus, Receipt } from 'lucide-react';
+import { Banknote, Download, Plus, Receipt, Sparkles } from 'lucide-react';
 import Page from '@/components/Page';
 import StatStrip from '@/components/StatStrip';
 import TablePanel from '@/components/TablePanel';
@@ -7,6 +7,8 @@ import RowActions from '@/components/RowActions';
 import StatusBadge from '@/components/StatusBadge';
 import FormDialog from '@/components/FormDialog';
 import WorkspaceRequired from '@/components/WorkspaceRequired';
+import AppelFondsDialog from '@/components/billing/AppelFondsDialog';
+import { downloadAvisPdf } from '@/lib/appelFondsPdf';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -55,6 +57,7 @@ export default function Billing() {
   const [payment, setPayment] = useState({ amount: '', date: today(), method: 'virement', reference: '' });
   const [paymentError, setPaymentError] = useState('');
   const [savingPayment, setSavingPayment] = useState(false);
+  const [appelOpen, setAppelOpen] = useState(false);
 
   const query = useMemo(() => {
     const next = { syndic_id: syndicId };
@@ -192,16 +195,22 @@ export default function Billing() {
       title="Facturation"
       description="Émettez les appels de fonds et factures par lot, enregistrez les paiements et suivez le recouvrement par immeuble."
       actions={
-        <Button
-          className="gap-2"
-          onClick={() => {
-            setEditing(null);
-            setFormOpen(true);
-          }}
-        >
-          <Plus className="h-4 w-4" />
-          Nouvelle facture
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" className="gap-2" onClick={() => setAppelOpen(true)}>
+            <Sparkles className="h-4 w-4" />
+            Appel de fonds en un clic
+          </Button>
+          <Button
+            className="gap-2"
+            onClick={() => {
+              setEditing(null);
+              setFormOpen(true);
+            }}
+          >
+            <Plus className="h-4 w-4" />
+            Nouvelle facture
+          </Button>
+        </div>
       }
     >
       <StatStrip
@@ -322,6 +331,14 @@ export default function Billing() {
         </section>
       )}
 
+      <AppelFondsDialog
+        open={appelOpen}
+        onOpenChange={setAppelOpen}
+        syndicId={syndicId}
+        buildings={buildings}
+        onGenerated={reload}
+      />
+
       <FormDialog
         open={formOpen}
         onOpenChange={setFormOpen}
@@ -385,6 +402,19 @@ export default function Billing() {
           </div>
 
           <div className="flex flex-wrap justify-end gap-2 border-t border-border/70 pt-3">
+            <Button
+              variant="outline"
+              className="gap-2"
+              onClick={() =>
+                downloadAvisPdf({
+                  invoice: detail,
+                  building: buildings.find((row) => row.id === detail.building_id),
+                })
+              }
+            >
+              <Download className="h-4 w-4" />
+              Avis d’échéance PDF
+            </Button>
             {['brouillon', 'envoyee'].includes(detail?.status) && (
               <Button variant="outline" onClick={() => markSent(detail)}>
                 Marquer comme envoyée

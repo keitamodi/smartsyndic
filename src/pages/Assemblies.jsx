@@ -27,6 +27,7 @@ const EMPTY = {
   location: '',
   status: 'preparation',
   agenda: '',
+  budget_amount: '',
   notes: '',
 };
 
@@ -75,6 +76,14 @@ export default function Assemblies() {
     { name: 'time', label: 'Heure', type: 'time' },
     { name: 'location', label: 'Lieu', span: 2, placeholder: 'Salle des fêtes, 14 avenue des Tilleuls' },
     { name: 'status', label: 'Statut', type: 'select', options: options(ASSEMBLY_STATUS) },
+    {
+      name: 'budget_amount',
+      label: 'Budget prévisionnel voté (€)',
+      type: 'number',
+      min: 0,
+      step: '0.01',
+      placeholder: 'Montant annuel voté en AG',
+    },
     {
       name: 'agenda',
       label: 'Ordre du jour',
