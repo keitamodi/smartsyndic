@@ -70,7 +70,7 @@ export default function Guide() {
       description="De la création de votre espace syndic au suivi des finances : les étapes clés pour prendre en main SyndicVibe."
       actions={
         <Button asChild className="gap-2">
-          <Link to="/">
+          <Link to="/tableau-de-bord">
             Ouvrir le tableau de bord
             <ArrowRight className="h-4 w-4" />
           </Link>

@@ -27,6 +27,7 @@ import Help from '@/pages/Help';
 import About from '@/pages/About';
 import Parametres from '@/pages/Parametres';
 import MonEspace from '@/pages/MonEspace';
+import Accueil from '@/pages/Accueil';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -55,8 +56,9 @@ const AuthenticatedApp = () => {
   return (
     <Routes>
       {/* Add your page Route elements here */}
+      <Route path="/" element={<Accueil />} />
       <Route element={<Layout />}>
-        <Route path="/" element={<Dashboard />} />
+        <Route path="/tableau-de-bord" element={<Dashboard />} />
         <Route path="/immeubles" element={<Buildings />} />
         <Route path="/maintenance" element={<Maintenance />} />
         <Route path="/tickets" element={<Tickets />} />

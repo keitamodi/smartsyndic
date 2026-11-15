@@ -27,7 +27,7 @@ const GROUPS = [
   {
     label: null,
     items: [
-      { to: '/', label: 'Tableau de bord', icon: LayoutDashboard },
+      { to: '/tableau-de-bord', label: 'Tableau de bord', icon: LayoutDashboard },
       { to: '/mon-espace', label: 'Mon espace', icon: UserRound },
     ],
   },
