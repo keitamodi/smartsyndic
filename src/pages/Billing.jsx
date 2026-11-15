@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Banknote, Download, Plus, Receipt, Sparkles } from 'lucide-react';
+import { Banknote, Download, Loader2, Plus, Receipt, Send, Sparkles } from 'lucide-react';
 import Page from '@/components/Page';
 import StatStrip from '@/components/StatStrip';
 import TablePanel from '@/components/TablePanel';
@@ -9,7 +9,9 @@ import FormDialog from '@/components/FormDialog';
 import WorkspaceRequired from '@/components/WorkspaceRequired';
 import AppelFondsDialog from '@/components/billing/AppelFondsDialog';
 import ImpayesPanel from '@/components/billing/ImpayesPanel';
-import { summaryOf } from '@/lib/impayes';
+import { outstandingOf, summaryOf } from '@/lib/impayes';
+import { relancerFacture } from '@/lib/relance';
+import { useToast } from '@/components/ui/use-toast';
 import { downloadAvisPdf } from '@/lib/appelFondsPdf';
 import { Button } from '@/components/ui/button';
 import {
@@ -49,6 +51,8 @@ const today = () => new Date().toISOString().slice(0, 10);
 
 export default function Billing() {
   const { syndicId } = useWorkspace();
+  const { toast } = useToast();
+  const [relanceBusy, setRelanceBusy] = useState(null);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [buildingFilter, setBuildingFilter] = useState('');
@@ -177,6 +181,28 @@ export default function Billing() {
     await reload();
   };
 
+  const relanceInvoice = async (invoice) => {
+    setRelanceBusy(invoice.id);
+    try {
+      const { stage, notified, email } = await relancerFacture({ syndicId, invoice });
+      await reload();
+      toast({
+        title: `${stage.label} envoyée`,
+        description: notified
+          ? `${invoice.reference} · email adressé à ${email}`
+          : `${invoice.reference} · aucun email de copropriétaire : relance enregistrée`,
+      });
+    } catch (failure) {
+      toast({
+        title: 'Relance impossible',
+        description: failure?.message || 'Réessayez dans un instant.',
+        variant: 'destructive',
+      });
+    } finally {
+      setRelanceBusy(null);
+    }
+  };
+
   const invoicePayments = detail ? payments.filter((row) => row.invoice_id === detail.id) : [];
 
   const byBuilding = buildings
@@ -297,17 +323,38 @@ export default function Billing() {
           {
             key: 'actions',
             header: '',
-            className: 'w-12',
+            className: 'w-24',
             render: (row) => (
-              <RowActions
-                onView={() => setDetail(row)}
-                onEdit={() => {
-                  setEditing(row);
-                  setFormOpen(true);
-                }}
-                onDelete={() => removeInvoice(row)}
-                label={row.reference}
-              />
+              <div className="flex items-center justify-end gap-1">
+                {outstandingOf(row) > 0 && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-primary hover:bg-accent"
+                    title={`Relancer le copropriétaire · ${row.reference}`}
+                    disabled={relanceBusy === row.id}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      relanceInvoice(row);
+                    }}
+                  >
+                    {relanceBusy === row.id ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Send className="h-4 w-4" />
+                    )}
+                  </Button>
+                )}
+                <RowActions
+                  onView={() => setDetail(row)}
+                  onEdit={() => {
+                    setEditing(row);
+                    setFormOpen(true);
+                  }}
+                  onDelete={() => removeInvoice(row)}
+                  label={row.reference}
+                />
+              </div>
             ),
           },
         ]}
@@ -416,6 +463,21 @@ export default function Billing() {
           </div>
 
           <div className="flex flex-wrap justify-end gap-2 border-t border-border/70 pt-3">
+            {outstandingOf(detail) > 0 && (
+              <Button
+                variant="outline"
+                className="gap-2"
+                disabled={relanceBusy === detail?.id}
+                onClick={() => relanceInvoice(detail)}
+              >
+                {relanceBusy === detail?.id ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Send className="h-4 w-4" />
+                )}
+                Relancer le copropriétaire
+              </Button>
+            )}
             <Button
               variant="outline"
               className="gap-2"

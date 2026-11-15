@@ -92,7 +92,7 @@ export const reminderMessage = (invoice, stage) => {
   const remaining = formatEUR(outstandingOf(invoice), 2);
   const due = formatDate(invoice?.due_date);
   const days = daysLate(invoice);
-  const delay = days > 0 ? `${days} jour(s) de retard` : 'échéance arrivée à terme';
+  const delay = days > 0 ? `${days} jour(s) de retard` : days === 0 ? 'échéance ce jour' : 'échéance à venir';
   const closing = {
     0: "Merci de régulariser rapidement pour garantir la continuité des services de l'immeuble.",
     1: 'Sans règlement sous 8 jours, une mise en demeure vous sera adressée.',
