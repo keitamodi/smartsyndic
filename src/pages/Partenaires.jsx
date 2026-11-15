@@ -9,7 +9,8 @@ import WorkspaceRequired from '@/components/WorkspaceRequired';
 import { Button } from '@/components/ui/button';
 import PartnerDialog from '@/components/partners/PartnerDialog';
 import PartnerDetail from '@/components/partners/PartnerDetail';
-import PartnerSearchHeader from '@/components/partners/PartnerSearchHeader';
+import CompanyDirectory from '@/components/partners/CompanyDirectory';
+import RepertoireFilters from '@/components/partners/RepertoireFilters';
 import useCollection from '@/hooks/useCollection';
 import { useWorkspace } from '@/lib/workspace';
 import { base44 } from '@/api/base44Client';
@@ -190,27 +191,22 @@ export default function Partenaires() {
         ]}
       />
 
-      <PartnerSearchHeader
-        directory={{
-          knownSirets: items.map((row) => (row.siret || '').replace(/\D/g, '')).filter(Boolean),
-          contacts: contactsBySiret,
-          onAdd: addFromDirectory,
-        }}
-        filters={{
-          search,
-          onSearch: setSearch,
-          status: statusFilter,
-          onStatus: setStatusFilter,
-          statusOptions,
-          statusAllLabel: `Tous les statuts · ${items.length}`,
-          work: workFilter,
-          onWork: setWorkFilter,
-          workOptions,
-          workAllLabel: 'Tous les métiers',
-          onReset: resetFilters,
-          active: filtersActive,
-        }}
-      />
+      <section className="rounded-[22px] border border-border bg-card p-4 shadow-sm sm:p-5">
+        <RepertoireFilters
+          search={search}
+          onSearch={setSearch}
+          status={statusFilter}
+          onStatus={setStatusFilter}
+          statusOptions={statusOptions}
+          statusAllLabel={`Tous les statuts · ${items.length}`}
+          work={workFilter}
+          onWork={setWorkFilter}
+          workOptions={workOptions}
+          workAllLabel="Tous les métiers"
+          onReset={resetFilters}
+          active={filtersActive}
+        />
+      </section>
 
       <TablePanel
         title="Répertoire des entreprises"
@@ -365,6 +361,14 @@ export default function Partenaires() {
               }
         }
       />
+
+      <section className="rounded-[22px] border border-border bg-card p-4 shadow-sm sm:p-5">
+        <CompanyDirectory
+          knownSirets={items.map((row) => (row.siret || '').replace(/\D/g, '')).filter(Boolean)}
+          contacts={contactsBySiret}
+          onAdd={addFromDirectory}
+        />
+      </section>
 
       <PartnerDialog
         open={formOpen}
