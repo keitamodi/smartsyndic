@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { Image } from '@/components/ui/image';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
@@ -42,10 +43,20 @@ export default function LandingHero() {
             votre syndicat dans un espace unique, clair et traçable.
           </p>
 
-          <Button size="lg" className="mt-7 gap-2 rounded-full px-6 text-[13.5px]" onClick={goToForm}>
-            Inscrire mon syndicat
-            <ArrowRight className="h-4 w-4" />
-          </Button>
+          <div className="mt-7 flex flex-col items-center gap-2.5">
+            <Button size="lg" className="gap-2 rounded-full px-6 text-[13.5px]" onClick={goToForm}>
+              Inscription
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+            <Button
+              size="lg"
+              variant="outline"
+              asChild
+              className="rounded-full bg-card/70 px-6 text-[13.5px] text-foreground/80"
+            >
+              <Link to="/login">Connexion</Link>
+            </Button>
+          </div>
         </div>
 
         <div className="mt-12 grid h-[clamp(180px,31vw,376px)] grid-cols-3 gap-3 overflow-hidden sm:gap-4">
