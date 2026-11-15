@@ -19,13 +19,17 @@ import {
   Info,
   Settings,
   ArrowUpRight,
+  UserRound,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const GROUPS = [
   {
     label: null,
-    items: [{ to: '/', label: 'Tableau de bord', icon: LayoutDashboard }],
+    items: [
+      { to: '/', label: 'Tableau de bord', icon: LayoutDashboard },
+      { to: '/mon-espace', label: 'Mon espace', icon: UserRound },
+    ],
   },
   {
     label: 'Gestion',

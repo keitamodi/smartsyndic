@@ -26,6 +26,7 @@ import Guide from '@/pages/Guide';
 import Help from '@/pages/Help';
 import About from '@/pages/About';
 import Parametres from '@/pages/Parametres';
+import MonEspace from '@/pages/MonEspace';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -73,6 +74,7 @@ const AuthenticatedApp = () => {
         <Route path="/aide" element={<Help />} />
         <Route path="/a-propos" element={<About />} />
         <Route path="/parametres" element={<Parametres />} />
+        <Route path="/mon-espace" element={<MonEspace />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
