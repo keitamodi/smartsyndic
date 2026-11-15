@@ -33,7 +33,7 @@ const FAQ = [
   {
     question: 'Comment enregistrer un paiement sur un appel de fonds ?',
     answer:
-      'Ouvrez la facture depuis la rubrique Facturation, cliquez sur « Enregistrer un paiement », puis renseignez le montant, la date et le moyen de paiement. Le statut de la facture est recalculé automatiquement.',
+      'Ouvrez la facture depuis la rubrique Appel de fonds, cliquez sur « Enregistrer un paiement », puis renseignez le montant, la date et le moyen de paiement. Le statut de la facture est recalculé automatiquement.',
   },
   {
     question: 'Que se passe-t-il si une donnée est incomplète ?',

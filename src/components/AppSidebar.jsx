@@ -60,7 +60,7 @@ const GROUPS = [
   },
   {
     label: 'Finances',
-    items: [{ to: '/facturation', label: 'Facturation', icon: Receipt }],
+    items: [{ to: '/facturation', label: 'Appel de fonds', icon: Receipt }],
   },
   {
     label: 'Ressources',

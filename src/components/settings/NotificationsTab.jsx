@@ -8,7 +8,7 @@ import { DIGEST_OPTIONS } from '@/lib/settings';
 const EVENT_ROWS = [
   { field: 'notify_tickets', label: 'Tickets & demandes', description: 'Nouvelle demande, réponse ou changement de statut.' },
   { field: 'notify_interventions', label: 'Interventions', description: 'Planification, rappel avant échéance et clôture.' },
-  { field: 'notify_invoices', label: 'Facturation', description: 'Appel de fonds émis, paiement reçu ou retard détecté.' },
+  { field: 'notify_invoices', label: 'Appel de fonds', description: 'Appel de fonds émis, paiement reçu ou retard détecté.' },
   { field: 'notify_contracts', label: 'Contrats', description: 'Échéance proche et renouvellement tacite.' },
   { field: 'notify_assemblies', label: 'Assemblées générales', description: 'Convocation, ordre du jour et procès-verbal.' },
   { field: 'notify_messages', label: 'Messagerie', description: 'Nouveau message d’un copropriétaire ou d’un prestataire.' },

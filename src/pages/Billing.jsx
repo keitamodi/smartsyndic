@@ -220,7 +220,7 @@ export default function Billing() {
   return (
     <Page
       kicker="Finances"
-      title="Facturation"
+      title="Appel de fonds"
       description="Émettez les appels de fonds et factures par lot, enregistrez les paiements et suivez le recouvrement par immeuble."
       actions={
         <div className="flex flex-wrap gap-2">

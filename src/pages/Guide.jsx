@@ -48,7 +48,7 @@ const MODULES = [
   { icon: FileSignature, title: 'Contrats', text: 'Contrats prestataires, documents joints et alertes de renouvellement.' },
   { icon: Gavel, title: 'AG & Documents', text: 'Convocations, résolutions, votes, PV et bibliothèque de documents.' },
   { icon: Users, title: 'Résidents & équipe', text: 'Annuaire des résidents, rôles internes et périmètres d’accès.' },
-  { icon: Receipt, title: 'Facturation', text: 'Appels de fonds par lot, paiements, recouvrement par immeuble.' },
+  { icon: Receipt, title: 'Appel de fonds', text: 'Appels de fonds par lot, paiements, recouvrement par immeuble.' },
   { icon: ShieldCheck, title: 'Traçabilité', text: 'Historique des actions sensibles et notifications internes.' },
 ];
 
