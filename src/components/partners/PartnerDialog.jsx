@@ -59,7 +59,8 @@ const EMPTY = {
   google_reviews_text: '',
 };
 
-export default function PartnerDialog({ open, onOpenChange, initial, onSubmit }) {
+export default function PartnerDialog({ open, onOpenChange, initial: incoming, prefill, onSubmit }) {
+  const initial = prefill || incoming;
   const [values, setValues] = useState(EMPTY);
   const [legal, setLegal] = useState(EMPTY_LEGAL);
   const [contact, setContact] = useState(null);
@@ -106,9 +107,9 @@ export default function PartnerDialog({ open, onOpenChange, initial, onSubmit })
     }
     setLookup(null);
     setContact(null);
-    checkedSiret.current = (initial?.siret || '').replace(/\D/g, '');
+    checkedSiret.current = prefill ? '' : (incoming?.siret || '').replace(/\D/g, '');
     setError('');
-  }, [open, initial]);
+  }, [open, incoming, prefill]);
 
   const update = (name, value) => setValues((previous) => ({ ...previous, [name]: value }));
 
@@ -230,7 +231,7 @@ export default function PartnerDialog({ open, onOpenChange, initial, onSubmit })
       <DialogContent className="max-h-[92vh] overflow-y-auto thin-scroll sm:max-w-[680px]">
         <DialogHeader>
           <DialogTitle className="text-xl">
-            {initial ? "Modifier l'entreprise" : 'Ajouter une entreprise'}
+            {incoming ? "Modifier l'entreprise" : 'Ajouter une entreprise'}
           </DialogTitle>
           <DialogDescription>
             Saisissez le SIRET : la fiche se complète automatiquement avec les données officielles de l’État,
@@ -518,7 +519,7 @@ export default function PartnerDialog({ open, onOpenChange, initial, onSubmit })
           </Button>
           <Button type="button" onClick={save} disabled={saving} className="gap-2">
             {saving && <Loader2 className="h-4 w-4 animate-spin" />}
-            {initial ? 'Mettre à jour' : 'Enregistrer'}
+            {incoming ? 'Mettre à jour' : 'Enregistrer'}
           </Button>
         </DialogFooter>
       </DialogContent>

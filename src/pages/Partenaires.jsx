@@ -9,6 +9,7 @@ import WorkspaceRequired from '@/components/WorkspaceRequired';
 import { Button } from '@/components/ui/button';
 import PartnerDialog from '@/components/partners/PartnerDialog';
 import PartnerDetail from '@/components/partners/PartnerDetail';
+import CompanyDirectory from '@/components/partners/CompanyDirectory';
 import useCollection from '@/hooks/useCollection';
 import { useWorkspace } from '@/lib/workspace';
 import { base44 } from '@/api/base44Client';
@@ -23,6 +24,7 @@ export default function Partenaires() {
   const [workFilter, setWorkFilter] = useState('');
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState(null);
+  const [prefill, setPrefill] = useState(null);
   const [detailId, setDetailId] = useState(null);
 
   const { items, loading, error, reload } = useCollection(
@@ -93,19 +95,25 @@ export default function Partenaires() {
     await reload();
   };
 
+  const openForm = (partner = null) => {
+    setEditing(partner);
+    setPrefill(null);
+    setFormOpen(true);
+  };
+
+  const addFromDirectory = (company) => {
+    setEditing(null);
+    setPrefill(company);
+    setFormOpen(true);
+  };
+
   return (
     <Page
       kicker="Travaux"
       title="Entreprises partenaires"
       description="Répertoire des entreprises contactées pour vos devis, validées manuellement après vérification du SIRET auprès de l’API de l’État."
       actions={
-        <Button
-          className="gap-2"
-          onClick={() => {
-            setEditing(null);
-            setFormOpen(true);
-          }}
-        >
+        <Button className="gap-2" onClick={() => openForm()}>
           <Plus className="h-4 w-4" />
           Ajouter une entreprise
         </Button>
@@ -132,6 +140,13 @@ export default function Partenaires() {
             hint: 'avis cumulés',
           },
         ]}
+      />
+
+      <CompanyDirectory
+        knownSirets={items
+          .map((row) => (row.siret || '').replace(/\D/g, ''))
+          .filter(Boolean)}
+        onAdd={addFromDirectory}
       />
 
       <TablePanel
@@ -225,10 +240,7 @@ export default function Partenaires() {
             render: (row) => (
               <RowActions
                 onView={() => setDetailId(row.id)}
-                onEdit={() => {
-                  setEditing(row);
-                  setFormOpen(true);
-                }}
+                onEdit={() => openForm(row)}
                 onDelete={() => remove(row)}
                 label={row.name}
               />
@@ -245,13 +257,7 @@ export default function Partenaires() {
           description:
             'Ajoutez une entreprise, vérifiez son SIRET auprès de l’API de l’État, puis validez-la pour la solliciter.',
           action: (
-            <Button
-              className="gap-2"
-              onClick={() => {
-                setEditing(null);
-                setFormOpen(true);
-              }}
-            >
+            <Button className="gap-2" onClick={() => openForm()}>
               <Plus className="h-4 w-4" />
               Ajouter une entreprise
             </Button>
@@ -261,8 +267,12 @@ export default function Partenaires() {
 
       <PartnerDialog
         open={formOpen}
-        onOpenChange={setFormOpen}
+        onOpenChange={(open) => {
+          setFormOpen(open);
+          if (!open) setPrefill(null);
+        }}
         initial={editing}
+        prefill={prefill}
         onSubmit={save}
       />
 
@@ -272,8 +282,7 @@ export default function Partenaires() {
         partner={detail}
         onEdit={(partner) => {
           setDetailId(null);
-          setEditing(partner);
-          setFormOpen(true);
+          openForm(partner);
         }}
         onValidate={validate}
       />
