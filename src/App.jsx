@@ -25,6 +25,7 @@ import Billing from '@/pages/Billing';
 import Guide from '@/pages/Guide';
 import Help from '@/pages/Help';
 import About from '@/pages/About';
+import Parametres from '@/pages/Parametres';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -71,6 +72,7 @@ const AuthenticatedApp = () => {
         <Route path="/guide" element={<Guide />} />
         <Route path="/aide" element={<Help />} />
         <Route path="/a-propos" element={<About />} />
+        <Route path="/parametres" element={<Parametres />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>

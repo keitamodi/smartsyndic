@@ -17,6 +17,7 @@ import {
   BookOpen,
   LifeBuoy,
   Info,
+  Settings,
   ArrowUpRight,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -64,6 +65,10 @@ const GROUPS = [
       { to: '/aide', label: 'Aide', icon: LifeBuoy },
       { to: '/a-propos', label: 'À propos', icon: Info },
     ],
+  },
+  {
+    label: 'Configuration',
+    items: [{ to: '/parametres', label: 'Paramètres', icon: Settings }],
   },
 ];
 

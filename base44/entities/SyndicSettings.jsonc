@@ -1,0 +1,299 @@
+{
+  "name": "SyndicSettings",
+  "type": "object",
+  "properties": {
+    "syndic_id": {
+      "type": "string",
+      "description": "Espace syndic auquel ces r\u00e9glages appartiennent"
+    },
+    "language": {
+      "type": "string",
+      "enum": [
+        "fr",
+        "en"
+      ],
+      "enumColors": [
+        "blue",
+        "purple"
+      ],
+      "default": "fr"
+    },
+    "timezone": {
+      "type": "string",
+      "default": "Europe/Paris"
+    },
+    "date_format": {
+      "type": "string",
+      "default": "dd/MM/yyyy"
+    },
+    "currency": {
+      "type": "string",
+      "default": "EUR"
+    },
+    "notify_tickets": {
+      "type": "boolean",
+      "default": true
+    },
+    "notify_interventions": {
+      "type": "boolean",
+      "default": true
+    },
+    "notify_invoices": {
+      "type": "boolean",
+      "default": true
+    },
+    "notify_contracts": {
+      "type": "boolean",
+      "default": true
+    },
+    "notify_assemblies": {
+      "type": "boolean",
+      "default": true
+    },
+    "notify_messages": {
+      "type": "boolean",
+      "default": true
+    },
+    "email_digest": {
+      "type": "string",
+      "enum": [
+        "realtime",
+        "quotidien",
+        "hebdomadaire",
+        "jamais"
+      ],
+      "enumColors": [
+        "green",
+        "blue",
+        "purple",
+        "gray"
+      ],
+      "default": "quotidien"
+    },
+    "quiet_hours": {
+      "type": "boolean",
+      "default": false
+    },
+    "quiet_start": {
+      "type": "string",
+      "default": "20:00"
+    },
+    "quiet_end": {
+      "type": "string",
+      "default": "08:00"
+    },
+    "msg_signature": {
+      "type": "string"
+    },
+    "msg_auto_reply": {
+      "type": "boolean",
+      "default": false
+    },
+    "msg_auto_reply_text": {
+      "type": "string",
+      "default": "Merci pour votre message, je reviens vers vous sous 48 h."
+    },
+    "msg_notify_residents": {
+      "type": "boolean",
+      "default": true
+    },
+    "msg_archive_closed": {
+      "type": "boolean",
+      "default": false
+    },
+    "agent_mode": {
+      "type": "string",
+      "enum": [
+        "syndic",
+        "resident",
+        "mixte"
+      ],
+      "enumColors": [
+        "blue",
+        "green",
+        "purple"
+      ],
+      "default": "syndic",
+      "description": "Public auquel l'assistant r\u00e9pond en priorit\u00e9"
+    },
+    "agent_tone": {
+      "type": "string",
+      "enum": [
+        "professionnel",
+        "cordial",
+        "pedagogique",
+        "direct"
+      ],
+      "enumColors": [
+        "blue",
+        "green",
+        "yellow",
+        "gray"
+      ],
+      "default": "professionnel"
+    },
+    "agent_sources": {
+      "type": "boolean",
+      "default": true
+    },
+    "agent_summary": {
+      "type": "boolean",
+      "default": true
+    },
+    "agent_retention": {
+      "type": "string",
+      "enum": [
+        "jours_30",
+        "jours_90",
+        "jours_365",
+        "illimite"
+      ],
+      "enumColors": [
+        "gray",
+        "blue",
+        "purple",
+        "green"
+      ],
+      "default": "jours_90"
+    },
+    "agent_copy_email": {
+      "type": "boolean",
+      "default": false
+    },
+    "r_copro_tickets": {
+      "type": "boolean",
+      "default": true
+    },
+    "r_copro_docs": {
+      "type": "boolean",
+      "default": true
+    },
+    "r_copro_finances": {
+      "type": "boolean",
+      "default": false
+    },
+    "r_copro_agenda": {
+      "type": "boolean",
+      "default": true
+    },
+    "r_proprio_tickets": {
+      "type": "boolean",
+      "default": true
+    },
+    "r_proprio_docs": {
+      "type": "boolean",
+      "default": true
+    },
+    "r_proprio_finances": {
+      "type": "boolean",
+      "default": true
+    },
+    "r_proprio_agenda": {
+      "type": "boolean",
+      "default": true
+    },
+    "r_tech_interventions": {
+      "type": "boolean",
+      "default": true
+    },
+    "r_tech_tickets": {
+      "type": "boolean",
+      "default": true
+    },
+    "r_tech_docs": {
+      "type": "boolean",
+      "default": true
+    },
+    "r_tech_reports": {
+      "type": "boolean",
+      "default": true
+    },
+    "team_default_role": {
+      "type": "string",
+      "enum": [
+        "administrateur",
+        "directeur",
+        "gestionnaire",
+        "assistant",
+        "comptable"
+      ],
+      "enumColors": [
+        "red",
+        "purple",
+        "blue",
+        "green",
+        "yellow"
+      ],
+      "default": "gestionnaire"
+    },
+    "team_invite_email": {
+      "type": "boolean",
+      "default": true
+    },
+    "team_scope_restricted": {
+      "type": "boolean",
+      "default": false
+    },
+    "team_validation_required": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "syndic_id"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "user"
+          }
+        }
+      ]
+    },
+    "create": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "user"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}
