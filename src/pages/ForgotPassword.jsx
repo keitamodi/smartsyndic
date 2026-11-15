@@ -16,9 +16,9 @@ export default function ForgotPassword() {
     e.preventDefault();
     setLoading(true);
     try {
-      await base44.auth.resetPasswordRequest(email);
+      await base44.auth.resetPasswordRequest(email.trim());
     } catch {
-      // Always show success regardless
+      // On affiche toujours la même confirmation, quel que soit le résultat.
     } finally {
       setLoading(false);
       setSent(true);
@@ -28,45 +28,54 @@ export default function ForgotPassword() {
   return (
     <AuthLayout
       icon={Mail}
-      title="Reset password"
-      subtitle="We'll send you a link to reset it"
+      title="Mot de passe oublié"
+      subtitle="Nous vous envoyons un lien pour en choisir un nouveau."
       footer={
-        <Link to="/login" className="text-primary font-medium hover:underline">
-          <ArrowLeft className="w-3 h-3 inline mr-1" />Back to log in
+        <Link to="/login" className="inline-flex items-center gap-1 font-medium text-primary hover:underline">
+          <ArrowLeft className="h-3 w-3" />
+          Retour à la connexion
         </Link>
       }
     >
       {sent ? (
-        <p className="text-sm text-foreground text-center">
-          If an account exists with that email, you'll receive a password reset link shortly.
-        </p>
+        <div className="space-y-3 text-center">
+          <p className="text-[13px] leading-relaxed text-foreground">
+            Si un compte existe avec cette adresse, vous recevrez un lien de réinitialisation dans quelques minutes.
+          </p>
+          <p className="text-[11.5px] leading-relaxed text-muted-foreground">
+            Pensez à vérifier vos indésirables. Le lien est valable une seule fois.
+          </p>
+        </div>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email">Email address</Label>
+            <Label htmlFor="email">Adresse email</Label>
             <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" aria-hidden="true" />
+              <Mail
+                className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+                aria-hidden="true"
+              />
               <Input
                 id="email"
                 type="email"
                 autoComplete="email"
                 autoFocus
-                placeholder="you@example.com"
+                placeholder="vous@cabinet.fr"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="pl-10 h-12"
+                className="h-11 pl-10"
                 required
               />
             </div>
           </div>
-          <Button type="submit" className="w-full h-12 font-medium" disabled={loading}>
+          <Button type="submit" className="h-11 w-full font-medium" disabled={loading}>
             {loading ? (
               <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Sending...
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Envoi…
               </>
             ) : (
-              "Send reset link"
+              "Envoyer le lien"
             )}
           </Button>
         </form>

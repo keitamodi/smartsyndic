@@ -13,6 +13,9 @@ import AuthLayout from "@/components/AuthLayout";
 import GoogleIcon from "@/components/GoogleIcon";
 import { toast } from "@/components/ui/use-toast";
 import { safeReturnTo } from "@/lib/authReturnTo";
+import { authErrorMessage } from "@/lib/authErrors";
+
+const HOME_PATH = "/tableau-de-bord";
 
 export default function Register() {
   const [email, setEmail] = useState("");
@@ -23,21 +26,24 @@ export default function Register() {
   const [showOtp, setShowOtp] = useState(false);
   const [otpCode, setOtpCode] = useState("");
   const [mfaChallenge, setMfaChallenge] = useState(null);
-  const loginPath = "/login" + (safeReturnTo() !== "/" ? "?returnTo=" + encodeURIComponent(safeReturnTo()) : "");
+
+  const raw = safeReturnTo();
+  const returnTo = raw === "/" ? HOME_PATH : raw;
+  const loginPath = "/login" + (returnTo !== HOME_PATH ? "?returnTo=" + encodeURIComponent(returnTo) : "");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     if (password !== confirmPassword) {
-      setError("Passwords do not match");
+      setError("Les mots de passe ne correspondent pas.");
       return;
     }
     setLoading(true);
     try {
-      await base44.auth.register({ email, password });
+      await base44.auth.register({ email: email.trim(), password });
       setShowOtp(true);
     } catch (err) {
-      setError(err.message || "Registration failed");
+      setError(authErrorMessage(err, "La création du compte a échoué."));
     } finally {
       setLoading(false);
     }
@@ -47,7 +53,7 @@ export default function Register() {
     setError("");
     setLoading(true);
     try {
-      const result = await base44.auth.verifyOtp({ email, otpCode });
+      const result = await base44.auth.verifyOtp({ email: email.trim(), otpCode });
       if (result?.mfa_required) {
         setMfaChallenge(result);
         return;
@@ -55,9 +61,9 @@ export default function Register() {
       if (result?.access_token) {
         base44.auth.setToken(result.access_token);
       }
-      window.location.href = safeReturnTo();
+      window.location.href = returnTo;
     } catch (err) {
-      setError(err.message || "Invalid verification code");
+      setError(authErrorMessage(err, "Code invalide ou expiré."));
     } finally {
       setLoading(false);
     }
@@ -66,37 +72,45 @@ export default function Register() {
   const handleResend = async () => {
     setError("");
     try {
-      await base44.auth.resendOtp(email);
+      await base44.auth.resendOtp(email.trim());
       toast({
-        title: "Code sent",
-        description: "Check your email for the new code.",
+        title: "Code envoyé",
+        description: "Consultez votre boîte email pour le nouveau code.",
       });
     } catch (err) {
-      setError(err.message || "Failed to resend code");
+      setError(authErrorMessage(err, "Le renvoi du code a échoué."));
     }
   };
 
   const handleGoogle = async () => {
-    try { await signInWithProvider("google", safeReturnTo()); }
-    catch (err) { setError(err.message || 'Unable to sign in with Google'); }
+    try {
+      await signInWithProvider("google", returnTo);
+    } catch (err) {
+      setError(authErrorMessage(err, 'La connexion avec Google a échoué.'));
+    }
   };
 
-  // The account is verified; the second sign-in step replaces the whole page and finishes signing in.
-  if (mfaChallenge) return <MfaScreen><MfaFlow challenge={mfaChallenge} returnTo={safeReturnTo()} /></MfaScreen>;
+  if (mfaChallenge) {
+    return (
+      <MfaScreen>
+        <MfaFlow challenge={mfaChallenge} returnTo={returnTo} />
+      </MfaScreen>
+    );
+  }
 
   if (showOtp) {
     return (
-      <AuthLayout
-        icon={Mail}
-        title="Verify your email"
-        subtitle={`We sent a code to ${email}`}
-      >
+      <AuthLayout icon={Mail} title="Vérifiez votre email" subtitle={`Code envoyé à ${email}`}>
         {error && (
-          <div className="mb-4 p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
+          <div
+            role="alert"
+            className="mb-4 rounded-xl bg-destructive/10 px-3 py-2 text-[12.5px] leading-relaxed text-destructive"
+          >
             {error}
           </div>
         )}
-        <div className="flex justify-center mb-6">
+
+        <div className="mb-6 flex justify-center">
           <InputOTP
             maxLength={6}
             value={otpCode}
@@ -114,26 +128,37 @@ export default function Register() {
             </InputOTPGroup>
           </InputOTP>
         </div>
-        <Button
-          className="w-full h-12 font-medium"
-          onClick={handleVerify}
-          disabled={loading || otpCode.length < 6}
-        >
+
+        <Button className="h-11 w-full font-medium" onClick={handleVerify} disabled={loading || otpCode.length < 6}>
           {loading ? (
             <>
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              Verifying...
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Vérification…
             </>
           ) : (
-            "Verify"
+            "Valider mon email"
           )}
         </Button>
-        <p className="text-center text-sm text-muted-foreground mt-4">
-          Didn't receive the code?{" "}
-          <button onClick={handleResend} className="text-primary font-medium hover:underline">
-            Resend
+
+        <div className="mt-4 flex flex-col items-center gap-2 text-[12px] text-muted-foreground">
+          <p>
+            Vous n’avez rien reçu ?{" "}
+            <button type="button" onClick={handleResend} className="font-medium text-primary hover:underline">
+              Renvoyer le code
+            </button>
+          </p>
+          <button
+            type="button"
+            onClick={() => {
+              setShowOtp(false);
+              setOtpCode("");
+              setError("");
+            }}
+            className="hover:text-foreground hover:underline"
+          >
+            Changer d’adresse email
           </button>
-        </p>
+        </div>
       </AuthLayout>
     );
   }
@@ -141,40 +166,36 @@ export default function Register() {
   return (
     <AuthLayout
       icon={UserPlus}
-      title="Create your account"
-      subtitle="Sign up to get started"
+      title="Créer un compte"
+      subtitle="Ouvrez l’accès à l’espace de votre syndicat."
       footer={
         <>
-          Already have an account?{" "}
-          <Link
-            to={loginPath}
-            className="text-primary font-medium hover:underline"
-          >
-            Log in
+          Vous avez déjà un compte ?{" "}
+          <Link to={loginPath} className="font-medium text-primary hover:underline">
+            Se connecter
           </Link>
         </>
       }
     >
-      <Button
-        variant="outline"
-        className="w-full h-12 text-sm font-medium mb-6"
-        onClick={handleGoogle}
-      >
-        <GoogleIcon className="w-5 h-5 mr-2" />
-        Continue with Google
+      <Button variant="outline" className="mb-6 h-11 w-full text-[13px] font-medium" onClick={handleGoogle}>
+        <GoogleIcon className="mr-2 h-5 w-5" />
+        Continuer avec Google
       </Button>
 
       <div className="relative mb-6">
         <div className="absolute inset-0 flex items-center">
           <div className="w-full border-t border-border" />
         </div>
-        <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-card px-3 text-muted-foreground">or</span>
+        <div className="relative flex justify-center text-[10px] uppercase tracking-[0.16em]">
+          <span className="bg-card px-3 text-muted-foreground">ou</span>
         </div>
       </div>
 
       {error && (
-        <div className="mb-4 p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
+        <div
+          role="alert"
+          className="mb-4 rounded-xl bg-destructive/10 px-3 py-2 text-[12.5px] leading-relaxed text-destructive"
+        >
           {error}
         </div>
       )}
@@ -183,24 +204,31 @@ export default function Register() {
         <div className="space-y-2">
           <Label htmlFor="email">Email</Label>
           <div className="relative">
-            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" aria-hidden="true" />
+            <Mail
+              className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+              aria-hidden="true"
+            />
             <Input
               id="email"
               type="email"
               autoComplete="email"
               autoFocus
-              placeholder="you@example.com"
+              placeholder="vous@cabinet.fr"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="pl-10 h-12"
+              className="h-11 pl-10"
               required
             />
           </div>
         </div>
+
         <div className="space-y-2">
-          <Label htmlFor="password">Password</Label>
+          <Label htmlFor="password">Mot de passe</Label>
           <div className="relative">
-            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" aria-hidden="true" />
+            <Lock
+              className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+              aria-hidden="true"
+            />
             <Input
               id="password"
               type="password"
@@ -208,15 +236,19 @@ export default function Register() {
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="pl-10 h-12"
+              className="h-11 pl-10"
               required
             />
           </div>
         </div>
+
         <div className="space-y-2">
-          <Label htmlFor="confirm">Confirm Password</Label>
+          <Label htmlFor="confirm">Confirmer le mot de passe</Label>
           <div className="relative">
-            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" aria-hidden="true" />
+            <Lock
+              className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+              aria-hidden="true"
+            />
             <Input
               id="confirm"
               type="password"
@@ -224,22 +256,27 @@ export default function Register() {
               placeholder="••••••••"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className="pl-10 h-12"
+              className="h-11 pl-10"
               required
             />
           </div>
         </div>
-        <Button type="submit" className="w-full h-12 font-medium" disabled={loading}>
+
+        <Button type="submit" className="h-11 w-full font-medium" disabled={loading}>
           {loading ? (
             <>
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              Creating account...
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Création du compte…
             </>
           ) : (
-            "Create account"
+            "Créer mon compte"
           )}
         </Button>
       </form>
+
+      <p className="mt-4 text-center text-[11.5px] leading-relaxed text-muted-foreground">
+        Un code de vérification à 6 chiffres vous sera envoyé par email.
+      </p>
     </AuthLayout>
   );
 }

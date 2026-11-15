@@ -1,7 +1,7 @@
 import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
@@ -28,9 +28,15 @@ import About from '@/pages/About';
 import Parametres from '@/pages/Parametres';
 import MonEspace from '@/pages/MonEspace';
 import Accueil from '@/pages/Accueil';
+import Login from '@/pages/Login';
+import Register from '@/pages/Register';
+import ForgotPassword from '@/pages/ForgotPassword';
+import ResetPassword from '@/pages/ResetPassword';
+import Mfa from '@/pages/Mfa';
+import ProtectedRoute from '@/components/ProtectedRoute';
 
 const AuthenticatedApp = () => {
-  const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
+  const { isLoadingAuth, isLoadingPublicSettings, authError } = useAuth();
 
   // Show loading spinner while checking app public settings or auth
   if (isLoadingPublicSettings || isLoadingAuth) {
@@ -46,9 +52,8 @@ const AuthenticatedApp = () => {
     if (authError.type === 'user_not_registered') {
       return <UserNotRegisteredError />;
     } else if (authError.type === 'auth_required') {
-      // Redirect to login automatically
-      navigateToLogin();
-      return null;
+      // Redirection gérée par le routeur : évite un double aller-retour avec le SDK.
+      return <Navigate to="/login" replace />;
     }
   }
 
@@ -57,26 +62,34 @@ const AuthenticatedApp = () => {
     <Routes>
       {/* Add your page Route elements here */}
       <Route path="/" element={<Accueil />} />
-      <Route element={<Layout />}>
-        <Route path="/tableau-de-bord" element={<Dashboard />} />
-        <Route path="/immeubles" element={<Buildings />} />
-        <Route path="/maintenance" element={<Maintenance />} />
-        <Route path="/tickets" element={<Tickets />} />
-        <Route path="/contrats" element={<Contracts />} />
-        <Route path="/assemblees" element={<Assemblies />} />
-        <Route path="/agent-ia" element={<AgentIA />} />
-        <Route path="/messagerie" element={<Messagerie />} />
-        <Route path="/residents" element={<Residents />} />
-        <Route path="/prestataires" element={<Providers />} />
-        <Route path="/devis" element={<Devis />} />
-        <Route path="/partenaires" element={<Partenaires />} />
-        <Route path="/equipe" element={<Team />} />
-        <Route path="/facturation" element={<Billing />} />
-        <Route path="/guide" element={<Guide />} />
-        <Route path="/aide" element={<Help />} />
-        <Route path="/a-propos" element={<About />} />
-        <Route path="/parametres" element={<Parametres />} />
-        <Route path="/mon-espace" element={<MonEspace />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
+      <Route path="/mfa" element={<Mfa />} />
+
+      <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
+        <Route element={<Layout />}>
+          <Route path="/tableau-de-bord" element={<Dashboard />} />
+          <Route path="/immeubles" element={<Buildings />} />
+          <Route path="/maintenance" element={<Maintenance />} />
+          <Route path="/tickets" element={<Tickets />} />
+          <Route path="/contrats" element={<Contracts />} />
+          <Route path="/assemblees" element={<Assemblies />} />
+          <Route path="/agent-ia" element={<AgentIA />} />
+          <Route path="/messagerie" element={<Messagerie />} />
+          <Route path="/residents" element={<Residents />} />
+          <Route path="/prestataires" element={<Providers />} />
+          <Route path="/devis" element={<Devis />} />
+          <Route path="/partenaires" element={<Partenaires />} />
+          <Route path="/equipe" element={<Team />} />
+          <Route path="/facturation" element={<Billing />} />
+          <Route path="/guide" element={<Guide />} />
+          <Route path="/aide" element={<Help />} />
+          <Route path="/a-propos" element={<About />} />
+          <Route path="/parametres" element={<Parametres />} />
+          <Route path="/mon-espace" element={<MonEspace />} />
+        </Route>
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>

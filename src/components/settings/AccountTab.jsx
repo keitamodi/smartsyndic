@@ -61,7 +61,7 @@ export default function AccountTab() {
           <Button
             variant="outline"
             className="shrink-0 gap-2 text-foreground"
-            onClick={() => base44.auth.logout()}
+            onClick={() => base44.auth.logout('/login')}
           >
             <LogOut className="h-4 w-4" />
             Déconnexion

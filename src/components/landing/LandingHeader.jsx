@@ -1,7 +1,9 @@
-import { base44 } from '@/api/base44Client';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/lib/AuthContext';
 
 export default function LandingHeader() {
+  const { isAuthenticated } = useAuth();
   const goToForm = () => document.getElementById('inscription')?.scrollIntoView({ behavior: 'smooth' });
 
   return (
@@ -21,10 +23,12 @@ export default function LandingHeader() {
           <Button
             variant="ghost"
             size="sm"
+            asChild
             className="hidden text-[12.5px] text-foreground/70 sm:inline-flex"
-            onClick={() => base44.auth.redirectToLogin('/tableau-de-bord')}
           >
-            Se connecter
+            <Link to={isAuthenticated ? '/tableau-de-bord' : '/login'}>
+              {isAuthenticated ? 'Mon espace' : 'Se connecter'}
+            </Link>
           </Button>
           <Button size="sm" className="text-[12.5px]" onClick={goToForm}>
             Inscrire mon syndicat

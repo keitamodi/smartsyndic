@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Building2, Menu, Plus } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Building2, LogOut, Menu, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -10,6 +11,14 @@ import {
 } from '@/components/ui/select';
 import SyndicFormDialog from '@/components/SyndicFormDialog';
 import NotificationsMenu from '@/components/NotificationsMenu';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { useWorkspace } from '@/lib/workspace';
 import { base44 } from '@/api/base44Client';
 import { initials } from '@/lib/format';
@@ -82,14 +91,53 @@ export default function TopBar({ onMenu }) {
         <div className="ml-auto flex items-center gap-1.5">
           <NotificationsMenu />
 
-          <div className="ml-1 flex items-center gap-2 rounded-full border border-border/70 bg-card py-1 pl-1 pr-3">
-            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-accent font-mono text-[10px] font-semibold text-accent-foreground">
-              {initials(user?.full_name || user?.email || 'Utilisateur')}
-            </span>
-            <span className="hidden max-w-[140px] truncate text-[12.5px] text-foreground/80 sm:block">
-              {user?.full_name || syndic?.name || 'Mon espace'}
-            </span>
-          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                type="button"
+                className="ml-1 flex items-center gap-2 rounded-full border border-border/70 bg-card py-1 pl-1 pr-3 transition-colors hover:bg-secondary/60"
+                aria-label="Menu du compte"
+              >
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-accent font-mono text-[10px] font-semibold text-accent-foreground">
+                  {initials(user?.full_name || user?.email || 'Utilisateur')}
+                </span>
+                <span className="hidden max-w-[140px] truncate text-[12.5px] text-foreground/80 sm:block">
+                  {user?.full_name || syndic?.name || 'Mon espace'}
+                </span>
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-60">
+              <DropdownMenuLabel className="space-y-0.5">
+                <span className="block truncate text-[13px] font-medium">
+                  {user?.full_name || 'Mon compte'}
+                </span>
+                {user?.email && (
+                  <span className="block truncate font-mono text-[10.5px] font-normal text-muted-foreground">
+                    {user.email}
+                  </span>
+                )}
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <Link to="/mon-espace" className="cursor-pointer">
+                  Mon espace
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/parametres" className="cursor-pointer">
+                  Paramètres
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onSelect={() => base44.auth.logout('/login')}
+                className="text-destructive focus:text-destructive"
+              >
+                <LogOut className="mr-2 h-4 w-4" />
+                Se déconnecter
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 

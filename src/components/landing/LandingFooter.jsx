@@ -1,4 +1,4 @@
-import { base44 } from '@/api/base44Client';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 
 export default function LandingFooter() {
@@ -13,13 +13,8 @@ export default function LandingFooter() {
         </div>
         <div className="flex items-center gap-3">
           <p className="text-[11.5px] text-muted-foreground">© {new Date().getFullYear()} SyndicVibe</p>
-          <Button
-            variant="outline"
-            size="sm"
-            className="text-[12px]"
-            onClick={() => base44.auth.redirectToLogin('/tableau-de-bord')}
-          >
-            Espace syndic
+          <Button variant="outline" size="sm" asChild className="text-[12px]">
+            <Link to="/login">Espace syndic</Link>
           </Button>
         </div>
       </div>

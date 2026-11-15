@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -79,16 +80,20 @@ export default function SyndicSignupForm() {
           Merci {form.contact_name.split(' ')[0] || ''} — votre fiche d’inscription est bien reçue. Nous revenons vers
           vous sous 24 h ouvrées pour ouvrir l’espace de {form.syndic_name}.
         </p>
-        <Button
-          variant="outline"
-          className="mt-2"
-          onClick={() => {
-            setForm(EMPTY);
-            setDone(false);
-          }}
-        >
-          Inscrire un autre syndicat
-        </Button>
+        <div className="mt-2 flex flex-wrap items-center gap-3">
+          <Button
+            variant="outline"
+            onClick={() => {
+              setForm(EMPTY);
+              setDone(false);
+            }}
+          >
+            Inscrire un autre syndicat
+          </Button>
+          <Link to="/login" className="text-[12.5px] font-medium text-primary hover:underline">
+            J’ai déjà un espace, me connecter
+          </Link>
+        </div>
       </div>
     );
   }
