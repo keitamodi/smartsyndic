@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { HardHat, Mail, Phone, Plus, Star } from 'lucide-react';
+import { HardHat, Mail, Phone, Plus, Star, UserPlus } from 'lucide-react';
 import Page from '@/components/Page';
 import StatStrip from '@/components/StatStrip';
 import TablePanel from '@/components/TablePanel';
@@ -7,8 +7,10 @@ import RowActions from '@/components/RowActions';
 import StatusBadge from '@/components/StatusBadge';
 import FormDialog from '@/components/FormDialog';
 import ProviderAccessCard from '@/components/providers/ProviderAccessCard';
+import InviteMemberDialog from '@/components/access/InviteMemberDialog';
 import WorkspaceRequired from '@/components/WorkspaceRequired';
 import { Button } from '@/components/ui/button';
+import { DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import {
   Dialog,
   DialogContent,
@@ -63,6 +65,8 @@ export default function Providers() {
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [detail, setDetail] = useState(null);
+  const [inviteOpen, setInviteOpen] = useState(false);
+  const [invitePersonId, setInvitePersonId] = useState('');
 
   const query = useMemo(() => {
     const next = { syndic_id: syndicId };
@@ -96,22 +100,42 @@ export default function Providers() {
     await reload();
   };
 
+  const openInvite = (row) => {
+    setInvitePersonId(row?.id || '');
+    setInviteOpen(true);
+  };
+
+  const invitePeople = items.map((row) => ({
+    id: row.id,
+    label: row.name,
+    kind: 'technicien',
+    email: row.email,
+    phone: row.phone,
+    memberType: 'provider',
+  }));
+
   return (
     <Page
       kicker="Relation"
       title="Techniciens & prestataires"
       description="Gérez vos intervenants internes et externes, leurs coordonnées et leurs spécialités."
       actions={
-        <Button
-          className="gap-2"
-          onClick={() => {
-            setEditing(null);
-            setFormOpen(true);
-          }}
-        >
-          <Plus className="h-4 w-4" />
-          Ajouter un intervenant
-        </Button>
+        <>
+          <Button variant="outline" className="gap-2" onClick={() => openInvite(null)}>
+            <UserPlus className="h-4 w-4" />
+            Inviter
+          </Button>
+          <Button
+            className="gap-2"
+            onClick={() => {
+              setEditing(null);
+              setFormOpen(true);
+            }}
+          >
+            <Plus className="h-4 w-4" />
+            Ajouter un intervenant
+          </Button>
+        </>
       }
     >
       <StatStrip
@@ -199,7 +223,12 @@ export default function Providers() {
                 }}
                 onDelete={() => remove(row)}
                 label={row.name}
-              />
+              >
+                <DropdownMenuItem onSelect={() => openInvite(row)}>
+                  <UserPlus className="mr-2 h-3.5 w-3.5" />
+                  Inviter
+                </DropdownMenuItem>
+              </RowActions>
             ),
           },
         ]}
@@ -270,6 +299,18 @@ export default function Providers() {
           {detail?.notes && <p className="text-[12.5px] text-foreground/75">{detail.notes}</p>}
         </DialogContent>
       </Dialog>
+
+      <InviteMemberDialog
+        open={inviteOpen}
+        onOpenChange={setInviteOpen}
+        syndicId={syndicId}
+        people={invitePeople}
+        defaultKind="technicien"
+        memberType="provider"
+        initialPersonId={invitePersonId}
+        title="Inviter un technicien ou un prestataire"
+        description="Choisissez la fiche à ouvrir, puis envoyez son lien personnel par email, SMS ou WhatsApp."
+      />
     </Page>
   );
 }

@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Mail, Phone, Plus, Users } from 'lucide-react';
+import { Mail, Phone, Plus, UserPlus, Users } from 'lucide-react';
 import Page from '@/components/Page';
 import StatStrip from '@/components/StatStrip';
 import TablePanel from '@/components/TablePanel';
@@ -7,9 +7,11 @@ import RowActions from '@/components/RowActions';
 import StatusBadge from '@/components/StatusBadge';
 import FormDialog from '@/components/FormDialog';
 import InviteAccessCard from '@/components/access/InviteAccessCard';
-import { inviteKindFromResident } from '@/lib/inviteKinds';
+import InviteMemberDialog from '@/components/access/InviteMemberDialog';
+import { INVITE_KINDS, inviteKindFromResident } from '@/lib/inviteKinds';
 import WorkspaceRequired from '@/components/WorkspaceRequired';
 import { Button } from '@/components/ui/button';
+import { DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import {
   Dialog,
   DialogContent,
@@ -43,6 +45,8 @@ export default function Residents() {
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [detail, setDetail] = useState(null);
+  const [inviteOpen, setInviteOpen] = useState(false);
+  const [invitePersonId, setInvitePersonId] = useState('');
 
   const query = useMemo(() => {
     const next = { syndic_id: syndicId };
@@ -96,22 +100,45 @@ export default function Residents() {
     await reload();
   };
 
+  const openInvite = (row) => {
+    setInvitePersonId(row?.id || '');
+    setInviteOpen(true);
+  };
+
+  const invitePeople = items.map((row) => ({
+    id: row.id,
+    label: row.full_name,
+    kind: inviteKindFromResident(row.kind),
+    email: row.email,
+    phone: row.phone,
+    memberType: 'resident',
+    buildingId: row.building_id,
+    buildingName: buildingName(row.building_id),
+    lotNumbers: row.lot_numbers,
+  }));
+
   return (
     <Page
       kicker="Relation"
       title="Copropriétaires & propriétaires"
       description="Centralisez les coordonnées des copropriétaires, propriétaires bailleurs et occupants, et leurs lots."
       actions={
-        <Button
-          className="gap-2"
-          onClick={() => {
-            setEditing(null);
-            setFormOpen(true);
-          }}
-        >
-          <Plus className="h-4 w-4" />
-          Ajouter une personne
-        </Button>
+        <>
+          <Button variant="outline" className="gap-2" onClick={() => openInvite(null)}>
+            <UserPlus className="h-4 w-4" />
+            Inviter
+          </Button>
+          <Button
+            className="gap-2"
+            onClick={() => {
+              setEditing(null);
+              setFormOpen(true);
+            }}
+          >
+            <Plus className="h-4 w-4" />
+            Ajouter une personne
+          </Button>
+        </>
       }
     >
       <StatStrip
@@ -187,7 +214,12 @@ export default function Residents() {
                 }}
                 onDelete={() => remove(row)}
                 label={row.full_name}
-              />
+              >
+                <DropdownMenuItem onSelect={() => openInvite(row)}>
+                  <UserPlus className="mr-2 h-3.5 w-3.5" />
+                  Inviter
+                </DropdownMenuItem>
+              </RowActions>
             ),
           },
         ]}
@@ -264,6 +296,23 @@ export default function Residents() {
           )}
         </DialogContent>
       </Dialog>
+
+      <InviteMemberDialog
+        open={inviteOpen}
+        onOpenChange={setInviteOpen}
+        syndicId={syndicId}
+        people={invitePeople}
+        defaultKind="coproprietaire"
+        memberType="resident"
+        initialPersonId={invitePersonId}
+        title="Inviter un copropriétaire ou un propriétaire"
+        description="Choisissez la fiche à ouvrir, puis envoyez son lien personnel par email, SMS ou WhatsApp."
+        kindOptions={[
+          { value: 'coproprietaire', label: INVITE_KINDS.coproprietaire },
+          { value: 'proprietaire', label: INVITE_KINDS.proprietaire },
+          { value: 'locataire', label: INVITE_KINDS.locataire },
+        ]}
+      />
     </Page>
   );
 }
