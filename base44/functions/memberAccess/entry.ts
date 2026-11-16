@@ -34,7 +34,9 @@ export default async function (req) {
 
       return Response.json({
         valid: true,
-        email: invite.email,
+        email: invite.email || '',
+        phone: invite.phone || '',
+        channel: invite.channel || 'email',
         kind: invite.kind,
         kind_label: INVITE_KINDS[invite.kind] || '',
         full_name: invite.full_name || '',
@@ -69,15 +71,21 @@ export default async function (req) {
       if (invite.status === 'acceptee') {
         return Response.json({ kind: invite.kind, redirect: redirectFor(invite.kind) });
       }
-      if (normalizeEmail(invite.email) !== email) {
+      // Une invitation envoyée par téléphone n'a pas encore d'email : le compte fournit l'identifiant.
+      const inviteEmail = normalizeEmail(invite.email);
+      if (inviteEmail && inviteEmail !== email) {
         return Response.json(
           { error: "Cette invitation ne correspond pas à l'adresse email de votre compte." },
           { status: 403 },
         );
       }
 
-      const result = await applyInvite(base44, invite, user.full_name);
-      await service.MemberInvite.update(invite.id, { status: 'acceptee', accepted_at: today() });
+      const result = await applyInvite(base44, invite, user.full_name, email);
+      await service.MemberInvite.update(invite.id, {
+        status: 'acceptee',
+        accepted_at: today(),
+        email: inviteEmail || email,
+      });
       return Response.json(result);
     }
 
@@ -87,7 +95,7 @@ export default async function (req) {
       const pending = await service.MemberInvite.filter({ email, status: 'en_attente' }, { limit: 5 });
       for (const invite of pending.items || []) {
         if (isExpired(invite)) continue;
-        await applyInvite(base44, invite, user.full_name);
+        await applyInvite(base44, invite, user.full_name, email);
         await service.MemberInvite.update(invite.id, { status: 'acceptee', accepted_at: today() });
       }
       const kind = await resolveMemberKind(base44, user);

@@ -7,7 +7,26 @@
     },
     "email": {
       "type": "string",
-      "description": "Adresse invit\u00e9e, seule autoris\u00e9e \u00e0 activer l'acc\u00e8s"
+      "description": "Adresse invit\u00e9e (renseign\u00e9e \u00e0 l'activation si l'invitation part par t\u00e9l\u00e9phone)"
+    },
+    "phone": {
+      "type": "string",
+      "description": "Num\u00e9ro invit\u00e9 quand le lien part par SMS ou WhatsApp"
+    },
+    "channel": {
+      "type": "string",
+      "enum": [
+        "email",
+        "sms",
+        "whatsapp"
+      ],
+      "enumColors": [
+        "blue",
+        "green",
+        "purple"
+      ],
+      "default": "email",
+      "description": "Canal de transmission du lien d'inscription"
     },
     "full_name": {
       "type": "string"
@@ -17,14 +36,31 @@
       "enum": [
         "coproprietaire",
         "proprietaire",
+        "locataire",
         "technicien"
       ],
       "enumColors": [
         "blue",
         "purple",
+        "green",
         "yellow"
       ],
       "description": "Profil ouvert par le syndic"
+    },
+    "member_id": {
+      "type": "string",
+      "description": "Fiche (r\u00e9sident ou prestataire) rattach\u00e9e \u00e0 l'invitation"
+    },
+    "member_type": {
+      "type": "string",
+      "enum": [
+        "resident",
+        "provider"
+      ],
+      "enumColors": [
+        "blue",
+        "yellow"
+      ]
     },
     "building_id": {
       "type": "string"
@@ -37,7 +73,7 @@
     },
     "token": {
       "type": "string",
-      "description": "Jeton du lien d'inscription envoy\u00e9 par email"
+      "description": "Jeton du lien d'inscription envoy\u00e9 \u00e0 la personne"
     },
     "status": {
       "type": "string",
@@ -70,7 +106,6 @@
     }
   },
   "required": [
-    "email",
     "kind"
   ],
   "rls": {

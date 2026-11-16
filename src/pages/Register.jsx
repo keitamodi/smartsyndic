@@ -73,7 +73,7 @@ export default function Register() {
     }
     setLoading(true);
     try {
-      if (!invite?.email) {
+      if (!invite) {
         const response = await base44.functions.invoke("memberAccess", {
           action: "checkEmail",
           email: email.trim().toLowerCase(),
@@ -224,8 +224,9 @@ export default function Register() {
 
         <div className="space-y-3 text-[13px] leading-relaxed text-muted-foreground">
           <p>
-            Copropriétaires, propriétaires et techniciens reçoivent par email un lien personnel envoyé par leur
-            syndic. Ce lien permet de choisir un mot de passe et ouvre l’espace correspondant à votre statut.
+            Copropriétaires, propriétaires, locataires et techniciens reçoivent de leur syndic un lien personnel, par
+            email ou par téléphone. Ce lien permet de choisir un mot de passe et ouvre l’espace correspondant à votre
+            statut.
           </p>
           <div className="rounded-xl border border-border/70 bg-secondary/40 p-3 text-[12px]">
             Vous n’avez pas reçu de lien ? Demandez-le à votre syndic : il l’envoie en un clic depuis votre fiche.
@@ -244,7 +245,7 @@ export default function Register() {
       icon={UserPlus}
       title={invite?.email ? "Créer mon mot de passe" : "Créer mon compte"}
       subtitle={
-        invite?.email
+        invite
           ? `Invitation envoyée par ${invite?.syndic_name || "votre syndic"}.`
           : "L’accès est ouvert par votre syndic, sur son invitation."
       }
@@ -271,8 +272,9 @@ export default function Register() {
 
       {!invite?.email && (
         <div className="mb-5 rounded-xl border border-border/70 bg-secondary/40 px-3 py-2.5 text-[12px] leading-snug text-muted-foreground">
-          Utilisez l’adresse email invitée par votre syndic : c’est elle qui ouvre votre espace et détermine vos
-          droits.
+          {invite
+            ? "Votre lien vous a été transmis par téléphone. Indiquez l’adresse email qui servira d’identifiant : c’est elle qui ouvrira votre espace."
+            : "Utilisez l’adresse email invitée par votre syndic : c’est elle qui ouvre votre espace et détermine vos droits."}
         </div>
       )}
 

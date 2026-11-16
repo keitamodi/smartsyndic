@@ -6,9 +6,12 @@ export default function ProviderAccessCard({ provider }) {
   return (
     <InviteAccessCard
       syndicId={provider.syndic_id}
-      email={provider.email}
       kind="technicien"
+      memberId={provider.id}
+      memberType="provider"
       fullName={provider.contact_name || provider.name}
+      email={provider.email}
+      phone={provider.phone}
     />
   );
 }

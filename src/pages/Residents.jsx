@@ -7,6 +7,7 @@ import RowActions from '@/components/RowActions';
 import StatusBadge from '@/components/StatusBadge';
 import FormDialog from '@/components/FormDialog';
 import InviteAccessCard from '@/components/access/InviteAccessCard';
+import { inviteKindFromResident } from '@/lib/inviteKinds';
 import WorkspaceRequired from '@/components/WorkspaceRequired';
 import { Button } from '@/components/ui/button';
 import {
@@ -251,7 +252,10 @@ export default function Residents() {
             <InviteAccessCard
               syndicId={detail.syndic_id || syndicId}
               email={detail.email}
-              kind={detail.kind === 'proprietaire_bailleur' ? 'proprietaire' : 'coproprietaire'}
+              phone={detail.phone}
+              kind={inviteKindFromResident(detail.kind)}
+              memberId={detail.id}
+              memberType="resident"
               fullName={detail.full_name}
               buildingId={detail.building_id}
               buildingName={buildingName(detail.building_id)}
