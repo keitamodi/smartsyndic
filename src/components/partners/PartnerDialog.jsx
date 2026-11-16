@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { BadgeCheck, Loader2, Star } from 'lucide-react';
+import { BadgeCheck, Loader2 } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -22,6 +22,7 @@ import {
 import { base44 } from '@/api/base44Client';
 import { options, PARTNER_STATUS, SIRET_STATUS, WORK_TYPE } from '@/lib/constants';
 import { cn } from '@/lib/utils';
+import PartnerGoogleReviews from '@/components/partners/PartnerGoogleReviews';
 
 const EMPTY_LEGAL = {
   legal_name: '',
@@ -39,6 +40,7 @@ const EMPTY_LEGAL = {
   siret_checked_at: '',
   google_status: 'non_verifie',
   google_place_id: '',
+  google_checked_at: '',
   validated_by: '',
   validated_at: '',
 };
@@ -66,6 +68,8 @@ export default function PartnerDialog({ open, onOpenChange, initial: incoming, p
   const [contact, setContact] = useState(null);
   const [lookup, setLookup] = useState(null);
   const [verifying, setVerifying] = useState(false);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
+  const [reviewsNote, setReviewsNote] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const checkedSiret = useRef('');
@@ -98,6 +102,7 @@ export default function PartnerDialog({ open, onOpenChange, initial: incoming, p
         siret_checked_at: initial.siret_checked_at || '',
         google_status: initial.google_status || 'non_verifie',
         google_place_id: initial.google_place_id || '',
+        google_checked_at: initial.google_checked_at || '',
         validated_by: initial.validated_by || '',
         validated_at: initial.validated_at || '',
       });
@@ -107,11 +112,67 @@ export default function PartnerDialog({ open, onOpenChange, initial: incoming, p
     }
     setLookup(null);
     setContact(null);
+    setReviewsNote('');
     checkedSiret.current = prefill ? '' : (incoming?.siret || '').replace(/\D/g, '');
     setError('');
   }, [open, incoming, prefill]);
 
   const update = (name, value) => setValues((previous) => ({ ...previous, [name]: value }));
+
+  // Reporte la note et les avis Google renvoyés par la fiche Google de l'entreprise.
+  const applyGoogle = (google, checkedAt) => {
+    const reviews = Array.isArray(google?.reviews) ? google.reviews : [];
+    const hasRating = typeof google?.rating === 'number';
+    const hasCount = typeof google?.reviews_count === 'number';
+    if (!google || google.status !== 'disponible') return false;
+    if (!hasRating && !hasCount && reviews.length === 0) return false;
+    setValues((previous) => ({
+      ...previous,
+      google_rating: google.rating ?? previous.google_rating,
+      google_reviews_count: google.reviews_count ?? previous.google_reviews_count,
+      google_reviews_text: reviews.length > 0 ? reviews.join('\n') : previous.google_reviews_text,
+    }));
+    setLegal((previous) => ({
+      ...previous,
+      google_status: 'disponible',
+      google_place_id: google.place_id || previous.google_place_id,
+      google_checked_at: checkedAt || previous.google_checked_at,
+    }));
+    setReviewsNote(
+      reviews.length > 0
+        ? `${reviews.length} avis récupérés sur Google${checkedAt ? ` le ${checkedAt}` : ''}.`
+        : 'Note et nombre d’avis récupérés sur Google. Les avis s’ouvrent sur Google Maps.',
+    );
+    return true;
+  };
+
+  const fetchReviews = async () => {
+    if (!values.name.trim()) {
+      setError("Renseignez le nom de l'entreprise avant de chercher ses avis Google.");
+      return;
+    }
+    setReviewsLoading(true);
+    setReviewsNote('');
+    setError('');
+    try {
+      const response = await base44.functions.invoke('companyLookup', {
+        name: values.name,
+        city: values.city,
+        postal_code: values.postal_code,
+        address: legal.address,
+        reviews_only: true,
+      });
+      const data = response?.data || {};
+      if (data.error) throw new Error(data.error);
+      if (!applyGoogle(data.google, data.checked_at)) {
+        setReviewsNote('Aucun avis Google trouvé pour cette entreprise.');
+      }
+    } catch (lookupError) {
+      setError(lookupError?.response?.data?.error || lookupError.message);
+    } finally {
+      setReviewsLoading(false);
+    }
+  };
 
   const verify = async (rawSiret) => {
     const targetSiret = String(rawSiret ?? values.siret);
@@ -173,6 +234,7 @@ export default function PartnerDialog({ open, onOpenChange, initial: incoming, p
           siret_checked_at: data.checked_at,
         }));
       }
+      applyGoogle(data.google, data.checked_at);
     } catch (verifyError) {
       setError(verifyError?.response?.data?.error || verifyError.message);
     } finally {
@@ -396,7 +458,7 @@ export default function PartnerDialog({ open, onOpenChange, initial: incoming, p
               )}
               {lookup.google?.status === 'indisponible' && (
                 <p className="mt-1 text-[11.5px] opacity-80">
-                  Note et avis Google indisponibles automatiquement : vous pouvez les reporter à la main ci-dessous.
+                  Aucune fiche Google trouvée pour cette entreprise : saisissez la note et les avis à la main ci-dessous.
                 </p>
               )}
             </div>
@@ -433,48 +495,17 @@ export default function PartnerDialog({ open, onOpenChange, initial: incoming, p
             </div>
           </div>
 
-          <div className="rounded-xl border border-border bg-secondary/30 p-3">
-            <p className="kicker !text-[9px]">Note et avis Google</p>
-            <div className="mt-2 grid gap-2 sm:grid-cols-2">
-              <div>
-                <Label className="mb-1 block text-[11.5px] text-foreground/70">Note (sur 5)</Label>
-                <Input
-                  type="number"
-                  min="0"
-                  max="5"
-                  step="0.1"
-                  value={values.google_rating}
-                  onChange={(event) => update('google_rating', event.target.value)}
-                  placeholder="4.6"
-                />
-              </div>
-              <div>
-                <Label className="mb-1 block text-[11.5px] text-foreground/70">Nombre d’avis</Label>
-                <Input
-                  type="number"
-                  min="0"
-                  value={values.google_reviews_count}
-                  onChange={(event) => update('google_reviews_count', event.target.value)}
-                  placeholder="38"
-                />
-              </div>
-              <div className="sm:col-span-2">
-                <Label className="mb-1 block text-[11.5px] text-foreground/70">
-                  Extraits d’avis (un par ligne)
-                </Label>
-                <Textarea
-                  rows={3}
-                  value={values.google_reviews_text}
-                  onChange={(event) => update('google_reviews_text', event.target.value)}
-                  placeholder="« Travaux propres et dans les délais » — mars 2026"
-                />
-              </div>
-            </div>
-            <p className="mt-2 flex items-center gap-1 text-[11px] text-muted-foreground">
-              <Star className="h-3 w-3" />
-              Ces informations sont reprises dans la comparaison des devis.
-            </p>
-          </div>
+          <PartnerGoogleReviews
+            rating={values.google_rating}
+            count={values.google_reviews_count}
+            reviewsText={values.google_reviews_text}
+            status={legal.google_status}
+            note={reviewsNote}
+            placeId={legal.google_place_id}
+            loading={reviewsLoading}
+            onChange={update}
+            onFetch={fetchReviews}
+          />
 
           <div className="grid gap-3 sm:grid-cols-2">
             <div>

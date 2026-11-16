@@ -8,6 +8,7 @@ import {
   TRANCHE_EFFECTIF,
   workTypesFromNaf,
 } from '../../shared/companies.ts';
+import { fetchGoogleReviews } from '../../shared/googlePlaces.ts';
 
 function cleanPhone(value) {
   const raw = cleanText(value);
@@ -84,6 +85,21 @@ export default async function (req) {
     const postalCode = String(body.postal_code || '').trim();
     const city = String(body.city || '').trim();
     const withContact = body.enrich !== false;
+    const reviewsOnly = body.reviews_only === true;
+    const checkedOn = new Date().toISOString().slice(0, 10);
+
+    if (reviewsOnly) {
+      if (!name) {
+        return Response.json({ error: "Renseignez le nom de l'entreprise." }, { status: 400 });
+      }
+      const google = await fetchGoogleReviews({
+        name,
+        address: String(body.address || '').trim(),
+        postal_code: postalCode,
+        city,
+      });
+      return Response.json({ google, checked_at: checkedOn });
+    }
 
     if (!siret && !name) {
       return Response.json({ error: "Renseignez un SIRET ou le nom de l'entreprise." }, { status: 400 });
@@ -124,12 +140,13 @@ export default async function (req) {
     const checkedAt = new Date().toISOString().slice(0, 10);
 
     if (!match) {
+      const google = await fetchGoogleReviews({ name, postal_code: postalCode, city });
       return Response.json({
         company: null,
         contact: null,
         siret_status: 'introuvable',
         checked_at: checkedAt,
-        google: { status: 'indisponible', reason: 'api_non_configuree' },
+        google,
       });
     }
 
@@ -177,14 +194,17 @@ export default async function (req) {
       work_types: workTypesFromNaf(nafCode),
     };
 
-    const contact = withContact ? await findPublicContact(base44, company) : null;
+    const [contact, google] = await Promise.all([
+      withContact ? findPublicContact(base44, company) : Promise.resolve(null),
+      fetchGoogleReviews(company),
+    ]);
 
     return Response.json({
       company,
       contact,
       siret_status: company.state,
       checked_at: checkedAt,
-      google: { status: 'indisponible', reason: 'api_non_configuree' },
+      google,
     });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });

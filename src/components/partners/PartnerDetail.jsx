@@ -133,9 +133,18 @@ export default function PartnerDetail({ open, onOpenChange, partner, onEdit, onV
               </>
             ) : (
               <p className="mt-1 text-[12px] text-muted-foreground">
-                Aucune note Google enregistrée. La récupération automatique n’est pas configurée : la note et les
-                avis peuvent être saisis à la main dans la fiche.
+                Aucun avis Google enregistré. Ouvrez la fiche en modification puis cliquez sur « Récupérer la note ».
               </p>
+            )}
+            {partner.google_place_id && (
+              <a
+                href={`https://www.google.com/maps/place/?q=place_id:${partner.google_place_id}`}
+                target="_blank"
+                rel="noreferrer"
+                className="mt-1.5 inline-block text-[11.5px] font-medium text-primary underline underline-offset-2"
+              >
+                Lire les avis sur Google
+              </a>
             )}
           </div>
 
