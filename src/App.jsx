@@ -8,7 +8,7 @@ import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import ScrollToTop from './components/ScrollToTop';
 // Add page imports here
 import Layout from '@/components/Layout';
-import Dashboard from '@/pages/Dashboard';
+import TableauDeBord from '@/pages/TableauDeBord';
 import Buildings from '@/pages/Buildings';
 import Maintenance from '@/pages/Maintenance';
 import Tickets from '@/pages/Tickets';
@@ -71,7 +71,7 @@ const AuthenticatedApp = () => {
 
       <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
         <Route element={<Layout />}>
-          <Route path="/tableau-de-bord" element={<Dashboard />} />
+          <Route path="/tableau-de-bord" element={<TableauDeBord />} />
           <Route path="/immeubles" element={<Buildings />} />
           <Route path="/maintenance" element={<Maintenance />} />
           <Route path="/tickets" element={<Tickets />} />

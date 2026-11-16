@@ -1,0 +1,63 @@
+<mjml>
+  <mj-head>
+    <mj-title>Votre accès SyndicVibe vous attend</mj-title>
+    <mj-preview>Votre syndic vous ouvre l'accès à votre espace personnel.</mj-preview>
+    <mj-attributes>
+      <mj-all font-family="'Instrument Sans', Arial, Helvetica, sans-serif" />
+      <mj-section background-color="#ffffff" padding="0 36px" />
+      <mj-text color="#000000" font-size="15px" line-height="1.6" padding="0" />
+      <mj-button background-color="#d55320" color="#000000" border-radius="4px" font-weight="700" inner-padding="14px 28px" align="left" />
+      <mj-class name="h" font-size="34px" font-weight="700" line-height="1.15" />
+      <mj-class name="muted" color="#6b7280" font-size="14px" line-height="1.6" />
+    </mj-attributes>
+  </mj-head>
+  <mj-body background-color="#f6f7f9">
+    <mj-section background-color="#d55320" padding="22px 36px">
+      <mj-column>
+        <mj-image src="https://media.base44.com/images/public/6af6008df25fa7c8fe5afd5d/1b70ec0d4_logo.png" alt="SyndicVibe" width="44px" align="left" padding="0" />
+        <mj-text color="#000000" font-size="18px" font-weight="700" padding="10px 0 0">SyndicVibe</mj-text>
+        <mj-text color="#000000" font-size="11px" letter-spacing="2px" padding="4px 0 0">GESTION DE COPROPRIÉTÉ</mj-text>
+      </mj-column>
+    </mj-section>
+
+    <mj-section padding="40px 36px 8px">
+      <mj-column>
+        <mj-text mj-class="h">Bonjour {{full_name}},</mj-text>
+        <mj-text mj-class="muted" padding="10px 0 0">
+          {{syndic_name}} vous ouvre l'accès à votre espace personnel SyndicVibe. Il vous suffit de choisir votre mot de passe pour entrer.
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <mj-section padding="24px 36px 0">
+      <mj-column background-color="#ffffff" border="1px solid #e5e7eb" border-radius="4px" padding="22px 24px">
+        <mj-text font-size="11px" letter-spacing="1.6px" color="#6b7280" padding="0">VOTRE ACCÈS</mj-text>
+        <mj-text font-size="16px" font-weight="700" padding="8px 0 0">{{kind_label}}</mj-text>
+        <mj-text color="#6b7280" font-size="14px" padding="6px 0 0">Immeuble : {{building_name}}</mj-text>
+        <mj-text color="#6b7280" font-size="14px" padding="4px 0 0">Lots : {{lot_numbers}}</mj-text>
+      </mj-column>
+    </mj-section>
+
+    <mj-section padding="26px 36px 0">
+      <mj-column>
+        <mj-button href="{{invite_url}}" align="left">Créer mon mot de passe</mj-button>
+        <mj-text mj-class="muted" padding="16px 0 0">
+          Ce lien personnel est valable {{expires_days}} jours. Si le bouton ne fonctionne pas, copiez cette adresse dans votre navigateur :
+        </mj-text>
+        <mj-text font-size="13px" color="#d55320" padding="8px 0 0">{{invite_url}}</mj-text>
+        <mj-text mj-class="muted" padding="18px 0 0">
+          Vous n'êtes pas à l'origine de cette demande ? Ignorez simplement cet email : aucun compte ne sera ouvert sans votre mot de passe.
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <mj-section padding="34px 36px 40px">
+      <mj-column>
+        <mj-divider border-color="#e5e7eb" padding="0 0 18px" />
+        <mj-text color="#6b7280" font-size="12px" line-height="1.6" padding="0">
+          Email envoyé par {{syndic_name}} depuis SyndicVibe.
+        </mj-text>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>

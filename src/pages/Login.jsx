@@ -74,13 +74,7 @@ export default function Login() {
       subtitle="Accédez à l’espace de votre syndicat."
       footer={
         <>
-          Pas encore de compte ?{" "}
-          <Link
-            to={"/register" + (returnTo !== HOME_PATH ? "?returnTo=" + encodeURIComponent(returnTo) : "")}
-            className="font-medium text-primary hover:underline"
-          >
-            Créer un compte
-          </Link>
+          Votre accès est créé par votre syndic : il vous envoie un lien d’inscription par email.
         </>
       }
     >

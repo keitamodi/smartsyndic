@@ -1,0 +1,126 @@
+{
+  "name": "MemberInvite",
+  "type": "object",
+  "properties": {
+    "syndic_id": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string",
+      "description": "Adresse invit\u00e9e, seule autoris\u00e9e \u00e0 activer l'acc\u00e8s"
+    },
+    "full_name": {
+      "type": "string"
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "coproprietaire",
+        "proprietaire",
+        "technicien"
+      ],
+      "enumColors": [
+        "blue",
+        "purple",
+        "yellow"
+      ],
+      "description": "Profil ouvert par le syndic"
+    },
+    "building_id": {
+      "type": "string"
+    },
+    "building_name": {
+      "type": "string"
+    },
+    "lot_numbers": {
+      "type": "string"
+    },
+    "token": {
+      "type": "string",
+      "description": "Jeton du lien d'inscription envoy\u00e9 par email"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "en_attente",
+        "acceptee",
+        "annulee"
+      ],
+      "enumColors": [
+        "yellow",
+        "green",
+        "gray"
+      ],
+      "default": "en_attente"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date"
+    },
+    "sent_at": {
+      "type": "string",
+      "format": "date"
+    },
+    "accepted_at": {
+      "type": "string",
+      "format": "date"
+    },
+    "invited_by": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "email",
+    "kind"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "created_by_id": "{{user.id}}"
+        }
+      ]
+    },
+    "create": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "created_by_id": "{{user.id}}"
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "created_by_id": "{{user.id}}"
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "created_by_id": "{{user.id}}"
+        }
+      ]
+    }
+  }
+}

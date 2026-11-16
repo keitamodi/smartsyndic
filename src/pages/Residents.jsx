@@ -6,6 +6,7 @@ import TablePanel from '@/components/TablePanel';
 import RowActions from '@/components/RowActions';
 import StatusBadge from '@/components/StatusBadge';
 import FormDialog from '@/components/FormDialog';
+import InviteAccessCard from '@/components/access/InviteAccessCard';
 import WorkspaceRequired from '@/components/WorkspaceRequired';
 import { Button } from '@/components/ui/button';
 import {
@@ -244,6 +245,18 @@ export default function Residents() {
 
           {detail?.notes && (
             <p className="rounded-xl bg-secondary/50 p-3 text-[12.5px] text-foreground/75">{detail.notes}</p>
+          )}
+
+          {detail && (
+            <InviteAccessCard
+              syndicId={detail.syndic_id || syndicId}
+              email={detail.email}
+              kind={detail.kind === 'proprietaire_bailleur' ? 'proprietaire' : 'coproprietaire'}
+              fullName={detail.full_name}
+              buildingId={detail.building_id}
+              buildingName={buildingName(detail.building_id)}
+              lotNumbers={detail.lot_numbers}
+            />
           )}
         </DialogContent>
       </Dialog>

@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/lib/AuthContext';
+import useMemberKind from '@/hooks/useMemberKind';
 
 const GROUPS = [
   {
@@ -77,13 +78,21 @@ const GROUPS = [
   },
 ];
 
-const MEMBER_GROUPS = [
+const TECH_GROUPS = [
   {
     label: 'Mon activité',
-    items: [
-      { to: '/mes-interventions', label: 'Mes interventions', icon: Wrench },
-      { to: '/mon-espace', label: 'Mon espace', icon: UserRound },
-    ],
+    items: [{ to: '/mes-interventions', label: 'Mes interventions', icon: Wrench }],
+  },
+  {
+    label: 'Ressources',
+    items: [{ to: '/aide', label: 'Aide', icon: LifeBuoy }],
+  },
+];
+
+const RESIDENT_GROUPS = [
+  {
+    label: 'Mon espace',
+    items: [{ to: '/mon-espace', label: 'Mon espace', icon: UserRound }],
   },
   {
     label: 'Ressources',
@@ -93,8 +102,9 @@ const MEMBER_GROUPS = [
 
 export default function AppSidebar({ onNavigate }) {
   const { user } = useAuth();
+  const { kind } = useMemberKind();
   const isAdmin = user?.role === 'admin';
-  const groups = isAdmin ? GROUPS : MEMBER_GROUPS;
+  const groups = isAdmin ? GROUPS : kind === 'technicien' ? TECH_GROUPS : RESIDENT_GROUPS;
 
   return (
     <div className="flex h-full flex-col">
