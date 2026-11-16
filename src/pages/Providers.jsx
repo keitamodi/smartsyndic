@@ -6,6 +6,7 @@ import TablePanel from '@/components/TablePanel';
 import RowActions from '@/components/RowActions';
 import StatusBadge from '@/components/StatusBadge';
 import FormDialog from '@/components/FormDialog';
+import ProviderAccessCard from '@/components/providers/ProviderAccessCard';
 import WorkspaceRequired from '@/components/WorkspaceRequired';
 import { Button } from '@/components/ui/button';
 import {
@@ -263,6 +264,8 @@ export default function Providers() {
               {interventions.filter((row) => row.provider_id === detail?.id).length} intervention(s) enregistrée(s)
             </p>
           </div>
+
+          <ProviderAccessCard provider={detail} />
 
           {detail?.notes && <p className="text-[12.5px] text-foreground/75">{detail.notes}</p>}
         </DialogContent>

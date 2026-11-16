@@ -85,6 +85,7 @@ export default function TicketDetailDialog({ open, onOpenChange, ticket, provide
           scheduled_date: form.intervention_date,
           provider_id: form.provider_id,
           provider_name: form.assigned_name || provider?.name || '',
+          provider_email: provider?.email || '',
         });
       }
 

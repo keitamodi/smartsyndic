@@ -27,6 +27,7 @@ import Help from '@/pages/Help';
 import About from '@/pages/About';
 import Parametres from '@/pages/Parametres';
 import MonEspace from '@/pages/MonEspace';
+import MesInterventions from '@/pages/MesInterventions';
 import Accueil from '@/pages/Accueil';
 import Login from '@/pages/Login';
 import Register from '@/pages/Register';
@@ -89,6 +90,7 @@ const AuthenticatedApp = () => {
           <Route path="/a-propos" element={<About />} />
           <Route path="/parametres" element={<Parametres />} />
           <Route path="/mon-espace" element={<MonEspace />} />
+          <Route path="/mes-interventions" element={<MesInterventions />} />
         </Route>
       </Route>
       <Route path="*" element={<PageNotFound />} />

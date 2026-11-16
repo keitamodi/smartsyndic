@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Landmark, Loader2, PiggyBank, Receipt, UserRound, Wallet } from 'lucide-react';
 import Page from '@/components/Page';
 import StatStrip from '@/components/StatStrip';
@@ -6,6 +7,8 @@ import PortalChargesTable from '@/components/portal/PortalChargesTable';
 import PortalReceipts from '@/components/portal/PortalReceipts';
 import FondsTravauxPanel from '@/components/portal/FondsTravauxPanel';
 import PortalShortcuts from '@/components/portal/PortalShortcuts';
+import PortalReportDialog from '@/components/portal/PortalReportDialog';
+import { useAuth } from '@/lib/AuthContext';
 import useResidentSpace, { isSettled } from '@/hooks/useResidentSpace';
 import { formatEUR, formatNumber } from '@/lib/format';
 
@@ -16,6 +19,9 @@ const firstName = (me) => {
 
 export default function MonEspace() {
   const { loading, error, me, lots, buildings, invoices, payments, fonds } = useResidentSpace();
+  const { user } = useAuth();
+  const [reportOpen, setReportOpen] = useState(false);
+  const isAdmin = user?.role === 'admin';
 
   if (loading) {
     return (
@@ -119,11 +125,13 @@ export default function MonEspace() {
             </div>
             <div className="space-y-4">
               <FondsTravauxPanel fonds={fonds} />
-              <PortalShortcuts />
+              <PortalShortcuts isAdmin={isAdmin} onReport={() => setReportOpen(true)} />
             </div>
           </div>
         </>
       )}
+
+      <PortalReportDialog open={reportOpen} onOpenChange={setReportOpen} lots={myLots} buildings={buildings} />
     </Page>
   );
 }

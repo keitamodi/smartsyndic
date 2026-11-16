@@ -94,7 +94,9 @@ export default function Maintenance() {
       payload.building_name = buildings.find((item) => item.id === values.building_id)?.name || '';
     }
     if ('provider_id' in values) {
-      payload.provider_name = providers.find((item) => item.id === values.provider_id)?.name || '';
+      const provider = providers.find((item) => item.id === values.provider_id);
+      payload.provider_name = provider?.name || '';
+      payload.provider_email = provider?.email || '';
     }
     if ('duration_minutes' in values) payload.duration_minutes = Number(values.duration_minutes) || 60;
     if ('reminder_days' in values) {

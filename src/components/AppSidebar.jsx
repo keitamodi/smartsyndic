@@ -22,6 +22,7 @@ import {
   UserRound,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/lib/AuthContext';
 
 const GROUPS = [
   {
@@ -76,7 +77,25 @@ const GROUPS = [
   },
 ];
 
+const MEMBER_GROUPS = [
+  {
+    label: 'Mon activité',
+    items: [
+      { to: '/mes-interventions', label: 'Mes interventions', icon: Wrench },
+      { to: '/mon-espace', label: 'Mon espace', icon: UserRound },
+    ],
+  },
+  {
+    label: 'Ressources',
+    items: [{ to: '/aide', label: 'Aide', icon: LifeBuoy }],
+  },
+];
+
 export default function AppSidebar({ onNavigate }) {
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'admin';
+  const groups = isAdmin ? GROUPS : MEMBER_GROUPS;
+
   return (
     <div className="flex h-full flex-col">
       <div className="flex items-center gap-3 px-5 py-5">
@@ -92,7 +111,7 @@ export default function AppSidebar({ onNavigate }) {
       </div>
 
       <nav className="thin-scroll flex-1 overflow-y-auto px-3 pb-4">
-        {GROUPS.map((group, index) => (
+        {groups.map((group, index) => (
           <div key={group.label || `group-${index}`} className="mb-4">
             {group.label && (
               <p className="kicker mb-2 px-3 !text-[9px] !tracking-[0.2em]">{group.label}</p>
@@ -137,22 +156,24 @@ export default function AppSidebar({ onNavigate }) {
         ))}
       </nav>
 
-      <div className="px-3 pb-4">
-        <NavLink
-          to="/guide"
-          className="block rounded-2xl border border-border/80 bg-secondary/50 p-3.5 transition-colors hover:border-primary/40 hover:bg-accent/60"
-        >
-          <div className="flex items-center justify-between">
-            <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-foreground/70">
-              Prise en main
+      {isAdmin && (
+        <div className="px-3 pb-4">
+          <NavLink
+            to="/guide"
+            className="block rounded-2xl border border-border/80 bg-secondary/50 p-3.5 transition-colors hover:border-primary/40 hover:bg-accent/60"
+          >
+            <div className="flex items-center justify-between">
+              <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-foreground/70">
+                Prise en main
+              </p>
+              <ArrowUpRight className="h-3.5 w-3.5 text-primary" />
+            </div>
+            <p className="mt-1.5 text-[12.5px] leading-snug text-muted-foreground">
+              Configurez votre espace syndic en quelques minutes.
             </p>
-            <ArrowUpRight className="h-3.5 w-3.5 text-primary" />
-          </div>
-          <p className="mt-1.5 text-[12.5px] leading-snug text-muted-foreground">
-            Configurez votre espace syndic en quelques minutes.
-          </p>
-        </NavLink>
-      </div>
+          </NavLink>
+        </div>
+      )}
     </div>
   );
 }
