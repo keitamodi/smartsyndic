@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.54';
+import { userBelongsToSyndic } from '../../shared/workspaceAccess.ts';
 
 const rows = (result) => (Array.isArray(result) ? result : result?.items || []);
 
@@ -28,6 +29,9 @@ export default async function (req) {
     if (message.length > 2000) {
       return Response.json({ error: 'Message trop long (2000 caractères maximum).' }, { status: 400 });
     }
+
+    const allowed = await userBelongsToSyndic(base44, user, syndicId);
+    if (!allowed) return Response.json({ error: 'Accès refusé à cet espace syndic.' }, { status: 403 });
 
     const history = Array.isArray(body.history)
       ? body.history

@@ -84,7 +84,7 @@ export default function Team() {
 
   const invite = async (member) => {
     try {
-      await base44.users.inviteUser(member.email, 'user');
+      await base44.users.inviteUser(member.email, 'admin');
       await base44.entities.TeamMember.update(member.id, { status: 'invite' });
       await logAction({ syndicId, action: 'Invitation', entity: 'Équipe', entityLabel: member.full_name });
       toast({ title: 'Invitation envoyée', description: `Un email d’invitation a été adressé à ${member.email}.` });

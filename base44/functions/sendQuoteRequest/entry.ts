@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.54';
+import { userBelongsToSyndic } from '../../shared/workspaceAccess.ts';
 
 const WORK_TYPES = {
   plomberie: 'Plomberie',
@@ -61,6 +62,10 @@ export default async function (req) {
       e.status === 404 ? null : Promise.reject(e),
     );
     if (!request) return Response.json({ error: 'Demande introuvable.' }, { status: 404 });
+
+    if (!(await userBelongsToSyndic(base44, user, request.syndic_id))) {
+      return Response.json({ error: 'Accès refusé à cette demande de devis.' }, { status: 403 });
+    }
 
     const result = await base44.entities.QuoteInvite.filter(
       { request_id: requestId, id: { $in: inviteIds } },
