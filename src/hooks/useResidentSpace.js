@@ -3,20 +3,34 @@ import { base44 } from '@/api/base44Client';
 import { round2 } from '@/lib/appelFonds';
 
 const FONDS_RATE = 0.05;
-const HISTORY_YEARS = 3;
-
-const yearsAgo = (years) => {
-  const date = new Date();
-  date.setFullYear(date.getFullYear() - years);
-  return date.toISOString().slice(0, 10);
-};
-
-const fetchAll = async (entity, query, limit = 200) => {
-  const page = await base44.entities[entity].filter(query, { limit });
-  return page.items || [];
-};
 
 const sumTantiemes = (list = []) => list.reduce((sum, lot) => sum + (Number(lot.tantiemes) || 0), 0);
+
+const buildFonds = (lots, buildings, assemblies, buildingLots) => {
+  const fonds = [];
+  buildings.forEach((building) => {
+    const budgeted = assemblies.filter((row) => row.building_id === building.id && Number(row.budget_amount) > 0);
+    const totals = buildingLots.find((row) => row.building_id === building.id)?.lots || [];
+    const total = sumTantiemes(totals);
+    const myTantiemes = sumTantiemes(lots.filter((lot) => lot.building_id === building.id));
+    if (!budgeted.length || !total || !myTantiemes) return;
+    const share = myTantiemes / total;
+    budgeted.forEach((assembly) => {
+      const budget = Number(assembly.budget_amount) || 0;
+      const year = new Date(assembly.date || assembly.created_date || Date.now()).getFullYear();
+      fonds.push({
+        id: `${building.id}-${assembly.id}`,
+        building,
+        assembly,
+        year,
+        budget,
+        share,
+        amount: round2(budget * FONDS_RATE * share),
+      });
+    });
+  });
+  return fonds.sort((a, b) => b.year - a.year);
+};
 
 export default function useResidentSpace() {
   const [state, setState] = useState({
@@ -36,75 +50,16 @@ export default function useResidentSpace() {
     (async () => {
       try {
         const me = await base44.auth.me();
-        const email = (me?.email || '').trim();
-        if (!email) {
-          if (active) setState((prev) => ({ ...prev, loading: false, me }));
-          return;
-        }
-
-        const [ownedLots, residents] = await Promise.all([
-          fetchAll('Lot', { owner_email: email }, 100),
-          fetchAll('Resident', { email }, 20),
-        ]);
-
-        const residentIds = residents.map((row) => row.id);
-        const linkedLots = residentIds.length
-          ? await fetchAll('Lot', { resident_id: { $in: residentIds } }, 100)
-          : [];
-
-        const lotsMap = new Map();
-        [...ownedLots, ...linkedLots].forEach((lot) => lotsMap.set(lot.id, lot));
-        const lots = [...lotsMap.values()];
-
-        const buildingIds = [...new Set(lots.map((lot) => lot.building_id).filter(Boolean))];
-        const buildings = buildingIds.length
-          ? await fetchAll('Building', { id: { $in: buildingIds } }, 50)
-          : [];
-
-        const invoiceGroups = await Promise.all(
-          lots
-            .filter((lot) => lot.building_id && lot.number)
-            .map((lot) => fetchAll('Invoice', { building_id: lot.building_id, lot_number: lot.number }, 200)),
-        );
-        const invoiceMap = new Map();
-        invoiceGroups.flat().forEach((invoice) => invoiceMap.set(invoice.id, invoice));
-        const invoices = [...invoiceMap.values()]
-          .filter((row) => !row.issue_date || row.issue_date >= yearsAgo(HISTORY_YEARS))
-          .sort((a, b) => String(b.issue_date || '').localeCompare(String(a.issue_date || '')));
-
-        const payments = invoices.length
-          ? await fetchAll('Payment', { invoice_id: { $in: invoices.map((row) => row.id) } }, 300)
-          : [];
-
-        const fonds = [];
-        for (const building of buildings) {
-          const [assemblies, buildingLots] = await Promise.all([
-            fetchAll('Assembly', { building_id: building.id }, 50),
-            fetchAll('Lot', { building_id: building.id }, 300),
-          ]);
-          const budgeted = assemblies.filter((row) => Number(row.budget_amount) > 0);
-          const total = sumTantiemes(buildingLots);
-          const myTantiemes = sumTantiemes(lots.filter((lot) => lot.building_id === building.id));
-          if (!budgeted.length || !total || !myTantiemes) continue;
-          const share = myTantiemes / total;
-          budgeted.forEach((assembly) => {
-            const budget = Number(assembly.budget_amount) || 0;
-            const year = new Date(assembly.date || assembly.created_date || Date.now()).getFullYear();
-            fonds.push({
-              id: `${building.id}-${assembly.id}`,
-              building,
-              assembly,
-              year,
-              budget,
-              share,
-              amount: round2(budget * FONDS_RATE * share),
-            });
-          });
-        }
-        fonds.sort((a, b) => b.year - a.year);
+        const response = await base44.functions.invoke('residentSpace', {});
+        const data = response?.data || {};
+        const lots = data.lots || [];
+        const buildings = data.buildings || [];
+        const invoices = data.invoices || [];
+        const payments = data.payments || [];
+        const fonds = buildFonds(lots, buildings, data.assemblies || [], data.buildingLots || []);
 
         if (active) {
-          setState({ loading: false, error: '', me, lots, buildings, invoices, payments, fonds });
+          setState({ loading: false, error: data.error || '', me, lots, buildings, invoices, payments, fonds });
         }
       } catch (failure) {
         if (active) {
