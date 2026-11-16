@@ -66,9 +66,10 @@
           }
         },
         {
-          "user_condition": {
-            "role": "user"
-          }
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "data.email": "{{user.email}}"
         }
       ]
     },
