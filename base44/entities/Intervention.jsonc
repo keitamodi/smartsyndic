@@ -102,6 +102,10 @@
     "provider_name": {
       "type": "string"
     },
+    "provider_email": {
+      "type": "string",
+      "description": "Email du compte du technicien : lui ouvre l'intervention dans son espace"
+    },
     "cost": {
       "type": "number"
     },
@@ -145,6 +149,9 @@
         },
         {
           "created_by_id": "{{user.id}}"
+        },
+        {
+          "data.provider_email": "{{user.email}}"
         }
       ]
     },
@@ -171,6 +178,9 @@
           "user_condition": {
             "role": "admin"
           }
+        },
+        {
+          "data.provider_email": "{{user.email}}"
         }
       ]
     },
@@ -183,6 +193,9 @@
           "user_condition": {
             "role": "admin"
           }
+        },
+        {
+          "data.provider_email": "{{user.email}}"
         }
       ]
     }
