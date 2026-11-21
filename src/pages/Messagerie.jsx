@@ -187,7 +187,7 @@ export default function Messagerie() {
       }
       wide
     >
-      <div className="grid gap-4 lg:grid-cols-[290px_minmax(0,1fr)]">
+      <div className="grid gap-4 md:grid-cols-[260px_minmax(0,1fr)] lg:grid-cols-[290px_minmax(0,1fr)]">
         <ThreadList
           threads={enrichedThreads}
           selectedId={selectedId}

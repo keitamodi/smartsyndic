@@ -31,7 +31,7 @@ export default function MessagePane({ thread, messages, loading, onSend, onDraft
 
   if (!thread) {
     return (
-      <section className="flex min-h-[560px] items-center justify-center rounded-[22px] border border-dashed border-border bg-card p-6">
+      <section className="flex min-h-[320px] min-w-0 items-center justify-center rounded-[22px] border border-dashed border-border bg-card p-6 lg:min-h-[560px]">
         <p className="max-w-[320px] text-center text-[12.5px] leading-relaxed text-muted-foreground">
           Sélectionnez une conversation ou ouvrez-en une nouvelle pour échanger avec un copropriétaire, un propriétaire,
           un technicien ou un prestataire.
@@ -71,7 +71,7 @@ export default function MessagePane({ thread, messages, loading, onSend, onDraft
   };
 
   return (
-    <section className="flex min-h-[560px] flex-col rounded-[22px] border border-border bg-card">
+    <section className="flex min-h-[420px] min-w-0 flex-col rounded-[22px] border border-border bg-card md:min-h-[560px]">
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border/70 px-4 py-3">
         <div className="flex min-w-0 items-center gap-2.5">
           <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary font-mono text-[11px] font-semibold text-foreground/70">

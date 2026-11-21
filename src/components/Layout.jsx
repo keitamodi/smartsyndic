@@ -34,7 +34,7 @@ function Shell() {
             onClick={() => setMenuOpen(false)}
             aria-hidden="true"
           />
-          <div className="absolute inset-y-0 left-0 w-[280px] border-r border-border bg-card shadow-2xl">
+          <div className="absolute inset-y-0 left-0 w-[280px] border-r border-border bg-card shadow-2xl animate-in slide-in-from-left duration-200">
             <Button
               variant="ghost"
               size="icon"
@@ -52,7 +52,9 @@ function Shell() {
       <div className="lg:pl-[266px]">
         <TopBar onMenu={() => setMenuOpen(true)} />
         <main className="px-4 pb-20 pt-6 sm:px-6 lg:px-8 lg:pt-8">
-          <Outlet />
+          <div key={location.pathname} className="page-in">
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>

@@ -31,7 +31,7 @@ export default function ThreadList({ threads, selectedId, onSelect, loading }) {
   }, [threads, search, status]);
 
   return (
-    <aside className="flex max-h-[640px] flex-col rounded-[22px] border border-border bg-card">
+    <aside className="flex max-h-[420px] min-w-0 flex-col rounded-[22px] border border-border bg-card md:max-h-[560px] lg:max-h-[640px]">
       <div className="space-y-2 border-b border-border/70 p-3">
         <div className="relative">
           <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
