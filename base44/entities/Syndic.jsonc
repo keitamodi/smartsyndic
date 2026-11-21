@@ -23,6 +23,23 @@
       ],
       "description": "Type de syndic"
     },
+    "plan_tier": {
+      "type": "string",
+      "enum": [
+        "free",
+        "starter",
+        "pro",
+        "expert"
+      ],
+      "enumColors": [
+        "gray",
+        "blue",
+        "purple",
+        "green"
+      ],
+      "default": "free",
+      "description": "Forfait d'abonnement du cabinet"
+    },
     "status": {
       "type": "string",
       "enum": [

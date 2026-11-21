@@ -20,10 +20,12 @@ import {
   Settings,
   ArrowUpRight,
   UserRound,
+  CreditCard,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/lib/AuthContext';
 import useMemberKind from '@/hooks/useMemberKind';
+import SidebarPlanCard from '@/components/subscription/SidebarPlanCard';
 
 const GROUPS = [
   {
@@ -74,7 +76,10 @@ const GROUPS = [
   },
   {
     label: 'Configuration',
-    items: [{ to: '/parametres', label: 'Paramètres', icon: Settings }],
+    items: [
+      { to: '/parametres', label: 'Paramètres', icon: Settings },
+      { to: '/abonnement', label: 'Abonnement & tarifs', icon: CreditCard },
+    ],
   },
 ];
 
@@ -167,7 +172,8 @@ export default function AppSidebar({ onNavigate }) {
       </nav>
 
       {isAdmin && (
-        <div className="px-3 pb-4">
+        <div className="space-y-2 px-3 pb-4">
+          <SidebarPlanCard />
           <NavLink
             to="/guide"
             className="block rounded-2xl border border-border/80 bg-secondary/50 p-3.5 transition-colors hover:border-primary/40 hover:bg-accent/60"

@@ -3,17 +3,19 @@ import { Check, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
-export default function PlanCard({ plan }) {
+export default function PlanCard({ plan, current = false, footer }) {
   return (
     <div
       className={cn(
         'relative flex flex-col rounded-[18px] border p-6',
-        plan.recommended
-          ? 'border-primary/35 bg-card shadow-[0_30px_70px_-50px_hsl(var(--primary))] ring-1 ring-primary/20'
-          : 'border-border/80 bg-card/70'
+        current
+          ? 'border-emerald-300/70 bg-card ring-1 ring-emerald-200/70'
+          : plan.recommended
+            ? 'border-primary/35 bg-card shadow-[0_30px_70px_-50px_hsl(var(--primary))] ring-1 ring-primary/20'
+            : 'border-border/80 bg-card/70'
       )}
     >
-      {plan.recommended && (
+      {plan.recommended && !current && (
         <span className="absolute -top-2.5 left-6 inline-flex items-center gap-1 rounded-full bg-primary px-2.5 py-1 font-mono text-[9.5px] uppercase tracking-[0.14em] text-primary-foreground">
           <Sparkles className="h-3 w-3" />
           Recommandé
@@ -21,7 +23,14 @@ export default function PlanCard({ plan }) {
       )}
 
       <div>
-        <h2 className="font-heading text-[17px] font-semibold leading-tight">{plan.name}</h2>
+        <div className="flex items-center gap-2">
+          <h2 className="font-heading text-[17px] font-semibold leading-tight">{plan.name}</h2>
+          {current && (
+            <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.12em] text-emerald-700">
+              Actuel
+            </span>
+          )}
+        </div>
         <p className="mt-1 text-[11.5px] leading-snug text-muted-foreground">{plan.subtitle}</p>
       </div>
 
@@ -49,13 +58,15 @@ export default function PlanCard({ plan }) {
       )}
 
       <div className="mt-auto pt-6">
-        <Button
-          asChild
-          variant={plan.recommended ? 'default' : 'outline'}
-          className="w-full text-[12.5px]"
-        >
-          <Link to={`/register?plan=${plan.id}`}>{plan.cta}</Link>
-        </Button>
+        {footer ?? (
+          <Button
+            asChild
+            variant={plan.recommended ? 'default' : 'outline'}
+            className="w-full text-[12.5px]"
+          >
+            <Link to={`/register?plan=${plan.id}`}>{plan.cta}</Link>
+          </Button>
+        )}
       </div>
     </div>
   );

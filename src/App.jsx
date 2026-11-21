@@ -22,6 +22,7 @@ import Devis from '@/pages/Devis';
 import Partenaires from '@/pages/Partenaires';
 import Team from '@/pages/Team';
 import Billing from '@/pages/Billing';
+import Abonnement from '@/pages/Abonnement';
 import Guide from '@/pages/Guide';
 import Help from '@/pages/Help';
 import About from '@/pages/About';
@@ -87,6 +88,7 @@ const AuthenticatedApp = () => {
           <Route path="/partenaires" element={<Partenaires />} />
           <Route path="/equipe" element={<Team />} />
           <Route path="/facturation" element={<Billing />} />
+          <Route path="/abonnement" element={<Abonnement />} />
           <Route path="/guide" element={<Guide />} />
           <Route path="/aide" element={<Help />} />
           <Route path="/a-propos" element={<About />} />
