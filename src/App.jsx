@@ -29,6 +29,7 @@ import Parametres from '@/pages/Parametres';
 import MonEspace from '@/pages/MonEspace';
 import MesInterventions from '@/pages/MesInterventions';
 import Accueil from '@/pages/Accueil';
+import Pricing from '@/pages/Pricing';
 import Login from '@/pages/Login';
 import Register from '@/pages/Register';
 import ForgotPassword from '@/pages/ForgotPassword';
@@ -63,6 +64,7 @@ const AuthenticatedApp = () => {
     <Routes>
       {/* Add your page Route elements here */}
       <Route path="/" element={<Accueil />} />
+      <Route path="/pricing" element={<Pricing />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />

@@ -1,10 +1,20 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/AuthContext';
 
 export default function LandingHeader() {
   const { isAuthenticated } = useAuth();
-  const goToForm = () => document.getElementById('inscription')?.scrollIntoView({ behavior: 'smooth' });
+  const navigate = useNavigate();
+
+  const goToForm = () => {
+    const target = document.getElementById('inscription');
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth' });
+      return;
+    }
+    navigate('/');
+    setTimeout(() => document.getElementById('inscription')?.scrollIntoView({ behavior: 'smooth' }), 300);
+  };
 
   return (
     <header className="sticky top-0 z-40 border-b border-border/70 bg-background/85 backdrop-blur">
@@ -19,7 +29,15 @@ export default function LandingHeader() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 sm:gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            asChild
+            className="hidden text-[12.5px] text-foreground/70 sm:inline-flex"
+          >
+            <Link to="/pricing">Tarifs</Link>
+          </Button>
           <Button
             variant="ghost"
             size="sm"
