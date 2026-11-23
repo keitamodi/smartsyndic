@@ -50,6 +50,8 @@ export default async function (req) {
     if (action === 'checkEmail') {
       const target = normalizeEmail(body.email);
       if (!target) return Response.json({ authorized: false }, { status: 400 });
+      // Un syndic ouvre son propre espace : aucune invitation n'est exigée.
+      if (body.as === 'syndic') return Response.json({ authorized: true });
       const page = await service.MemberInvite.filter({ email: target, status: 'en_attente' }, { limit: 5 });
       const authorized = (page.items || []).some((invite: any) => !isExpired(invite));
       return Response.json({ authorized });

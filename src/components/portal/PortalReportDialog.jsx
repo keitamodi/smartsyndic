@@ -35,7 +35,7 @@ export default function PortalReportDialog({ open, onOpenChange, lots = [], buil
     setSaving(true);
     setError('');
     try {
-      await base44.entities.Ticket.create({
+      const created = await base44.entities.Ticket.create({
         syndic_id: building?.syndic_id || '',
         building_id: lot?.building_id || '',
         building_name: building?.name || lot?.buildingName || '',
@@ -50,6 +50,10 @@ export default function PortalReportDialog({ open, onOpenChange, lots = [], buil
       });
       setForm({ lotId, title: '', description: '', priority: 'normale' });
       setDone(true);
+      // Alerte email du gestionnaire, sans bloquer la confirmation affichée au résident.
+      if (created?.id) {
+        base44.functions.invoke('notifyNewTicket', { ticket_id: created.id }).catch(() => {});
+      }
     } catch (failure) {
       setError(failure?.message || 'Votre signalement n’a pas pu être envoyé.');
     } finally {

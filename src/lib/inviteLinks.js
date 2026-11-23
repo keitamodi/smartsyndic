@@ -1,4 +1,8 @@
-export const SITE_URL = 'https://syndic-vibe-pro.base44.app';
+// Les liens suivent l'environnement courant (aperçu, production, domaine personnalisé).
+export const SITE_URL =
+  typeof window !== 'undefined' && window.location?.origin
+    ? window.location.origin
+    : 'https://smartsyndic.base44.app';
 export const INVITE_DAYS = 30;
 
 export const inviteLink = (token) =>

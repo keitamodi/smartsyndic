@@ -74,12 +74,14 @@ export default function Register() {
     setLoading(true);
     try {
       if (!invite) {
+        // Inscription syndic : l'espace de travail s'ouvre juste après la vérification de l'email.
         const response = await base44.functions.invoke("memberAccess", {
           action: "checkEmail",
           email: email.trim().toLowerCase(),
+          as: "syndic",
         });
         if (!response?.data?.authorized) {
-          setError("Aucun accès n’a été ouvert pour cette adresse. Demandez le lien d’inscription à votre syndic.");
+          setError("Cette adresse ne peut pas être utilisée pour créer un compte.");
           return;
         }
       }
@@ -104,7 +106,7 @@ export default function Register() {
       if (result?.access_token) {
         base44.auth.setToken(result.access_token);
       }
-      let destination = "/mon-espace";
+      let destination = invite ? "/mon-espace" : "/tableau-de-bord";
       try {
         const claimed = await base44.functions.invoke("memberAccess", { action: "claim", token });
         if (claimed?.data?.redirect) destination = claimed.data.redirect;
@@ -247,7 +249,7 @@ export default function Register() {
       subtitle={
         invite
           ? `Invitation envoyée par ${invite?.syndic_name || "votre syndic"}.`
-          : "L’accès est ouvert par votre syndic, sur son invitation."
+          : "Créez votre compte syndic : votre espace de travail s’ouvre juste après la vérification de votre email."
       }
       footer={
         <>
@@ -274,7 +276,7 @@ export default function Register() {
         <div className="mb-5 rounded-xl border border-border/70 bg-secondary/40 px-3 py-2.5 text-[12px] leading-snug text-muted-foreground">
           {invite
             ? "Votre lien vous a été transmis par téléphone. Indiquez l’adresse email qui servira d’identifiant : c’est elle qui ouvrira votre espace."
-            : "Utilisez l’adresse email invitée par votre syndic : c’est elle qui ouvre votre espace et détermine vos droits."}
+            : "Vous ouvrez un espace syndic : utilisez votre adresse professionnelle, elle servira d’identifiant."}
         </div>
       )}
 

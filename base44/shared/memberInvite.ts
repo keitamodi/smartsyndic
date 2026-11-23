@@ -15,7 +15,8 @@ const RESIDENT_KIND: Record<string, string> = {
   locataire: 'occupant',
 };
 
-export const SITE_URL = 'https://syndic-vibe-pro.base44.app';
+// Adresse de l'app utilisée pour les liens envoyés par email.
+export const SITE_URL = 'https://smartsyndic.base44.app';
 export const INVITE_DAYS = 30;
 export const INVITE_CHANNELS = ['email', 'sms', 'whatsapp'];
 
@@ -36,8 +37,9 @@ export function inviteExpiry(days = INVITE_DAYS) {
   return date.toISOString().slice(0, 10);
 }
 
-export function inviteLink(token: string) {
-  return `${SITE_URL}/register?invite=${encodeURIComponent(String(token || ''))}`;
+export function inviteLink(token: string, siteUrl?: string) {
+  const base = String(siteUrl || SITE_URL).replace(/\/+$/, '');
+  return `${base}/register?invite=${encodeURIComponent(String(token || ''))}`;
 }
 
 export function isExpired(invite: any) {

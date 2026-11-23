@@ -63,13 +63,14 @@ export default async function (req) {
       role: 'user',
       created_date: { $gte: monthStart },
     });
-    const asked = Number(counted) || 0;
-    if (asked > aiLimit) {
+    // `asked` inclut la question en cours : le quota est atteint dès que les précédentes l'ont consommé.
+    const previous = Math.max(Number(counted) - 1, 0);
+    if (previous >= aiLimit) {
       return Response.json(
         {
-          error: `Quota IA du forfait atteint (${asked - 1}/${aiLimit} questions ce mois-ci). Passez à un forfait supérieur pour continuer.`,
+          error: `Quota IA du forfait atteint (${previous}/${aiLimit} questions ce mois-ci). Passez à un forfait supérieur pour continuer.`,
           code: 'quota_ia',
-          used: asked - 1,
+          used: previous,
           limit: aiLimit,
         },
         { status: 429 },

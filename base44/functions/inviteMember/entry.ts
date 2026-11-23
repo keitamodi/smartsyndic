@@ -83,7 +83,9 @@ export default async function (req) {
       ? await service.MemberInvite.update(previous.id, payload)
       : await service.MemberInvite.create(payload);
 
-    const link = inviteLink(token);
+    // Le lien reprend l'adresse depuis laquelle l'invitation est créée.
+    const origin = String(req.headers.get('origin') || '').trim();
+    const link = inviteLink(token, origin.startsWith('http') ? origin : undefined);
     let emailSent = false;
     let warning = '';
 

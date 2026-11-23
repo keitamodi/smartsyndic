@@ -90,6 +90,9 @@ export default function SyndicSignupForm() {
           >
             Inscrire un autre syndicat
           </Button>
+          <Button asChild>
+            <Link to="/register">Créer mon espace maintenant</Link>
+          </Button>
           <Link to="/login" className="text-[12.5px] font-medium text-primary hover:underline">
             J’ai déjà un espace, me connecter
           </Link>
@@ -218,7 +221,10 @@ export default function SyndicSignupForm() {
         Envoyer ma fiche d’inscription
       </Button>
       <p className="mt-3 text-center text-[11.5px] leading-relaxed text-muted-foreground">
-        Vos informations servent uniquement à préparer votre espace syndic.
+        Vous préférez démarrer seul ?{" "}
+        <Link to="/register" className="font-medium text-primary hover:underline">
+          Créer mon espace maintenant
+        </Link>
       </p>
     </form>
   );
