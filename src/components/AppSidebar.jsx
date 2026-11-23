@@ -18,14 +18,11 @@ import {
   LifeBuoy,
   Info,
   Settings,
-  ArrowUpRight,
   UserRound,
-  CreditCard,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import useAccess from '@/hooks/useAccess';
 import { ROLE_LABELS } from '@/lib/access';
-import SidebarPlanCard from '@/components/subscription/SidebarPlanCard';
 import { LEGAL_PAGES } from '@/lib/legal';
 
 const GROUPS = [
@@ -77,10 +74,7 @@ const GROUPS = [
   },
   {
     label: 'Configuration',
-    items: [
-      { to: '/parametres', label: 'Paramètres', icon: Settings, module: 'settings' },
-      { to: '/abonnement', label: 'Abonnement & tarifs', icon: CreditCard, module: 'subscription' },
-    ],
+    items: [{ to: '/parametres', label: 'Paramètres', icon: Settings, module: 'settings' }],
   },
 ];
 
@@ -185,26 +179,6 @@ export default function AppSidebar({ onNavigate }) {
           </div>
         ))}
       </nav>
-
-      {isSyndic && (
-        <div className="space-y-2 px-3 pb-4">
-          <SidebarPlanCard />
-          <NavLink
-            to="/guide"
-            className="block rounded-2xl border border-border/80 bg-secondary/50 p-3.5 transition-colors hover:border-primary/40 hover:bg-accent/60"
-          >
-            <div className="flex items-center justify-between">
-              <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-foreground/70">
-                Prise en main
-              </p>
-              <ArrowUpRight className="h-3.5 w-3.5 text-primary" />
-            </div>
-            <p className="mt-1.5 text-[12.5px] leading-snug text-muted-foreground">
-              Configurez votre espace syndic en quelques minutes.
-            </p>
-          </NavLink>
-        </div>
-      )}
 
       {!isSyndic && kind === 'equipe' && (
         <div className="px-3 pb-4">
