@@ -1,16 +1,23 @@
 import { useState } from 'react';
-import { Landmark, Loader2, PiggyBank, Receipt, UserRound, Wallet } from 'lucide-react';
+import { Landmark, Loader2, MessageSquareWarning, Receipt, UserRound, Wallet } from 'lucide-react';
 import Page from '@/components/Page';
 import StatStrip from '@/components/StatStrip';
 import EmptyState from '@/components/EmptyState';
 import PortalChargesTable from '@/components/portal/PortalChargesTable';
 import PortalReceipts from '@/components/portal/PortalReceipts';
+import PortalNextDue from '@/components/portal/PortalNextDue';
+import PortalTickets from '@/components/portal/PortalTickets';
+import PortalDocuments from '@/components/portal/PortalDocuments';
+import PortalAssemblies from '@/components/portal/PortalAssemblies';
+import PortalMyLots from '@/components/portal/PortalMyLots';
 import FondsTravauxPanel from '@/components/portal/FondsTravauxPanel';
 import PortalShortcuts from '@/components/portal/PortalShortcuts';
 import PortalReportDialog from '@/components/portal/PortalReportDialog';
 import { useAuth } from '@/lib/AuthContext';
 import useResidentSpace, { isSettled } from '@/hooks/useResidentSpace';
-import { formatEUR, formatNumber } from '@/lib/format';
+import { formatDate, formatEUR, formatNumber } from '@/lib/format';
+
+const OPEN_TICKET_STATUSES = ['nouveau', 'qualifie', 'en_cours', 'en_attente'];
 
 const firstName = (me) => {
   const raw = me?.full_name || me?.email || '';
@@ -18,7 +25,8 @@ const firstName = (me) => {
 };
 
 export default function MonEspace() {
-  const { loading, error, me, lots, buildings, invoices, payments, fonds } = useResidentSpace();
+  const { loading, error, me, lots, buildings, invoices, payments, fonds, assemblies, documents, tickets, syndic } =
+    useResidentSpace();
   const { user } = useAuth();
   const [reportOpen, setReportOpen] = useState(false);
   const isAdmin = user?.role === 'admin';
@@ -39,20 +47,24 @@ export default function MonEspace() {
   }));
 
   const totalCalled = invoices.reduce((sum, row) => sum + (Number(row.amount) || 0), 0);
-  const outstanding = invoices
-    .filter((row) => !isSettled(row))
-    .reduce((sum, row) => sum + Math.max((Number(row.amount) || 0) - (Number(row.paid_amount) || 0), 0), 0);
-  const receipts = invoices.filter(isSettled).length;
+  const openInvoices = invoices.filter((row) => !isSettled(row));
+  const outstanding = openInvoices.reduce(
+    (sum, row) => sum + Math.max((Number(row.amount) || 0) - (Number(row.paid_amount) || 0), 0),
+    0,
+  );
+  const nextDue =
+    [...openInvoices].sort((a, b) =>
+      String(a.due_date || '9999-12-31').localeCompare(String(b.due_date || '9999-12-31')),
+    )[0] || null;
   const latestYear = fonds.length ? Math.max(...fonds.map((row) => row.year)) : null;
-  const fondsAnnual = fonds
-    .filter((row) => row.year === latestYear)
-    .reduce((sum, row) => sum + row.amount, 0);
+  const fondsAnnual = fonds.filter((row) => row.year === latestYear).reduce((sum, row) => sum + row.amount, 0);
+  const openTickets = tickets.filter((ticket) => OPEN_TICKET_STATUSES.includes(ticket.status)).length;
 
   return (
     <Page
       kicker="Espace personnel"
       title={firstName(me) ? `Bonjour ${firstName(me)}` : 'Mon espace'}
-      description="Historique de vos appels de fonds sur trois ans, quote-part du fonds de travaux et reçus libératoires, au même endroit."
+      description="Vos charges et reçus, vos demandes, les documents et assemblées de votre copropriété, au même endroit."
       actions={
         myLots.length > 0 && (
           <div className="flex flex-wrap justify-end gap-1.5">
@@ -87,16 +99,16 @@ export default function MonEspace() {
           <StatStrip
             items={[
               {
+                label: 'Reste à payer',
+                value: formatEUR(outstanding, 2),
+                hint: nextDue ? `échéance du ${formatDate(nextDue.due_date)}` : 'à jour de vos charges',
+                icon: Wallet,
+              },
+              {
                 label: 'Appelé sur 3 ans',
                 value: formatEUR(totalCalled, 0),
                 hint: `${formatNumber(invoices.length)} avis d’échéance`,
                 icon: Receipt,
-              },
-              {
-                label: 'Reste à payer',
-                value: formatEUR(outstanding, 2),
-                hint: outstanding > 0 ? 'échéances ouvertes' : 'à jour de vos charges',
-                icon: Wallet,
               },
               {
                 label: 'Fonds de travaux',
@@ -105,16 +117,18 @@ export default function MonEspace() {
                 icon: Landmark,
               },
               {
-                label: 'Reçus libératoires',
-                value: formatNumber(receipts),
-                hint: 'téléchargeables en PDF',
-                icon: PiggyBank,
+                label: 'Demandes en cours',
+                value: formatNumber(openTickets),
+                hint: tickets.length ? `${formatNumber(tickets.length)} au total` : 'aucun signalement',
+                icon: MessageSquareWarning,
               },
             ]}
           />
 
+          <PortalNextDue next={nextDue} syndic={syndic} />
+
           <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
-            <div className="space-y-4">
+            <div className="min-w-0 space-y-4">
               <PortalChargesTable
                 invoices={invoices}
                 lots={lots}
@@ -122,11 +136,18 @@ export default function MonEspace() {
                 payments={payments}
               />
               <PortalReceipts invoices={invoices} lots={lots} buildings={buildings} payments={payments} />
+              <PortalTickets tickets={tickets} onReport={() => setReportOpen(true)} />
             </div>
-            <div className="space-y-4">
+            <div className="min-w-0 space-y-4">
               <FondsTravauxPanel fonds={fonds} />
+              <PortalMyLots lots={lots} buildings={buildings} syndic={syndic} />
               <PortalShortcuts isAdmin={isAdmin} onReport={() => setReportOpen(true)} />
             </div>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2 [&>section]:min-w-0">
+            <PortalDocuments documents={documents} buildings={buildings} />
+            <PortalAssemblies assemblies={assemblies} buildings={buildings} />
           </div>
         </>
       )}

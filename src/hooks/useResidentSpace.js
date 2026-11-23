@@ -42,6 +42,10 @@ export default function useResidentSpace() {
     invoices: [],
     payments: [],
     fonds: [],
+    assemblies: [],
+    documents: [],
+    tickets: [],
+    syndic: null,
   });
 
   useEffect(() => {
@@ -59,7 +63,20 @@ export default function useResidentSpace() {
         const fonds = buildFonds(lots, buildings, data.assemblies || [], data.buildingLots || []);
 
         if (active) {
-          setState({ loading: false, error: data.error || '', me, lots, buildings, invoices, payments, fonds });
+          setState({
+            loading: false,
+            error: data.error || '',
+            me,
+            lots,
+            buildings,
+            invoices,
+            payments,
+            fonds,
+            assemblies: data.assemblies || [],
+            documents: data.documents || [],
+            tickets: data.tickets || [],
+            syndic: data.syndic || null,
+          });
         }
       } catch (failure) {
         if (active) {

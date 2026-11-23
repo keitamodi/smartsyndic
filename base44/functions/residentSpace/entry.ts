@@ -57,16 +57,79 @@ export default async function (req) {
       buildings.map((building) => service.Lot.filter({ building_id: building.id }, { limit: 300 })),
     );
 
+    const [documentsPage, byEmailTickets, byAuthorTickets] = await Promise.all([
+      buildingIds.length
+        ? service.Document.filter(
+            { building_id: { $in: buildingIds }, visible_residents: true },
+            { limit: 80, sort: '-created_date' },
+          )
+        : { items: [] },
+      service.Ticket.filter({ requester_email: email }, { limit: 50, sort: '-created_date' }),
+      service.Ticket.filter({ created_by_id: user.id }, { limit: 50, sort: '-created_date' }),
+    ]);
+
+    const ticketsMap = new Map();
+    [...(byEmailTickets.items || []), ...(byAuthorTickets.items || [])].forEach((ticket) => ticketsMap.set(ticket.id, ticket));
+    const tickets = [...ticketsMap.values()].sort((a, b) =>
+      String(b.created_date || '').localeCompare(String(a.created_date || '')),
+    );
+
+    const syndicIds = [...new Set(buildings.map((building) => building.syndic_id).filter(Boolean))];
+    const syndics = syndicIds.length
+      ? (await service.Syndic.filter({ id: { $in: syndicIds } }, { limit: 5 })).items || []
+      : [];
+    const mySyndic = syndics[0];
+
     return Response.json({
       lots,
       buildings,
       invoices,
       payments,
+      documents: (documentsPage.items || []).map((row) => ({
+        id: row.id,
+        building_id: row.building_id,
+        title: row.title,
+        category: row.category,
+        published_date: row.published_date || row.created_date,
+        summary: row.summary,
+        file_uri: row.file_uri,
+      })),
+      tickets: tickets.map((row) => ({
+        id: row.id,
+        title: row.title,
+        building_name: row.building_name,
+        lot_number: row.lot_number,
+        status: row.status,
+        priority: row.priority,
+        created_date: row.created_date,
+        due_date: row.due_date,
+        closed_date: row.closed_date,
+        resolution_note: row.resolution_note,
+        assigned_name: row.assigned_name,
+      })),
+      syndic: mySyndic
+        ? {
+            name: mySyndic.name,
+            kind: mySyndic.kind,
+            email: mySyndic.contact_email,
+            phone: mySyndic.phone,
+            address: mySyndic.address,
+            postal_code: mySyndic.postal_code,
+            city: mySyndic.city,
+          }
+        : null,
       assemblies: assembliesByBuilding.flatMap((page) =>
         (page.items || []).map((row) => ({
           id: row.id,
           building_id: row.building_id,
+          title: row.title,
+          kind: row.kind,
           date: row.date,
+          time: row.time,
+          location: row.location,
+          status: row.status,
+          convocation_sent: row.convocation_sent,
+          minutes_uri: row.minutes_uri,
           created_date: row.created_date,
           budget_amount: row.budget_amount,
         })),
