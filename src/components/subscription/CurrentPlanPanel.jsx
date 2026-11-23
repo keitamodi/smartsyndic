@@ -4,6 +4,8 @@ export default function CurrentPlanPanel({ plan, usage }) {
   const meters = [
     { label: 'Immeubles gérés', used: usage.buildings, max: plan.limits.buildings },
     { label: 'Lots principaux', used: usage.lots, max: plan.limits.lots },
+    { label: 'Questions IA ce mois', used: usage.ai, max: plan.limits.ai },
+    { label: 'Sièges équipe', used: usage.seats, max: plan.limits.seats },
   ];
 
   return (
@@ -30,14 +32,15 @@ export default function CurrentPlanPanel({ plan, usage }) {
 
         <div className="space-y-4">
           {meters.map((meter) => {
-            const percent = meter.max ? Math.min(Math.round((meter.used / meter.max) * 100), 100) : 0;
+            const max = Number(meter.max) || 0;
+            const percent = max ? Math.min(Math.round(((Number(meter.used) || 0) / max) * 100), 100) : 0;
             const saturated = percent >= 80;
             return (
               <div key={meter.label}>
                 <div className="flex items-baseline justify-between gap-2">
                   <p className="text-[12.5px] text-foreground/80">{meter.label}</p>
                   <p className="tnum font-mono text-[11.5px] text-muted-foreground">
-                    {meter.used} / {meter.max}
+                    {Number(meter.used) || 0} / {max}
                   </p>
                 </div>
                 <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-secondary">
@@ -49,21 +52,6 @@ export default function CurrentPlanPanel({ plan, usage }) {
               </div>
             );
           })}
-
-          <div className="grid gap-3 pt-1 sm:grid-cols-2">
-            <div className="rounded-xl border border-border/70 bg-secondary/40 p-3">
-              <p className="kicker !text-[9px]">Enveloppe IA</p>
-              <p className="mt-1 text-[13px] font-medium">
-                {plan.limits.ai ? `${plan.limits.ai} questions / mois` : 'Questions illimitées'}
-              </p>
-            </div>
-            <div className="rounded-xl border border-border/70 bg-secondary/40 p-3">
-              <p className="kicker !text-[9px]">Équipe cabinet</p>
-              <p className="mt-1 text-[13px] font-medium">
-                {plan.limits.seats} siège{plan.limits.seats > 1 ? 's' : ''} inclus
-              </p>
-            </div>
-          </div>
         </div>
       </div>
     </section>

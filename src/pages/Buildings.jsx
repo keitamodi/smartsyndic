@@ -17,6 +17,8 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import useCollection from '@/hooks/useCollection';
+import useQuota from '@/hooks/useQuota';
+import QuotaLimitDialog from '@/components/quota/QuotaLimitDialog';
 import { useWorkspace } from '@/lib/workspace';
 import { base44 } from '@/api/base44Client';
 import { logAction } from '@/lib/audit';
@@ -88,6 +90,8 @@ const EMPTY_LOT = {
 
 export default function Buildings() {
   const { syndicId } = useWorkspace();
+  const { check, limits, planName, reload: reloadQuota } = useQuota();
+  const [quotaBlock, setQuotaBlock] = useState(null);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [formOpen, setFormOpen] = useState(false);
@@ -116,15 +120,31 @@ export default function Buildings() {
   const vacant = lots.filter((lot) => lot.status === 'vacant').length;
   const buildingLots = detail ? lots.filter((lot) => lot.building_id === detail.id) : [];
 
+  const openBuildingForm = () => {
+    const quota = check('buildings');
+    if (quota.reached) {
+      setQuotaBlock(quota);
+      return;
+    }
+    setEditing(null);
+    setFormOpen(true);
+  };
+
   const saveBuilding = async (values) => {
     if (editing) {
       await base44.entities.Building.update(editing.id, values);
       await logAction({ syndicId, action: 'Mise à jour', entity: 'Immeuble', entityLabel: values.name });
     } else {
+      const used = Number(await base44.entities.Building.count({ syndic_id: syndicId })) || 0;
+      if (used >= limits.buildings) {
+        setFormOpen(false);
+        setQuotaBlock({ ...check('buildings'), used });
+        return;
+      }
       await base44.entities.Building.create({ ...values, syndic_id: syndicId });
       await logAction({ syndicId, action: 'Création', entity: 'Immeuble', entityLabel: values.name });
     }
-    await reload();
+    await Promise.all([reload(), reloadQuota()]);
   };
 
   const removeBuilding = async (building) => {
@@ -135,13 +155,31 @@ export default function Buildings() {
     await Promise.all([reload(), reloadLots()]);
   };
 
+  const openLotForm = (lot = null) => {
+    if (!lot) {
+      const quota = check('lots');
+      if (quota.reached) {
+        setQuotaBlock(quota);
+        return;
+      }
+    }
+    setEditingLot(lot);
+    setLotFormOpen(true);
+  };
+
   const saveLot = async (values) => {
     if (editingLot) {
       await base44.entities.Lot.update(editingLot.id, values);
     } else {
+      const used = Number(await base44.entities.Lot.count({ syndic_id: syndicId })) || 0;
+      if (used >= limits.lots) {
+        setLotFormOpen(false);
+        setQuotaBlock({ ...check('lots'), used });
+        return;
+      }
       await base44.entities.Lot.create({ ...values, syndic_id: syndicId, building_id: detail.id });
     }
-    await reloadLots();
+    await Promise.all([reloadLots(), reloadQuota()]);
   };
 
   const removeLot = async (lot) => {
@@ -155,13 +193,7 @@ export default function Buildings() {
       title="Immeubles"
       description="Gérez vos copropriétés, leurs lots et les propriétaires rattachés. Chaque immeuble regroupe ses demandes, contrats et finances."
       actions={
-        <Button
-          className="gap-2"
-          onClick={() => {
-            setEditing(null);
-            setFormOpen(true);
-          }}
-        >
+        <Button className="gap-2" onClick={openBuildingForm}>
           <Plus className="h-4 w-4" />
           Nouvel immeuble
         </Button>
@@ -249,13 +281,7 @@ export default function Buildings() {
           title: 'Aucun immeuble enregistré',
           description: 'Créez votre premier immeuble pour y rattacher des lots, des résidents et des interventions.',
           action: (
-            <Button
-              className="gap-2"
-              onClick={() => {
-                setEditing(null);
-                setFormOpen(true);
-              }}
-            >
+            <Button className="gap-2" onClick={openBuildingForm}>
               <Plus className="h-4 w-4" />
               Créer un immeuble
             </Button>
@@ -309,10 +335,7 @@ export default function Buildings() {
               size="sm"
               variant="outline"
               className="gap-1.5"
-              onClick={() => {
-                setEditingLot(null);
-                setLotFormOpen(true);
-              }}
+              onClick={() => openLotForm()}
             >
               <Plus className="h-3.5 w-3.5" />
               Ajouter un lot
@@ -348,10 +371,7 @@ export default function Buildings() {
                       size="icon"
                       variant="ghost"
                       className="h-7 w-7"
-                      onClick={() => {
-                        setEditingLot(lot);
-                        setLotFormOpen(true);
-                      }}
+                      onClick={() => openLotForm(lot)}
                       aria-label="Modifier le lot"
                     >
                       <Pencil className="h-3.5 w-3.5" />
@@ -387,6 +407,8 @@ export default function Buildings() {
         onSubmit={saveLot}
         submitLabel={editingLot ? 'Mettre à jour' : 'Ajouter le lot'}
       />
+
+      <QuotaLimitDialog quota={quotaBlock} planName={planName} onClose={() => setQuotaBlock(null)} />
     </Page>
   );
 }

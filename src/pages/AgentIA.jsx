@@ -8,6 +8,8 @@ import ChatComposer from '@/components/agent/ChatComposer';
 import DocumentSources from '@/components/agent/DocumentSources';
 import { Button } from '@/components/ui/button';
 import useCollection from '@/hooks/useCollection';
+import useQuota from '@/hooks/useQuota';
+import QuotaLimitDialog from '@/components/quota/QuotaLimitDialog';
 import useRealtimeMessages from '@/hooks/useRealtimeMessages';
 import { useWorkspace } from '@/lib/workspace';
 import { base44 } from '@/api/base44Client';
@@ -35,6 +37,8 @@ const SUGGESTIONS = {
 
 export default function AgentIA() {
   const { syndicId, syndic } = useWorkspace();
+  const { check, limits, planName, reload: reloadQuota } = useQuota();
+  const [quotaBlock, setQuotaBlock] = useState(null);
   const [mode, setMode] = useState('syndic');
   const [selectedId, setSelectedId] = useState('');
   const [input, setInput] = useState('');
@@ -91,6 +95,11 @@ export default function AgentIA() {
   const send = async (text) => {
     const content = (text ?? input).trim();
     if (!content || sending) return;
+    const quota = check('ai');
+    if (quota.reached) {
+      setQuotaBlock(quota);
+      return;
+    }
     setSending(true);
     setError('');
     setInput('');
@@ -139,9 +148,13 @@ export default function AgentIA() {
       }
 
       await base44.entities.Conversation.update(conversationId, { last_message: answer.slice(0, 140) });
-      await Promise.all([reloadMessages(), reloadConversations()]);
+      await Promise.all([reloadMessages(), reloadConversations(), reloadQuota()]);
     } catch (sendError) {
-      setError(sendError?.message || "L'assistant est momentanément indisponible.");
+      const message = sendError?.message || "L'assistant est momentanément indisponible.";
+      setError(message);
+      if (/quota ia/i.test(message)) {
+        setQuotaBlock({ ...check('ai'), used: limits.ai });
+      }
     } finally {
       setSending(false);
     }
@@ -265,6 +278,8 @@ export default function AgentIA() {
 
         <DocumentSources documents={visibleDocuments} mode={mode} loading={loadingDocuments} />
       </div>
+
+      <QuotaLimitDialog quota={quotaBlock} planName={planName} onClose={() => setQuotaBlock(null)} />
     </Page>
   );
 }

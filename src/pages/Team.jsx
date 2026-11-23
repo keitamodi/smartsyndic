@@ -12,6 +12,8 @@ import { Button } from '@/components/ui/button';
 import { DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/components/ui/use-toast';
 import useCollection from '@/hooks/useCollection';
+import useQuota from '@/hooks/useQuota';
+import QuotaLimitDialog from '@/components/quota/QuotaLimitDialog';
 import { useWorkspace } from '@/lib/workspace';
 import { base44 } from '@/api/base44Client';
 import { logAction } from '@/lib/audit';
@@ -22,6 +24,8 @@ import { options, TEAM_ROLE, TEAM_STATUS } from '@/lib/constants';
 export default function Team() {
   const { syndicId } = useWorkspace();
   const { toast } = useToast();
+  const { check, limits, planName, reload: reloadQuota } = useQuota();
+  const [quotaBlock, setQuotaBlock] = useState(null);
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('');
   const [formOpen, setFormOpen] = useState(false);
@@ -44,6 +48,11 @@ export default function Team() {
   });
 
   const openCreate = () => {
+    const quota = check('seats');
+    if (quota.reached) {
+      setQuotaBlock(quota);
+      return;
+    }
     setEditing(null);
     setFormOpen(true);
   };
@@ -56,6 +65,13 @@ export default function Team() {
       await logAction({ syndicId, action: 'Mise à jour', entity: 'Équipe', entityLabel: payload.full_name });
       toast({ title: 'Collaborateur mis à jour', description: `${payload.full_name} · ${payload.email}` });
       await reload();
+      return;
+    }
+
+    const used = Number(await base44.entities.TeamMember.count({ syndic_id: syndicId })) || 0;
+    if (used >= limits.seats) {
+      setFormOpen(false);
+      setQuotaBlock({ ...check('seats'), used });
       return;
     }
 
@@ -87,7 +103,7 @@ export default function Team() {
       });
     }
 
-    await reload();
+    await Promise.all([reload(), reloadQuota()]);
   };
 
   const resendInvite = async (member) => {
@@ -108,7 +124,7 @@ export default function Team() {
 
   const remove = async (row) => {
     await base44.entities.TeamMember.delete(row.id);
-    await reload();
+    await Promise.all([reload(), reloadQuota()]);
   };
 
   return (
@@ -125,7 +141,7 @@ export default function Team() {
     >
       <StatStrip
         items={[
-          { label: 'Membres', value: formatNumber(items.length), hint: 'équipe du syndic' },
+          { label: 'Membres', value: formatNumber(items.length), hint: `${items.length} / ${limits.seats} sièges` },
           {
             label: 'Gestionnaires',
             value: formatNumber(items.filter((row) => row.role === 'gestionnaire').length),
@@ -243,6 +259,8 @@ export default function Team() {
         buildings={buildings}
         onSubmit={submitMember}
       />
+
+      <QuotaLimitDialog quota={quotaBlock} planName={planName} onClose={() => setQuotaBlock(null)} />
     </Page>
   );
 }

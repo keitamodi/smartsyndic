@@ -53,6 +53,29 @@ export default async function (req) {
 
     if (!syndic) return Response.json({ error: 'Espace syndic introuvable.' }, { status: 404 });
 
+    // Quota mensuel de questions IA selon le forfait du cabinet.
+    const AI_LIMITS: Record<string, number> = { free: 20, starter: 150, pro: 600, expert: 2500 };
+    const aiLimit = AI_LIMITS[syndic.plan_tier] ?? AI_LIMITS.free;
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+    const counted = await base44.asServiceRole.entities.Message.count({
+      syndic_id: syndicId,
+      role: 'user',
+      created_date: { $gte: monthStart },
+    });
+    const asked = Number(counted) || 0;
+    if (asked > aiLimit) {
+      return Response.json(
+        {
+          error: `Quota IA du forfait atteint (${asked - 1}/${aiLimit} questions ce mois-ci). Passez à un forfait supérieur pour continuer.`,
+          code: 'quota_ia',
+          used: asked - 1,
+          limit: aiLimit,
+        },
+        { status: 429 },
+      );
+    }
+
     const buildingList = rows(buildings);
     const ticketList = rows(tickets);
     const interventionList = rows(interventions);

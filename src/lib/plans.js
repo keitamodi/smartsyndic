@@ -11,7 +11,7 @@ export const PLANS = [
       { label: 'Immeubles gérés', value: '1 immeuble max' },
       { label: 'Lots principaux', value: '5 lots max' },
       { label: 'Enveloppe IA RAG', value: '20 questions / mois' },
-      { label: 'Équipe cabinet', value: '1 utilisateur (administrateur)' },
+      { label: 'Équipe cabinet', value: '1 siège équipe' },
     ],
   },
   {
@@ -26,7 +26,7 @@ export const PLANS = [
       { label: 'Immeubles gérés', value: '5 immeubles max' },
       { label: 'Lots principaux', value: '75 lots max' },
       { label: 'Enveloppe IA RAG', value: '150 questions / mois' },
-      { label: 'Équipe cabinet', value: '1 utilisateur (administrateur)' },
+      { label: 'Équipe cabinet', value: '1 siège équipe' },
     ],
   },
   {
@@ -42,7 +42,7 @@ export const PLANS = [
       { label: 'Immeubles gérés', value: '15 immeubles max' },
       { label: 'Lots principaux', value: '250 lots max' },
       { label: 'Enveloppe IA RAG', value: '600 questions / mois' },
-      { label: 'Équipe cabinet', value: '3 utilisateurs inclus' },
+      { label: 'Équipe cabinet', value: '3 sièges équipe' },
     ],
   },
   {
@@ -52,12 +52,12 @@ export const PLANS = [
     price: '129,90 €',
     suffix: 'HT / mois',
     cta: 'Choisir Expert',
-    limits: { buildings: 40, lots: 800, ai: null, seats: 6 },
+    limits: { buildings: 40, lots: 800, ai: 2500, seats: 6 },
     features: [
       { label: 'Immeubles gérés', value: '40 immeubles max' },
       { label: 'Lots principaux', value: '800 lots max' },
       { label: 'Enveloppe IA RAG', value: 'Illimité' },
-      { label: 'Équipe cabinet', value: '6 utilisateurs inclus' },
+      { label: 'Équipe cabinet', value: '6 sièges équipe' },
     ],
     note: 'Fair-use technique : 2 500 questions IA par mois.',
   },

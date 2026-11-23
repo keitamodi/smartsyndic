@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { CreditCard, Loader2 } from 'lucide-react';
 import Page from '@/components/Page';
 import PlanCard from '@/components/pricing/PlanCard';
@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/dialog';
 import { useToast } from '@/components/ui/use-toast';
 import { useWorkspace } from '@/lib/workspace';
+import useQuota from '@/hooks/useQuota';
 import { base44 } from '@/api/base44Client';
 import { logAction } from '@/lib/audit';
 import { PLANS, planById, planRank } from '@/lib/plans';
@@ -22,30 +23,11 @@ import { PLANS, planById, planRank } from '@/lib/plans';
 export default function Abonnement() {
   const { syndicId, syndic, refresh } = useWorkspace();
   const { toast } = useToast();
-  const [usage, setUsage] = useState({ buildings: 0, lots: 0 });
+  const { usage, reload: reloadQuota } = useQuota();
   const [target, setTarget] = useState(null);
   const [saving, setSaving] = useState(false);
 
   const currentPlan = planById(syndic?.plan_tier);
-
-  useEffect(() => {
-    if (!syndicId) return undefined;
-    let active = true;
-    (async () => {
-      try {
-        const [buildings, lots] = await Promise.all([
-          base44.entities.Building.count({ syndic_id: syndicId }),
-          base44.entities.Lot.count({ syndic_id: syndicId }),
-        ]);
-        if (active) setUsage({ buildings: buildings || 0, lots: lots || 0 });
-      } catch {
-        if (active) setUsage({ buildings: 0, lots: 0 });
-      }
-    })();
-    return () => {
-      active = false;
-    };
-  }, [syndicId]);
 
   if (!syndicId) return <WorkspaceRequired />;
 
@@ -62,6 +44,7 @@ export default function Abonnement() {
         details: `${currentPlan.name} → ${target.name}`,
       });
       await refresh();
+      await reloadQuota();
       toast({
         title: `Forfait ${target.name} activé`,
         description: 'Vos quotas sont mis à jour immédiatement.',
