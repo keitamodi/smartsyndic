@@ -31,6 +31,10 @@ import MonEspace from '@/pages/MonEspace';
 import MesInterventions from '@/pages/MesInterventions';
 import Accueil from '@/pages/Accueil';
 import Pricing from '@/pages/Pricing';
+import MentionsLegales from '@/pages/legal/MentionsLegales';
+import CGU from '@/pages/legal/CGU';
+import Confidentialite from '@/pages/legal/Confidentialite';
+import Cookies from '@/pages/legal/Cookies';
 import Login from '@/pages/Login';
 import Register from '@/pages/Register';
 import ForgotPassword from '@/pages/ForgotPassword';
@@ -66,6 +70,10 @@ const AuthenticatedApp = () => {
       {/* Add your page Route elements here */}
       <Route path="/" element={<Accueil />} />
       <Route path="/pricing" element={<Pricing />} />
+      <Route path="/mentions-legales" element={<MentionsLegales />} />
+      <Route path="/cgu" element={<CGU />} />
+      <Route path="/confidentialite" element={<Confidentialite />} />
+      <Route path="/cookies" element={<Cookies />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />

@@ -1,4 +1,4 @@
-import { NavLink } from 'react-router-dom';
+import { Link, NavLink } from 'react-router-dom';
 import {
   LayoutDashboard,
   Building2,
@@ -26,6 +26,7 @@ import { cn } from '@/lib/utils';
 import { useAuth } from '@/lib/AuthContext';
 import useMemberKind from '@/hooks/useMemberKind';
 import SidebarPlanCard from '@/components/subscription/SidebarPlanCard';
+import { LEGAL_PAGES } from '@/lib/legal';
 
 const GROUPS = [
   {
@@ -190,6 +191,19 @@ export default function AppSidebar({ onNavigate }) {
           </NavLink>
         </div>
       )}
+
+      <div className="flex flex-wrap gap-x-3 gap-y-1 border-t border-border/70 px-5 py-3">
+        {LEGAL_PAGES.map((page) => (
+          <Link
+            key={page.to}
+            to={page.to}
+            onClick={onNavigate}
+            className="text-[10.5px] text-muted-foreground transition-colors hover:text-foreground"
+          >
+            {page.label}
+          </Link>
+        ))}
+      </div>
     </div>
   );
 }
