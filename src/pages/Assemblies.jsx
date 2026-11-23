@@ -252,7 +252,7 @@ export default function Assemblies() {
         open={formOpen}
         onOpenChange={setFormOpen}
         title={editing ? "Modifier l'assemblée" : 'Nouvelle assemblée générale'}
-        description="L’ordre du jour structure les résolutions soumises au vote. Les convocations créent une notification interne par résident."
+        description="L’ordre du jour structure les résolutions soumises au vote. Les convocations envoient un email et une notification interne à chaque copropriétaire."
         fields={fields}
         initialValues={editing || EMPTY}
         onSubmit={save}

@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.54';
+import { firstName, sendTemplateEmails } from '../../shared/notifyEmail.ts';
 
 const DAY_MS = 86400000;
 const AUTOMATION_EMAIL = 'automations@smartsyndic.app';
@@ -104,15 +105,16 @@ function interventionReminders(syndic, items, today) {
 }
 
 function invoiceReminders(syndic, invoices, lots, today) {
-  const lotEmails = new Map();
+  const lotInfo = new Map();
   for (const lot of lots) {
     if (lot.building_id && lot.number && lot.owner_email) {
-      lotEmails.set(`${lot.building_id}::${lot.number}`, lot.owner_email);
+      lotInfo.set(`${lot.building_id}::${lot.number}`, { email: lot.owner_email, name: lot.owner_name || '' });
     }
   }
 
   const notifications = [];
   const updates = [];
+  const emails = [];
 
   for (const invoice of invoices) {
     if (!isOpen(invoice)) continue;
@@ -130,7 +132,8 @@ function invoiceReminders(syndic, invoices, lots, today) {
     const last = parseDate(invoice.last_reminder_at);
     if (last && Math.round((today.getTime() - last.getTime()) / DAY_MS) < cadence) continue;
 
-    const email = invoice.recipient_email || lotEmails.get(`${invoice.building_id}::${invoice.lot_number}`) || '';
+    const lot = lotInfo.get(`${invoice.building_id}::${invoice.lot_number}`) || { email: '', name: '' };
+    const email = invoice.recipient_email || lot.email || '';
     const stage = REMINDER_LABELS[level];
     const closing = {
       0: "Merci de régulariser rapidement pour garantir la continuité des services de l'immeuble.",
@@ -149,6 +152,22 @@ function invoiceReminders(syndic, invoices, lots, today) {
         read: false,
         link: '/mon-espace',
       });
+      emails.push({
+        to: email,
+        template: 'RelanceImpaye',
+        fromName: syndic.name || 'Votre syndic',
+        variables: {
+          first_name: firstName(lot.name),
+          building_name: invoice.building_name || 'votre immeuble',
+          reference: invoice.reference || 'appel de fonds',
+          amount: euro(outstandingOf(invoice)),
+          due_date: frenchDate(due),
+          stage_label: stage,
+          late_days: `${late} jour(s) de retard`,
+          closing: closing[level] || '',
+          syndic_name: syndic.name || 'Votre syndic',
+        },
+      });
     }
 
     updates.push({
@@ -160,7 +179,7 @@ function invoiceReminders(syndic, invoices, lots, today) {
     });
   }
 
-  return { notifications, updates };
+  return { notifications, updates, emails };
 }
 
 function assemblyAlerts(syndic, assemblies, today) {
@@ -224,7 +243,7 @@ export default async function (req) {
     const allSyndics = rows(await db.entities.Syndic.list());
     const syndics = onlySyndic ? allSyndics.filter((item) => item.id === onlySyndic) : allSyndics;
     const today = startOfToday();
-    const summary = { syndics: syndics.length, notifications: 0, interventions: 0, impayes: 0, assemblees: 0 };
+    const summary = { syndics: syndics.length, notifications: 0, emails: 0, interventions: 0, impayes: 0, assemblees: 0 };
 
     for (const syndic of syndics) {
       const [interventions, invoices, lots, assemblies] = await Promise.all([
@@ -244,9 +263,13 @@ export default async function (req) {
       }
 
       if (scopes.includes('impayes')) {
-        const { notifications, updates } = invoiceReminders(syndic, rows(invoices), rows(lots), today);
+        const { notifications, updates, emails } = invoiceReminders(syndic, rows(invoices), rows(lots), today);
         if (notifications.length > 0) await db.entities.Notification.bulkCreate(notifications);
         if (updates.length > 0) await db.entities.Invoice.bulkUpdate(updates);
+        if (emails.length > 0) {
+          const { sent } = await sendTemplateEmails(base44, emails);
+          summary.emails += sent;
+        }
         summary.notifications += notifications.length;
         summary.impayes += updates.length;
         await logRun(db, syndic.id, 'Relances impayés', 'Invoice', updates.length);

@@ -1,0 +1,61 @@
+<mjml>
+  <mj-head>
+    <mj-title>Votre appel de fonds {{reference}} · {{building_name}}</mj-title>
+    <mj-preview>{{amount}} à régler avant le {{due_date}}</mj-preview>
+    <mj-attributes>
+      <mj-all font-family="'Instrument Sans', Arial, Helvetica, sans-serif" />
+      <mj-section padding="0" />
+      <mj-text color="#000000" font-size="15px" line-height="1.6" padding="0" />
+      <mj-button background-color="#d55320" color="#000000" border-radius="4px" font-weight="700" inner-padding="13px 26px" align="left" />
+      <mj-class name="label" color="#6b7280" font-size="13px" />
+      <mj-class name="value" color="#000000" font-size="14px" font-weight="700" align="right" />
+    </mj-attributes>
+  </mj-head>
+  <mj-body background-color="#f6f7f9" width="600px">
+    <mj-section background-color="#d55320" padding="18px 28px">
+      <mj-column>
+        <mj-image src="https://media.base44.com/images/public/6af6008df25fa7c8fe5afd5d/1b70ec0d4_logo.png" width="34px" align="left" alt="Smartsyndic" />
+        <mj-text color="#000000" font-size="17px" font-weight="700" padding="10px 0 0 0">Smartsyndic</mj-text>
+      </mj-column>
+    </mj-section>
+    <mj-spacer height="20px" />
+    <mj-section background-color="#ffffff" border="1px solid #e5e7eb" border-radius="4px" padding="30px 28px">
+      <mj-column>
+        <mj-text font-size="23px" font-weight="700" line-height="1.3" padding="0 0 8px 0">Bonjour {{first_name}},</mj-text>
+        <mj-text color="#6b7280" padding="0 0 20px 0">Votre avis d'échéance {{period}} pour {{building_name}} est disponible.</mj-text>
+        <mj-text font-size="34px" font-weight="700" padding="0 0 2px 0">{{amount}}</mj-text>
+        <mj-text color="#6b7280" padding="0 0 18px 0">à régler avant le {{due_date}}</mj-text>
+        <mj-divider border-color="#e5e7eb" padding="0 0 14px 0" />
+        <mj-group>
+          <mj-column><mj-text mj-class="label" padding="0 0 8px 0">Lot</mj-text></mj-column>
+          <mj-column><mj-text mj-class="value" padding="0 0 8px 0">{{lot_number}}</mj-text></mj-column>
+        </mj-group>
+        <mj-group>
+          <mj-column><mj-text mj-class="label" padding="0 0 8px 0">Référence</mj-text></mj-column>
+          <mj-column><mj-text mj-class="value" padding="0 0 8px 0">{{reference}}</mj-text></mj-column>
+        </mj-group>
+        <mj-group>
+          <mj-column><mj-text mj-class="label" padding="0 0 8px 0">Période</mj-text></mj-column>
+          <mj-column><mj-text mj-class="value" padding="0 0 8px 0">{{period}}</mj-text></mj-column>
+        </mj-group>
+        <mj-group>
+          <mj-column><mj-text mj-class="label" padding="0 0 0 0">Échéance</mj-text></mj-column>
+          <mj-column><mj-text mj-class="value" padding="0 0 0 0">{{due_date}}</mj-text></mj-column>
+        </mj-group>
+        <mj-text color="#6b7280" font-size="13px" padding="16px 0 0 0">{{breakdown}}</mj-text>
+        <mj-button href="https://smartsyndic.base44.app/mon-espace" padding="24px 0 0 0">Consulter mon espace</mj-button>
+      </mj-column>
+    </mj-section>
+    <mj-spacer height="12px" />
+    <mj-section background-color="#ffffff" border="1px solid #e5e7eb" border-radius="4px" padding="18px 28px">
+      <mj-column>
+        <mj-text color="#6b7280" font-size="13px">Un rappel automatique vous sera adressé si le règlement n'intervient pas avant l'échéance. En cas de difficulté, contactez {{syndic_name}}.</mj-text>
+      </mj-column>
+    </mj-section>
+    <mj-section padding="20px 28px">
+      <mj-column>
+        <mj-text color="#6b7280" font-size="12px">Email envoyé par {{syndic_name}} via <a href="https://smartsyndic.base44.app" style="color:#6b7280;">Smartsyndic</a>.</mj-text>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>

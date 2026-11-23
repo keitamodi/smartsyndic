@@ -22,7 +22,7 @@ import FormDialog from '@/components/FormDialog';
 import { useToast } from '@/components/ui/use-toast';
 import useCollection from '@/hooks/useCollection';
 import { base44 } from '@/api/base44Client';
-import { logAction, notify } from '@/lib/audit';
+import { logAction } from '@/lib/audit';
 import { formatDate } from '@/lib/format';
 import {
   ASSEMBLY_KIND,
@@ -42,7 +42,7 @@ const RESOLUTION_FIELDS = [
   { name: 'notes', label: 'Notes', type: 'textarea', span: 2, rows: 2 },
 ];
 
-export default function AssemblyDetail({ open, onOpenChange, assembly, syndicId, residents = [], onUpdated }) {
+export default function AssemblyDetail({ open, onOpenChange, assembly, syndicId, onUpdated }) {
   const { toast } = useToast();
   const fileRef = useRef(null);
   const [uploading, setUploading] = useState(false);
@@ -57,26 +57,25 @@ export default function AssemblyDetail({ open, onOpenChange, assembly, syndicId,
   if (!assembly) return null;
 
   const convoke = async () => {
-    await base44.entities.Assembly.update(assembly.id, {
-      status: 'convoquee',
-      convoked_at: new Date().toISOString().slice(0, 10),
-      convocation_sent: true,
+    const response = await base44.functions.invoke('sendConvocation', {
+      syndic_id: syndicId,
+      assembly_id: assembly.id,
     });
-    const audience = residents.filter((resident) => resident.building_id === assembly.building_id && resident.email);
-    for (const resident of audience.slice(0, 50)) {
-      await notify({
-        syndicId,
-        recipientEmail: resident.email,
-        title: `Convocation : ${assembly.title}`,
-        message: `Vous êtes convoqué(e) le ${formatDate(assembly.date)} à ${assembly.time || 'l’heure indiquée'} — ${assembly.location || 'lieu à confirmer'}.`,
-        kind: 'assemblee',
-        link: '/assemblees',
-      });
+    const data = response?.data || {};
+    if (data.error) {
+      toast({ title: 'Envoi impossible', description: data.error, variant: 'destructive' });
+      return;
     }
-    await logAction({ syndicId, action: 'Convocation AG', entity: 'Assemblée', entityLabel: assembly.title });
+    await logAction({
+      syndicId,
+      action: 'Convocation AG',
+      entity: 'Assemblée',
+      entityLabel: assembly.title,
+      details: `${data.sent || 0} email(s) envoyé(s) sur ${data.recipients || 0} copropriétaire(s)`,
+    });
     toast({
       title: 'Assemblée convoquée',
-      description: `${audience.length} notification(s) interne(s) créée(s).`,
+      description: `${data.sent || 0} email(s) envoyé(s)${data.failed ? ` · ${data.failed} adresse(s) sans compte` : ''} · ${data.notifications || 0} notification(s) interne(s).`,
     });
     await onUpdated();
   };

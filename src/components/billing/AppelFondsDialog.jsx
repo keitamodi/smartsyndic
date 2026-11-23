@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { base44 } from '@/api/base44Client';
-import { logAction, notify } from '@/lib/audit';
+import { logAction } from '@/lib/audit';
 import { formatDate, formatEUR, formatNumber } from '@/lib/format';
 import {
   buildReference,
@@ -45,6 +45,8 @@ export default function AppelFondsDialog({ open, onOpenChange, syndicId, buildin
   const [cadence, setCadence] = useState(7);
   const [generated, setGenerated] = useState([]);
   const [sent, setSent] = useState(false);
+  const [report, setReport] = useState('');
+  const [failedCount, setFailedCount] = useState(0);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
 
@@ -52,6 +54,8 @@ export default function AppelFondsDialog({ open, onOpenChange, syndicId, buildin
     if (!open) return;
     setGenerated([]);
     setSent(false);
+    setReport('');
+    setFailedCount(0);
     setError('');
     setAssemblyId('');
     setAmount('');
@@ -191,31 +195,29 @@ export default function AppelFondsDialog({ open, onOpenChange, syndicId, buildin
     setError('');
     try {
       const targets = generated.filter((item) => item.invoice?.id);
-      await base44.entities.Invoice.bulkUpdate(
-        targets.map((item) => ({ id: item.invoice.id, status: 'envoyee' })),
-      );
-      const notifiable = targets.filter((item) => item.recipient_email);
-      await Promise.all(
-        notifiable.map((item) =>
-          notify({
-            syndicId,
-            recipientEmail: item.recipient_email,
-            title: `Appel de fonds ${item.invoice.reference} — ${period}`,
-            message: `${formatEUR(item.invoice.amount, 2)} à régler avant le ${formatDate(
-              item.invoice.due_date || dueDate,
-            )}. Rappel automatique à J+${cadence} en cas de non-paiement.`,
-            kind: 'facture',
-            link: '/mon-espace',
-          }),
-        ),
-      );
+      const response = await base44.functions.invoke('sendAvisEcheance', {
+        syndic_id: syndicId,
+        invoice_ids: targets.map((item) => item.invoice.id),
+      });
+      const data = response?.data || {};
+      if (data.error) throw new Error(data.error);
       await logAction({
         syndicId,
         action: 'Avis d’échéance envoyés',
         entity: 'Facture',
         entityLabel: period,
-        details: `${notifiable.length} notification(s) sur ${targets.length} avis`,
+        details: `${data.sent || 0} email(s) envoyé(s) sur ${targets.length} avis`,
       });
+      setReport(
+        [
+          `${data.sent || 0} email(s) envoyé(s)`,
+          data.skipped ? `${data.skipped} lot(s) sans adresse` : '',
+          data.failed ? `${data.failed} adresse(s) non délivrée(s)` : '',
+        ]
+          .filter(Boolean)
+          .join(' · '),
+      );
+      setFailedCount(data.failed || 0);
       setSent(true);
       setGenerated((prev) =>
         prev.map((item) => ({ ...item, invoice: { ...item.invoice, status: 'envoyee' } })),
@@ -277,9 +279,16 @@ export default function AppelFondsDialog({ open, onOpenChange, syndicId, buildin
             <p className="flex items-center gap-2 rounded-xl bg-secondary/50 px-3 py-2 text-[12px] text-foreground">
               <FileCheck2 className="h-4 w-4 text-primary" />
               {sent
-                ? `Avis envoyés pour ${period} · rappel automatique à J+${cadence}`
+                ? `Avis envoyés pour ${period} · ${report || 'rappel automatique à J+' + cadence}`
                 : `Avis au brouillon pour ${period} · échéance ${formatDate(dueDate)}`}
             </p>
+
+            {failedCount > 0 && (
+              <p className="rounded-lg bg-amber-50 px-3 py-2 text-[11.5px] text-amber-800">
+                {failedCount} adresse(s) n'ont pas pu être contactées : seules les personnes ayant un compte
+                Smartsyndic reçoivent l'email tant que l'application n'est pas publiée avec un domaine email.
+              </p>
+            )}
 
             <div className="max-h-64 overflow-y-auto thin-scroll rounded-xl border border-border/70">
               <ul className="divide-y divide-border/60">
