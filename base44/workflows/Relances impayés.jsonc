@@ -1,0 +1,47 @@
+{
+  "name": "Relances impay\u00e9s",
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "relances_impayes",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "relances_impayes": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "automationsQuotidiennes",
+            "args": {
+              "scope": "impayes"
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Relances impay\u00e9s",
+            "description": "Rappel amiable, relance, mise en demeure, contentieux"
+          }
+        }
+      }
+    ]
+  },
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "15 8 * * *",
+      "one_time_date": null,
+      "timezone": "Europe/Paris",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "description": "Chaque matin : relance automatique des appels de fonds et factures impay\u00e9s, cran par cran."
+}

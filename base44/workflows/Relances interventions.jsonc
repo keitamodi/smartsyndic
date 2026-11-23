@@ -1,0 +1,47 @@
+{
+  "name": "Relances interventions",
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "relances_interventions",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "relances_interventions": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "automationsQuotidiennes",
+            "args": {
+              "scope": "interventions"
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Relances interventions",
+            "description": "Entretiens \u00e0 venir et interventions en retard"
+          }
+        }
+      }
+    ]
+  },
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "0 8 * * *",
+      "one_time_date": null,
+      "timezone": "Europe/Paris",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "description": "Chaque matin : rappel des interventions \u00e0 venir et alerte sur celles en retard."
+}

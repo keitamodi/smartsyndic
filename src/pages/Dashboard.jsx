@@ -6,6 +6,7 @@ import MetricCard from '@/components/dashboard/MetricCard';
 import BarGraph from '@/components/dashboard/BarGraph';
 import LineGraph from '@/components/dashboard/LineGraph';
 import ActivityFeed from '@/components/dashboard/ActivityFeed';
+import AutomationsPanel from '@/components/automations/AutomationsPanel';
 import WorkspaceRequired from '@/components/WorkspaceRequired';
 import { Button } from '@/components/ui/button';
 import useCollection from '@/hooks/useCollection';
@@ -227,6 +228,8 @@ export default function Dashboard() {
           <p className="mt-1.5 text-[11px] text-muted-foreground">dans cet espace syndic</p>
         </div>
       </section>
+
+      <AutomationsPanel syndicId={syndicId} />
     </Page>
   );
 }

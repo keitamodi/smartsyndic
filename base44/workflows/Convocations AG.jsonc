@@ -1,0 +1,47 @@
+{
+  "name": "Convocations AG",
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "convocations_ag",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "convocations_ag": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "automationsQuotidiennes",
+            "args": {
+              "scope": "assemblees"
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Convocations d'AG",
+            "description": "Rappel du d\u00e9lai l\u00e9gal de 21 jours"
+          }
+        }
+      }
+    ]
+  },
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "30 8 * * *",
+      "one_time_date": null,
+      "timezone": "Europe/Paris",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "description": "Chaque matin : alerte sur les assembl\u00e9es \u00e0 moins de 21 jours dont la convocation n'est pas partie."
+}

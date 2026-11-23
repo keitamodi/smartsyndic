@@ -62,6 +62,10 @@
     "convocation_sent": {
       "type": "boolean"
     },
+    "convocation_alert_sent": {
+      "type": "boolean",
+      "description": "Alerte \u00ab convocation \u00e0 envoyer \u00bb d\u00e9j\u00e0 \u00e9mise par l'automatisation"
+    },
     "convoked_at": {
       "type": "string",
       "format": "date"
