@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Building2, LogOut, Menu, Plus } from 'lucide-react';
+import { Building2, LogOut, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -9,7 +9,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import SyndicFormDialog from '@/components/SyndicFormDialog';
 import NotificationsMenu from '@/components/NotificationsMenu';
 import {
   DropdownMenu,
@@ -25,7 +24,6 @@ import { initials } from '@/lib/format';
 
 export default function TopBar({ onMenu }) {
   const { syndics, syndic, syndicId, setSyndicId } = useWorkspace();
-  const [creating, setCreating] = useState(false);
   const [user, setUser] = useState(null);
 
   useEffect(() => {
@@ -58,7 +56,7 @@ export default function TopBar({ onMenu }) {
 
         <div className="flex min-w-0 items-center gap-2">
           <Building2 className="hidden h-4 w-4 shrink-0 text-muted-foreground sm:block" strokeWidth={1.8} />
-          {syndics.length > 0 ? (
+          {syndics.length > 1 ? (
             <Select value={syndicId} onValueChange={setSyndicId}>
               <SelectTrigger className="h-9 w-[180px] border-transparent bg-transparent px-2 text-[13px] font-medium hover:bg-secondary/70 sm:w-[240px]">
                 <SelectValue placeholder="Espace de travail" />
@@ -72,20 +70,12 @@ export default function TopBar({ onMenu }) {
               </SelectContent>
             </Select>
           ) : (
-            <span className="truncate text-[13px] font-medium text-muted-foreground">
-              Aucun espace syndic
+            <span
+              className={`truncate text-[13px] font-medium ${syndic ? 'text-foreground/85' : 'text-muted-foreground'}`}
+            >
+              {syndic?.name || 'Aucun espace syndic'}
             </span>
           )}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 text-muted-foreground hover:text-primary"
-            onClick={() => setCreating(true)}
-            aria-label="Créer un espace syndic"
-            title="Créer un espace syndic"
-          >
-            <Plus className="h-4 w-4" />
-          </Button>
         </div>
 
         <div className="ml-auto flex items-center gap-1.5">
@@ -140,8 +130,6 @@ export default function TopBar({ onMenu }) {
           </DropdownMenu>
         </div>
       </div>
-
-      <SyndicFormDialog open={creating} onOpenChange={setCreating} />
     </div>
   );
 }

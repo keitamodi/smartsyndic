@@ -49,7 +49,7 @@ export default function LandingHeader() {
             </Link>
           </Button>
           <Button size="sm" className="text-[12.5px]" onClick={goToForm}>
-            Inscrire mon syndicat
+            Inscription syndic
           </Button>
         </div>
       </div>
