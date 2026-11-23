@@ -1,12 +1,13 @@
 import { useMemo, useState } from 'react';
-import { Mail, Plus, Send, UserCog } from 'lucide-react';
+import { Plus, Send, UserCog } from 'lucide-react';
 import Page from '@/components/Page';
 import StatStrip from '@/components/StatStrip';
 import TablePanel from '@/components/TablePanel';
 import RowActions from '@/components/RowActions';
 import StatusBadge from '@/components/StatusBadge';
-import FormDialog from '@/components/FormDialog';
 import WorkspaceRequired from '@/components/WorkspaceRequired';
+import TeamGuide from '@/components/team/TeamGuide';
+import InviteTeamMemberDialog from '@/components/team/InviteTeamMemberDialog';
 import { Button } from '@/components/ui/button';
 import { DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/components/ui/use-toast';
@@ -14,17 +15,9 @@ import useCollection from '@/hooks/useCollection';
 import { useWorkspace } from '@/lib/workspace';
 import { base44 } from '@/api/base44Client';
 import { logAction } from '@/lib/audit';
-import { formatNumber } from '@/lib/format';
+import { formatNumber, initials } from '@/lib/format';
+import { roleDescription } from '@/lib/teamRoles';
 import { options, TEAM_ROLE, TEAM_STATUS } from '@/lib/constants';
-
-const EMPTY = {
-  full_name: '',
-  email: '',
-  role: 'gestionnaire',
-  status: 'invite',
-  building_ids: [],
-  notes: '',
-};
 
 export default function Team() {
   const { syndicId } = useWorkspace();
@@ -50,52 +43,72 @@ export default function Team() {
     return haystack.includes(search.toLowerCase());
   });
 
-  const fields = [
-    { name: 'full_name', label: 'Nom complet', required: true, placeholder: 'Camille Dubois' },
-    { name: 'email', label: 'Email professionnel', type: 'email', required: true, placeholder: 'camille@cabinet.fr' },
-    { name: 'role', label: 'Rôle', type: 'select', options: options(TEAM_ROLE), span: 2 },
-    { name: 'status', label: 'Statut', type: 'select', options: options(TEAM_STATUS) },
-    {
-      name: 'building_ids',
-      label: "Périmètre d'immeubles",
-      type: 'multiselect',
-      span: 2,
-      options: buildings.map((building) => ({ value: building.id, label: building.name })),
-    },
-    { name: 'notes', label: 'Notes', type: 'textarea', span: 2, rows: 3 },
-  ];
+  const openCreate = () => {
+    setEditing(null);
+    setFormOpen(true);
+  };
 
-  const save = async (values) => {
+  const submitMember = async (values, { sendInvite }) => {
     const payload = { ...values, building_ids: Array.isArray(values.building_ids) ? values.building_ids : [] };
+
     if (editing) {
       await base44.entities.TeamMember.update(editing.id, payload);
       await logAction({ syndicId, action: 'Mise à jour', entity: 'Équipe', entityLabel: payload.full_name });
-    } else {
-      await base44.entities.TeamMember.create({ ...payload, syndic_id: syndicId });
-      await logAction({ syndicId, action: 'Création', entity: 'Équipe', entityLabel: payload.full_name });
+      toast({ title: 'Collaborateur mis à jour', description: `${payload.full_name} · ${payload.email}` });
+      await reload();
+      return;
     }
+
+    const created = await base44.entities.TeamMember.create({
+      ...payload,
+      syndic_id: syndicId,
+      status: sendInvite ? 'invite' : 'actif',
+    });
+    await logAction({ syndicId, action: 'Création', entity: 'Équipe', entityLabel: payload.full_name });
+
+    if (sendInvite) {
+      try {
+        await base44.users.inviteUser(created.email, 'admin');
+        toast({
+          title: 'Invitation envoyée',
+          description: `Un email d’invitation a été adressé à ${created.email}.`,
+        });
+      } catch (inviteError) {
+        toast({
+          title: 'Membre enregistré, invitation non envoyée',
+          description: inviteError?.message || 'Utilisez « Renvoyer l’invitation » depuis la liste.',
+          variant: 'destructive',
+        });
+      }
+    } else {
+      toast({
+        title: 'Membre enregistré',
+        description: 'Aucune invitation envoyée : relancez-la depuis la liste quand vous le souhaitez.',
+      });
+    }
+
     await reload();
+  };
+
+  const resendInvite = async (member) => {
+    try {
+      await base44.users.inviteUser(member.email, 'admin');
+      await base44.entities.TeamMember.update(member.id, { status: 'invite' });
+      await logAction({ syndicId, action: 'Invitation', entity: 'Équipe', entityLabel: member.full_name });
+      toast({ title: 'Invitation renvoyée', description: `Un email a été adressé à ${member.email}.` });
+      await reload();
+    } catch (inviteError) {
+      toast({
+        title: 'Invitation impossible',
+        description: inviteError?.message || 'Seul un administrateur peut inviter des utilisateurs.',
+        variant: 'destructive',
+      });
+    }
   };
 
   const remove = async (row) => {
     await base44.entities.TeamMember.delete(row.id);
     await reload();
-  };
-
-  const invite = async (member) => {
-    try {
-      await base44.users.inviteUser(member.email, 'admin');
-      await base44.entities.TeamMember.update(member.id, { status: 'invite' });
-      await logAction({ syndicId, action: 'Invitation', entity: 'Équipe', entityLabel: member.full_name });
-      toast({ title: 'Invitation envoyée', description: `Un email d’invitation a été adressé à ${member.email}.` });
-      await reload();
-    } catch (inviteError) {
-      toast({
-        title: 'Invitation impossible',
-        description: inviteError?.message || "Seul un administrateur peut inviter des utilisateurs.",
-        variant: 'destructive',
-      });
-    }
   };
 
   return (
@@ -104,13 +117,7 @@ export default function Team() {
       title="Équipe"
       description="Invitez vos collaborateurs, attribuez leurs rôles et définissez leur périmètre d’immeubles."
       actions={
-        <Button
-          className="gap-2"
-          onClick={() => {
-            setEditing(null);
-            setFormOpen(true);
-          }}
-        >
+        <Button className="gap-2" onClick={openCreate}>
           <Plus className="h-4 w-4" />
           Ajouter un membre
         </Button>
@@ -133,10 +140,7 @@ export default function Team() {
         ]}
       />
 
-      <p className="rounded-2xl border border-border/70 bg-secondary/40 px-4 py-3 text-[12px] leading-relaxed text-muted-foreground">
-        Les invitations sont envoyées par email et créent un accès à la plateforme. Le rôle choisi ici définit les
-        responsabilités dans le syndic ; le périmètre d’immeubles restreint les copropriétés visibles.
-      </p>
+      <TeamGuide />
 
       <TablePanel
         search={search}
@@ -157,13 +161,27 @@ export default function Team() {
             key: 'full_name',
             header: 'Membre',
             render: (row) => (
-              <div className="min-w-0">
-                <p className="truncate font-medium text-foreground">{row.full_name}</p>
-                <p className="mt-0.5 truncate text-[11.5px] text-muted-foreground">{row.email}</p>
+              <div className="flex min-w-0 items-center gap-2.5">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-secondary font-mono text-[10px] font-semibold text-foreground/70">
+                  {initials(row.full_name)}
+                </span>
+                <div className="min-w-0">
+                  <p className="truncate font-medium text-foreground">{row.full_name}</p>
+                  <p className="mt-0.5 truncate text-[11.5px] text-muted-foreground">{row.email}</p>
+                </div>
               </div>
             ),
           },
-          { key: 'role', header: 'Rôle', render: (row) => <StatusBadge value={row.role} map={TEAM_ROLE} tone="neutral" /> },
+          {
+            key: 'role',
+            header: 'Rôle',
+            render: (row) => (
+              <div className="min-w-0 space-y-1">
+                <StatusBadge value={row.role} map={TEAM_ROLE} tone="neutral" />
+                <p className="max-w-[220px] truncate text-[11px] text-muted-foreground">{roleDescription(row.role)}</p>
+              </div>
+            ),
+          },
           {
             key: 'perimeter',
             header: 'Périmètre',
@@ -192,10 +210,12 @@ export default function Team() {
                 onDelete={() => remove(row)}
                 label={row.full_name}
               >
-                <DropdownMenuItem onSelect={() => invite(row)}>
-                  <Send className="mr-2 h-3.5 w-3.5" />
-                  Envoyer l’invitation
-                </DropdownMenuItem>
+                {row.status !== 'actif' && (
+                  <DropdownMenuItem onSelect={() => resendInvite(row)}>
+                    <Send className="mr-2 h-3.5 w-3.5" />
+                    {row.status === 'invite' ? 'Renvoyer l’invitation' : 'Inviter ce collaborateur'}
+                  </DropdownMenuItem>
+                )}
               </RowActions>
             ),
           },
@@ -208,7 +228,7 @@ export default function Team() {
           title: 'Aucun membre dans l’équipe',
           description: 'Ajoutez vos gestionnaires, assistants et comptables pour leur confier un périmètre de copropriétés.',
           action: (
-            <Button className="gap-2" onClick={() => setFormOpen(true)}>
+            <Button className="gap-2" onClick={openCreate}>
               <Plus className="h-4 w-4" />
               Ajouter un membre
             </Button>
@@ -216,15 +236,12 @@ export default function Team() {
         }}
       />
 
-      <FormDialog
+      <InviteTeamMemberDialog
         open={formOpen}
         onOpenChange={setFormOpen}
-        title={editing ? 'Modifier le membre' : 'Nouveau membre'}
-        description="Le membre pourra accéder aux immeubles cochés dans son périmètre."
-        fields={fields}
-        initialValues={editing || EMPTY}
-        onSubmit={save}
-        submitLabel={editing ? 'Mettre à jour' : 'Enregistrer'}
+        member={editing}
+        buildings={buildings}
+        onSubmit={submitMember}
       />
     </Page>
   );
