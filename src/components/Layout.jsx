@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Outlet, useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { X } from 'lucide-react';
 import AppSidebar from '@/components/AppSidebar';
 import TopBar from '@/components/TopBar';
+import RouteAccess from '@/components/access/RouteAccess';
 import { WorkspaceProvider } from '@/lib/workspace';
 import { Button } from '@/components/ui/button';
 
@@ -53,7 +54,7 @@ function Shell() {
         <TopBar onMenu={() => setMenuOpen(true)} />
         <main className="px-4 pb-20 pt-6 sm:px-6 lg:px-8 lg:pt-8">
           <div key={location.pathname} className="page-in">
-            <Outlet />
+            <RouteAccess />
           </div>
         </main>
       </div>

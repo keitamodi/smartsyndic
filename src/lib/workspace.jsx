@@ -1,10 +1,14 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { base44 } from '@/api/base44Client';
+import useAccess from '@/hooks/useAccess';
 
 const STORAGE_KEY = 'syndicvibe.workspace';
 const WorkspaceContext = createContext(null);
 
 export function WorkspaceProvider({ children }) {
+  const { access } = useAccess();
+  // Un collaborateur n'accède qu'à l'espace syndic auquel il est rattaché.
+  const restrictedId = access?.kind === 'equipe' ? access.syndicId : '';
   const [syndics, setSyndics] = useState([]);
   const [syndicId, setSyndicIdState] = useState(() => {
     try {
@@ -21,7 +25,8 @@ export function WorkspaceProvider({ children }) {
     setError('');
     try {
       const result = await base44.entities.Syndic.list();
-      const rows = Array.isArray(result) ? result : result?.items || [];
+      const all = Array.isArray(result) ? result : result?.items || [];
+      const rows = restrictedId ? all.filter((row) => row.id === restrictedId) : all;
       setSyndics(rows);
       setSyndicIdState((previous) => {
         const next = rows.some((row) => row.id === previous) ? previous : rows[0]?.id || '';
@@ -38,7 +43,7 @@ export function WorkspaceProvider({ children }) {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [restrictedId]);
 
   useEffect(() => {
     refresh();

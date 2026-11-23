@@ -1,9 +1,9 @@
 import { Navigate } from 'react-router-dom';
 import Dashboard from '@/pages/Dashboard';
-import useMemberKind from '@/hooks/useMemberKind';
+import useAccess from '@/hooks/useAccess';
 
 export default function TableauDeBord() {
-  const { kind, loading } = useMemberKind();
+  const { access, loading } = useAccess();
 
   if (loading) {
     return (
@@ -13,7 +13,7 @@ export default function TableauDeBord() {
     );
   }
 
-  if (kind === 'admin') return <Dashboard />;
+  if (access?.kind === 'syndic' || access?.kind === 'equipe') return <Dashboard />;
 
-  return <Navigate to={kind === 'technicien' ? '/mes-interventions' : '/mon-espace'} replace />;
+  return <Navigate to={access?.kind === 'technicien' ? '/mes-interventions' : '/mon-espace'} replace />;
 }

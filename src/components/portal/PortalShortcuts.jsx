@@ -19,11 +19,12 @@ const WORKSPACE_LINKS = [
 const rowClass =
   'group flex w-full items-start gap-3 rounded-xl border border-border/70 px-3 py-2.5 text-left transition-colors hover:border-primary/40 hover:bg-accent/50';
 
-export default function PortalShortcuts({ onReport, isAdmin = false }) {
+export default function PortalShortcuts({ onReport, isAdmin = false, canReport = true }) {
   return (
     <section className="rounded-[24px] border border-border bg-card p-4">
       <p className="kicker">Besoin d’aide ?</p>
       <ul className="mt-3 space-y-2">
+        {canReport && (
         <li>
           <button type="button" onClick={onReport} className={rowClass}>
             <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-secondary text-primary">
@@ -40,6 +41,7 @@ export default function PortalShortcuts({ onReport, isAdmin = false }) {
             </span>
           </button>
         </li>
+        )}
 
         {isAdmin &&
           WORKSPACE_LINKS.map((item) => {

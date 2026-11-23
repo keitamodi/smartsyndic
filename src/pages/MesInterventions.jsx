@@ -8,11 +8,14 @@ import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
+import useAccess from '@/hooks/useAccess';
 import { INTERVENTION_PRIORITY, INTERVENTION_STATUS, PRIORITY_TONE } from '@/lib/constants';
 import { formatDate } from '@/lib/format';
 
 export default function MesInterventions() {
   const { user } = useAuth();
+  const { access } = useAccess();
+  const canReport = access?.caps?.reports !== false;
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -128,10 +131,12 @@ export default function MesInterventions() {
                       Démarrer
                     </Button>
                   )}
-                  <Button size="sm" className="gap-1.5" disabled={saving} onClick={() => openClose(row)}>
-                    <CheckCircle2 className="h-4 w-4" />
-                    Terminer
-                  </Button>
+                  {canReport && (
+                    <Button size="sm" className="gap-1.5" disabled={saving} onClick={() => openClose(row)}>
+                      <CheckCircle2 className="h-4 w-4" />
+                      Terminer
+                    </Button>
+                  )}
                 </div>
               </article>
             ))}

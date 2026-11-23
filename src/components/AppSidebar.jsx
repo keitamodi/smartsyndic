@@ -23,8 +23,8 @@ import {
   CreditCard,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useAuth } from '@/lib/AuthContext';
-import useMemberKind from '@/hooks/useMemberKind';
+import useAccess from '@/hooks/useAccess';
+import { ROLE_LABELS } from '@/lib/access';
 import SidebarPlanCard from '@/components/subscription/SidebarPlanCard';
 import { LEGAL_PAGES } from '@/lib/legal';
 
@@ -32,54 +32,54 @@ const GROUPS = [
   {
     label: null,
     items: [
-      { to: '/tableau-de-bord', label: 'Tableau de bord', icon: LayoutDashboard },
-      { to: '/mon-espace', label: 'Mon espace', icon: UserRound },
+      { to: '/tableau-de-bord', label: 'Tableau de bord', icon: LayoutDashboard, module: 'dashboard' },
+      { to: '/mon-espace', label: 'Mon espace', icon: UserRound, module: 'portal' },
     ],
   },
   {
     label: 'Gestion',
     items: [
-      { to: '/immeubles', label: 'Immeubles', icon: Building2 },
-      { to: '/maintenance', label: 'Interventions', icon: Wrench },
-      { to: '/tickets', label: 'Tickets & demandes', icon: Ticket },
-      { to: '/contrats', label: 'Contrats', icon: FileSignature },
-      { to: '/assemblees', label: 'AG & Documents', icon: Gavel },
+      { to: '/immeubles', label: 'Immeubles', icon: Building2, module: 'buildings' },
+      { to: '/maintenance', label: 'Interventions', icon: Wrench, module: 'interventions' },
+      { to: '/tickets', label: 'Tickets & demandes', icon: Ticket, module: 'tickets' },
+      { to: '/contrats', label: 'Contrats', icon: FileSignature, module: 'contracts' },
+      { to: '/assemblees', label: 'AG & Documents', icon: Gavel, module: 'assemblies' },
     ],
   },
   {
     label: 'Relation',
     items: [
-      { to: '/agent-ia', label: 'Agent IA', icon: Sparkles },
-      { to: '/messagerie', label: 'Messagerie', icon: MessageCircle },
-      { to: '/residents', label: 'Copropriétaires & propriétaires', icon: Users },
-      { to: '/prestataires', label: 'Techniciens & prestataires', icon: HardHat },
-      { to: '/equipe', label: 'Équipe', icon: UserCog },
+      { to: '/agent-ia', label: 'Agent IA', icon: Sparkles, module: 'agent' },
+      { to: '/messagerie', label: 'Messagerie', icon: MessageCircle, module: 'messaging' },
+      { to: '/residents', label: 'Copropriétaires & propriétaires', icon: Users, module: 'residents' },
+      { to: '/prestataires', label: 'Techniciens & prestataires', icon: HardHat, module: 'providers' },
+      { to: '/equipe', label: 'Équipe', icon: UserCog, module: 'team' },
     ],
   },
   {
     label: 'Travaux',
     items: [
-      { to: '/devis', label: 'Demandes de devis', icon: FileText },
-      { to: '/partenaires', label: 'Entreprises partenaires', icon: Handshake },
+      { to: '/devis', label: 'Demandes de devis', icon: FileText, module: 'quotes' },
+      { to: '/partenaires', label: 'Entreprises partenaires', icon: Handshake, module: 'partners' },
     ],
   },
   {
     label: 'Finances',
-    items: [{ to: '/facturation', label: 'Appel de fonds', icon: Receipt }],
+    items: [{ to: '/facturation', label: 'Appel de fonds', icon: Receipt, module: 'billing' }],
   },
   {
     label: 'Ressources',
     items: [
-      { to: '/guide', label: "Guide d'utilisation", icon: BookOpen },
-      { to: '/aide', label: 'Aide', icon: LifeBuoy },
-      { to: '/a-propos', label: 'À propos', icon: Info },
+      { to: '/guide', label: "Guide d'utilisation", icon: BookOpen, module: 'guide' },
+      { to: '/aide', label: 'Aide', icon: LifeBuoy, module: 'help' },
+      { to: '/a-propos', label: 'À propos', icon: Info, module: 'about' },
     ],
   },
   {
     label: 'Configuration',
     items: [
-      { to: '/parametres', label: 'Paramètres', icon: Settings },
-      { to: '/abonnement', label: 'Abonnement & tarifs', icon: CreditCard },
+      { to: '/parametres', label: 'Paramètres', icon: Settings, module: 'settings' },
+      { to: '/abonnement', label: 'Abonnement & tarifs', icon: CreditCard, module: 'subscription' },
     ],
   },
 ];
@@ -87,30 +87,44 @@ const GROUPS = [
 const TECH_GROUPS = [
   {
     label: 'Mon activité',
-    items: [{ to: '/mes-interventions', label: 'Mes interventions', icon: Wrench }],
+    items: [{ to: '/mes-interventions', label: 'Mes interventions', icon: Wrench, module: 'my_interventions' }],
   },
   {
     label: 'Ressources',
-    items: [{ to: '/aide', label: 'Aide', icon: LifeBuoy }],
+    items: [{ to: '/aide', label: 'Aide', icon: LifeBuoy, module: 'help' }],
   },
 ];
 
 const RESIDENT_GROUPS = [
   {
     label: 'Mon espace',
-    items: [{ to: '/mon-espace', label: 'Mon espace', icon: UserRound }],
+    items: [{ to: '/mon-espace', label: 'Mon espace', icon: UserRound, module: 'portal' }],
   },
   {
     label: 'Ressources',
-    items: [{ to: '/aide', label: 'Aide', icon: LifeBuoy }],
+    items: [{ to: '/aide', label: 'Aide', icon: LifeBuoy, module: 'help' }],
   },
 ];
 
 export default function AppSidebar({ onNavigate }) {
-  const { user } = useAuth();
-  const { kind } = useMemberKind();
-  const isAdmin = user?.role === 'admin';
-  const groups = isAdmin ? GROUPS : kind === 'technicien' ? TECH_GROUPS : RESIDENT_GROUPS;
+  const { access } = useAccess();
+  const kind = access?.kind || 'inconnu';
+  const isSyndic = !!access?.isSyndic;
+  const allowed = access?.allowed || [];
+
+  const groups =
+    kind === 'technicien'
+      ? TECH_GROUPS
+      : kind === 'resident' || kind === 'inconnu'
+        ? RESIDENT_GROUPS
+        : GROUPS.map((group) => ({
+            ...group,
+            items: group.items.filter((item) => allowed.includes(item.module)),
+          })).filter((group) => group.items.length);
+
+  const scopeLabel = access?.buildingIds
+    ? `${access.buildingIds.length} immeuble${access.buildingIds.length > 1 ? 's' : ''}`
+    : 'tous les immeubles';
 
   return (
     <div className="flex h-full flex-col">
@@ -172,7 +186,7 @@ export default function AppSidebar({ onNavigate }) {
         ))}
       </nav>
 
-      {isAdmin && (
+      {isSyndic && (
         <div className="space-y-2 px-3 pb-4">
           <SidebarPlanCard />
           <NavLink
@@ -189,6 +203,19 @@ export default function AppSidebar({ onNavigate }) {
               Configurez votre espace syndic en quelques minutes.
             </p>
           </NavLink>
+        </div>
+      )}
+
+      {!isSyndic && kind === 'equipe' && (
+        <div className="px-3 pb-4">
+          <div className="rounded-2xl border border-border/80 bg-secondary/50 p-3.5">
+            <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-foreground/70">
+              Mon périmètre
+            </p>
+            <p className="mt-1.5 text-[12.5px] leading-snug text-muted-foreground">
+              {ROLE_LABELS[access?.role] || 'Collaborateur'} · {scopeLabel}
+            </p>
+          </div>
         </div>
       )}
 

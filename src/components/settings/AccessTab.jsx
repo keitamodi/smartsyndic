@@ -8,9 +8,10 @@ export default function AccessTab({ settings, update }) {
     <div className="space-y-4">
       <div className={CARD}>
         <p className="text-[11.5px] leading-snug text-muted-foreground">
-          Choisissez pour chaque profil le niveau d’accès à votre espace : complet, limité aux
-          fonctionnalités cochées, ou bloqué. Votre équipe conserve toujours l’accès aux modules
-          autorisés ci-dessous.
+          Vous seul, en tant que syndic, définissez ces niveaux : complet, limité aux fonctionnalités
+          cochées, ou bloqué. « Bloqué » ferme l’espace au profil concerné ; « limité » n’ouvre que les
+          fonctionnalités cochées. Les collaborateurs restent cantonnés au rôle et au périmètre
+          d’immeubles que vous leur attribuez dans Équipe.
         </p>
       </div>
 

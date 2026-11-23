@@ -14,6 +14,7 @@ import FondsTravauxPanel from '@/components/portal/FondsTravauxPanel';
 import PortalShortcuts from '@/components/portal/PortalShortcuts';
 import PortalReportDialog from '@/components/portal/PortalReportDialog';
 import { useAuth } from '@/lib/AuthContext';
+import useAccess from '@/hooks/useAccess';
 import useResidentSpace, { isSettled } from '@/hooks/useResidentSpace';
 import { formatDate, formatEUR, formatNumber } from '@/lib/format';
 
@@ -28,8 +29,11 @@ export default function MonEspace() {
   const { loading, error, me, lots, buildings, invoices, payments, fonds, assemblies, documents, tickets, syndic } =
     useResidentSpace();
   const { user } = useAuth();
+  const { access } = useAccess();
   const [reportOpen, setReportOpen] = useState(false);
   const isAdmin = user?.role === 'admin';
+  // Le syndic décide de ce que chaque profil peut voir dans son espace personnel.
+  const can = (feature) => access?.caps?.[feature] !== false;
 
   if (loading) {
     return (
@@ -98,61 +102,79 @@ export default function MonEspace() {
         <>
           <StatStrip
             items={[
-              {
-                label: 'Reste à payer',
-                value: formatEUR(outstanding, 2),
-                hint: nextDue ? `échéance du ${formatDate(nextDue.due_date)}` : 'à jour de vos charges',
-                icon: Wallet,
-              },
-              {
-                label: 'Appelé sur 3 ans',
-                value: formatEUR(totalCalled, 0),
-                hint: `${formatNumber(invoices.length)} avis d’échéance`,
-                icon: Receipt,
-              },
-              {
-                label: 'Fonds de travaux',
-                value: formatEUR(fondsAnnual, 0),
-                hint: latestYear ? `quote-part ${latestYear}` : 'budget non voté',
-                icon: Landmark,
-              },
-              {
-                label: 'Demandes en cours',
-                value: formatNumber(openTickets),
-                hint: tickets.length ? `${formatNumber(tickets.length)} au total` : 'aucun signalement',
-                icon: MessageSquareWarning,
-              },
+              ...(can('finances')
+                ? [
+                    {
+                      label: 'Reste à payer',
+                      value: formatEUR(outstanding, 2),
+                      hint: nextDue ? `échéance du ${formatDate(nextDue.due_date)}` : 'à jour de vos charges',
+                      icon: Wallet,
+                    },
+                    {
+                      label: 'Appelé sur 3 ans',
+                      value: formatEUR(totalCalled, 0),
+                      hint: `${formatNumber(invoices.length)} avis d’échéance`,
+                      icon: Receipt,
+                    },
+                    {
+                      label: 'Fonds de travaux',
+                      value: formatEUR(fondsAnnual, 0),
+                      hint: latestYear ? `quote-part ${latestYear}` : 'budget non voté',
+                      icon: Landmark,
+                    },
+                  ]
+                : []),
+              ...(can('tickets')
+                ? [
+                    {
+                      label: 'Demandes en cours',
+                      value: formatNumber(openTickets),
+                      hint: tickets.length ? `${formatNumber(tickets.length)} au total` : 'aucun signalement',
+                      icon: MessageSquareWarning,
+                    },
+                  ]
+                : []),
             ]}
           />
 
-          <PortalNextDue next={nextDue} syndic={syndic} />
+          {can('finances') && <PortalNextDue next={nextDue} syndic={syndic} />}
 
           <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
             <div className="min-w-0 space-y-4">
-              <PortalChargesTable
-                invoices={invoices}
-                lots={lots}
-                buildings={buildings}
-                payments={payments}
-              />
-              <PortalReceipts invoices={invoices} lots={lots} buildings={buildings} payments={payments} />
-              <PortalTickets tickets={tickets} onReport={() => setReportOpen(true)} />
+              {can('finances') && (
+                <PortalChargesTable
+                  invoices={invoices}
+                  lots={lots}
+                  buildings={buildings}
+                  payments={payments}
+                />
+              )}
+              {can('finances') && (
+                <PortalReceipts invoices={invoices} lots={lots} buildings={buildings} payments={payments} />
+              )}
+              {can('tickets') && <PortalTickets tickets={tickets} onReport={() => setReportOpen(true)} />}
             </div>
             <div className="min-w-0 space-y-4">
-              <FondsTravauxPanel fonds={fonds} />
+              {can('finances') && <FondsTravauxPanel fonds={fonds} />}
               <PortalMyLots lots={lots} buildings={buildings} syndic={syndic} />
-              <PortalShortcuts isAdmin={isAdmin} onReport={() => setReportOpen(true)} />
+              <PortalShortcuts
+                isAdmin={isAdmin}
+                canReport={can('tickets')}
+                onReport={() => setReportOpen(true)}
+              />
             </div>
           </div>
 
           <div className="grid gap-4 md:grid-cols-2 [&>section]:min-w-0">
-            <PortalDocuments documents={documents} buildings={buildings} />
-            <PortalAssemblies assemblies={assemblies} buildings={buildings} />
+            {can('docs') && <PortalDocuments documents={documents} buildings={buildings} />}
+            {can('assemblies') && <PortalAssemblies assemblies={assemblies} buildings={buildings} />}
           </div>
         </>
       )}
 
-      <PortalReportDialog open={reportOpen} onOpenChange={setReportOpen} lots={myLots} buildings={buildings} />
+      {can('tickets') && (
+        <PortalReportDialog open={reportOpen} onOpenChange={setReportOpen} lots={myLots} buildings={buildings} />
+      )}
     </Page>
   );
 }
