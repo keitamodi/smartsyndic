@@ -7,8 +7,9 @@ const WorkspaceContext = createContext(null);
 
 export function WorkspaceProvider({ children }) {
   const { access, loading: accessLoading } = useAccess();
-  // Un collaborateur n'accède qu'à l'espace syndic auquel il est rattaché.
-  const restrictedId = access?.kind === 'equipe' ? access.syndicId : '';
+  // Chaque compte n'accède qu'à l'espace syndic auquel il est rattaché :
+  // c'est cette même clé qui cloisonne les données côté serveur.
+  const restrictedId = access?.syndicId || '';
   const [syndics, setSyndics] = useState([]);
   const [syndicId, setSyndicIdState] = useState(() => {
     try {

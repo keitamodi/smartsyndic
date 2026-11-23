@@ -106,8 +106,14 @@ export default async function (req) {
     const resolved = await (async () => {
       if (user.role === 'admin') {
         const syndics = pageItems(await service.Syndic.list());
-        const owned = syndics.find((row: any) => row.created_by_id === user.id) || null;
-        if (owned) {
+        const ownedRows = syndics.filter((row: any) => row.created_by_id === user.id);
+        if (ownedRows.length) {
+          // On conserve le cabinet déjà rattaché au compte : sans cela, le
+          // cloisonnement pourrait basculer d'un espace à l'autre entre deux visites.
+          const fresh: any = await service.User.get(user.id).catch(() => null);
+          const currentId = String(fresh?.syndic_id || fresh?.data?.syndic_id || '');
+          const owned = ownedRows.find((row: any) => row.id === currentId)
+            || [...ownedRows].sort((a: any, b: any) => String(a.created_date).localeCompare(String(b.created_date)))[0];
           return {
             profile: {
               kind: 'syndic',
