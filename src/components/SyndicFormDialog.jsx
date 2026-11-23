@@ -3,6 +3,7 @@ import FormDialog from '@/components/FormDialog';
 import { useWorkspace } from '@/lib/workspace';
 import { base44 } from '@/api/base44Client';
 import { options, SYNDIC_KIND } from '@/lib/constants';
+import { clearAccessCache } from '@/hooks/useAccess';
 
 export const SYNDIC_FIELDS = [
   { name: 'name', label: 'Nom du syndic', required: true, span: 2, placeholder: 'Cabinet Horizon Syndic' },
@@ -25,7 +26,14 @@ export default function SyndicFormDialog({ open, onOpenChange, initialValues, on
       if (initialValues?.id) {
         await base44.entities.Syndic.update(initialValues.id, values);
       } else {
-        await base44.entities.Syndic.create({ ...values, status: values.status || 'actif' });
+        const created = await base44.entities.Syndic.create({ ...values, status: values.status || 'actif' });
+        if (created?.id) {
+          // Le cabinet se référence lui-même : cette clé cloisonne toutes ses données.
+          await base44.entities.Syndic.update(created.id, { syndic_id: created.id });
+          // Rattache le compte à son cabinet (champ verrouillé côté application).
+          await base44.functions.invoke('accessProfile', { claim_syndic_id: created.id });
+          clearAccessCache();
+        }
       }
       await refresh();
       onSaved?.();

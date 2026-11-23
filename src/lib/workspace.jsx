@@ -6,7 +6,7 @@ const STORAGE_KEY = 'syndicvibe.workspace';
 const WorkspaceContext = createContext(null);
 
 export function WorkspaceProvider({ children }) {
-  const { access } = useAccess();
+  const { access, loading: accessLoading } = useAccess();
   // Un collaborateur n'accède qu'à l'espace syndic auquel il est rattaché.
   const restrictedId = access?.kind === 'equipe' ? access.syndicId : '';
   const [syndics, setSyndics] = useState([]);
@@ -21,6 +21,8 @@ export function WorkspaceProvider({ children }) {
   const [error, setError] = useState('');
 
   const refresh = useCallback(async () => {
+    // On attend le profil d'accès : c'est lui qui rattache le compte à son cabinet.
+    if (accessLoading) return;
     setLoading(true);
     setError('');
     try {
@@ -43,7 +45,7 @@ export function WorkspaceProvider({ children }) {
     } finally {
       setLoading(false);
     }
-  }, [restrictedId]);
+  }, [restrictedId, accessLoading]);
 
   useEffect(() => {
     refresh();

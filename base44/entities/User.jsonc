@@ -1,4 +1,6 @@
 {
+  "name": "User",
+  "type": "object",
   "properties": {
     "role": {
       "type": "string",
@@ -7,11 +9,36 @@
         "admin",
         "user"
       ]
+    },
+    "syndic_id": {
+      "type": "string",
+      "description": "Cabinet auquel le compte est rattach\u00e9. Base du cloisonnement des donn\u00e9es : modifiable uniquement par le serveur.",
+      "rls": {
+        "update": {
+          "user_condition": {
+            "role": "__locked__"
+          }
+        }
+      }
+    },
+    "syndic_scope": {
+      "type": "string",
+      "enum": [
+        "equipe",
+        "resident",
+        "technicien"
+      ],
+      "description": "Nature du compte dans le cabinet : \u00e9quipe du syndic, r\u00e9sident ou technicien. Modifiable uniquement par le serveur.",
+      "rls": {
+        "update": {
+          "user_condition": {
+            "role": "__locked__"
+          }
+        }
+      }
     }
   },
   "required": [
     "role"
-  ],
-  "name": "User",
-  "type": "object"
+  ]
 }

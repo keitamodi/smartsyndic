@@ -99,12 +99,16 @@
     "read": {
       "$or": [
         {
-          "user_condition": {
-            "role": "admin"
-          }
-        },
-        {
-          "created_by_id": "{{user.id}}"
+          "$and": [
+            {
+              "data.syndic_id": "{{user.data.syndic_id}}"
+            },
+            {
+              "user_condition": {
+                "data.syndic_scope": "equipe"
+              }
+            }
+          ]
         },
         {
           "data.recipient_email": "{{user.email}}"
@@ -112,39 +116,37 @@
       ]
     },
     "create": {
-      "$or": [
+      "$and": [
         {
-          "user_condition": {
-            "role": "admin"
-          }
+          "data.syndic_id": "{{user.data.syndic_id}}"
         },
         {
           "user_condition": {
-            "role": "user"
+            "data.syndic_scope": "equipe"
           }
         }
       ]
     },
     "update": {
-      "$or": [
+      "$and": [
         {
-          "created_by_id": "{{user.id}}"
+          "data.syndic_id": "{{user.data.syndic_id}}"
         },
         {
           "user_condition": {
-            "role": "admin"
+            "data.syndic_scope": "equipe"
           }
         }
       ]
     },
     "delete": {
-      "$or": [
+      "$and": [
         {
-          "created_by_id": "{{user.id}}"
+          "data.syndic_id": "{{user.data.syndic_id}}"
         },
         {
           "user_condition": {
-            "role": "admin"
+            "data.syndic_scope": "equipe"
           }
         }
       ]

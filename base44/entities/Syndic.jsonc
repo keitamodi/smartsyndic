@@ -2,6 +2,10 @@
   "name": "Syndic",
   "type": "object",
   "properties": {
+    "syndic_id": {
+      "type": "string",
+      "description": "Identifiant du cabinet (\u00e9gal \u00e0 son propre id) : sert au cloisonnement des donn\u00e9es."
+    },
     "name": {
       "type": "string",
       "description": "Nom du cabinet ou du syndicat de copropri\u00e9taires"
@@ -80,28 +84,24 @@
     "read": {
       "$or": [
         {
-          "user_condition": {
-            "role": "admin"
-          }
+          "created_by_id": "{{user.id}}"
         },
         {
-          "created_by_id": "{{user.id}}"
+          "$and": [
+            {
+              "data.syndic_id": "{{user.data.syndic_id}}"
+            },
+            {
+              "user_condition": {
+                "data.syndic_scope": "equipe"
+              }
+            }
+          ]
         }
       ]
     },
     "create": {
-      "$or": [
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        },
-        {
-          "user_condition": {
-            "role": "user"
-          }
-        }
-      ]
+      "created_by_id": "{{user.id}}"
     },
     "update": {
       "$or": [
@@ -109,23 +109,21 @@
           "created_by_id": "{{user.id}}"
         },
         {
-          "user_condition": {
-            "role": "admin"
-          }
+          "$and": [
+            {
+              "data.syndic_id": "{{user.data.syndic_id}}"
+            },
+            {
+              "user_condition": {
+                "data.syndic_scope": "equipe"
+              }
+            }
+          ]
         }
       ]
     },
     "delete": {
-      "$or": [
-        {
-          "created_by_id": "{{user.id}}"
-        },
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        }
-      ]
+      "created_by_id": "{{user.id}}"
     }
   }
 }

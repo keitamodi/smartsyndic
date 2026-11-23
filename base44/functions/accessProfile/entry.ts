@@ -6,6 +6,10 @@ import { normalizeEmail } from '../../shared/memberInvite.ts';
  * Le syndic propriétaire de l'espace conserve toujours l'accès complet ;
  * les collaborateurs, copropriétaires et techniciens sont limités par les
  * réglages d'accès de l'espace et par leur rôle.
+ *
+ * Le cabinet du compte est enregistré sur la fiche utilisateur (champs
+ * `syndic_id` et `syndic_scope`, verrouillés côté application). C'est cette
+ * valeur que le cloisonnement des données utilise pour filtrer les enregistrements.
  */
 const ACCESS_DEFAULTS = {
   access_copro: 'complet',
@@ -38,11 +42,12 @@ export default async function (req) {
     const user = await base44.auth.me().catch((e) => (e.status === 401 ? null : Promise.reject(e)));
     if (!user?.email) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
+    const body = await req.json().catch(() => ({}));
     const service = base44.asServiceRole.entities;
     const email = normalizeEmail(user.email);
 
     const accessSettings = async (syndicId: string) => {
-      const result = { ...ACCESS_DEFAULTS };
+      const result: any = { ...ACCESS_DEFAULTS };
       if (!syndicId) return result;
       const rows = pageItems(await service.SyndicSettings.filter({ syndic_id: syndicId }, { limit: 1 }));
       const record = rows[0];
@@ -54,6 +59,26 @@ export default async function (req) {
       return result;
     };
 
+    // Rattache le compte à son cabinet. Les champs sont verrouillés pour les
+    // utilisateurs : seule l'application (rôle service) peut les écrire.
+    const persistScope = async (syndicId: string, scope: string) => {
+      const fresh: any = await service.User.get(user.id).catch(() => null);
+      const currentId = String(fresh?.syndic_id || fresh?.data?.syndic_id || '');
+      const currentScope = String(fresh?.syndic_scope || fresh?.data?.syndic_scope || '');
+      if (currentId === String(syndicId || '') && currentScope === String(scope || '')) return;
+      await service.User.update(user.id, { syndic_id: syndicId || '', syndic_scope: scope || '' });
+    };
+
+    // Ouverture d'un espace : le créateur devient membre de l'équipe de ce cabinet.
+    const claimId = String(body.claim_syndic_id || '').trim();
+    if (claimId) {
+      const owned: any = await service.Syndic.get(claimId).catch((e) => (e.status === 404 ? null : Promise.reject(e)));
+      if (!owned || owned.created_by_id !== user.id) {
+        return Response.json({ error: 'Forbidden' }, { status: 403 });
+      }
+      await persistScope(claimId, 'equipe');
+    }
+
     // Comparaison normalisée : l'email saisi par le syndic peut différer par la casse.
     const teamRows = pageItems(await service.TeamMember.list({ limit: 500 }));
     const memberships = teamRows.filter((row: any) => normalizeEmail(row.email) === email);
@@ -63,71 +88,92 @@ export default async function (req) {
       const syndic = syndicId
         ? await service.Syndic.get(syndicId).catch((e) => (e.status === 404 ? null : Promise.reject(e)))
         : null;
-      return Response.json({
-        kind: 'equipe',
-        syndic: { id: syndicId, name: syndic?.name || '' },
-        member: {
-          role: membership?.role || '',
-          building_ids: membership?.building_ids || [],
-          status: membership?.status || '',
+      return {
+        profile: {
+          kind: 'equipe',
+          syndic: { id: syndicId, name: syndic?.name || '' },
+          member: {
+            role: membership?.role || '',
+            building_ids: membership?.building_ids || [],
+            status: membership?.status || '',
+          },
+          settings: await accessSettings(syndicId),
         },
-        settings: await accessSettings(syndicId),
-      });
+        scope: 'equipe',
+      };
     };
 
-    if (user.role === 'admin') {
-      const syndics = pageItems(await service.Syndic.list());
-      const owned = syndics.find((row: any) => row.created_by_id === user.id) || null;
-      if (owned) {
-        return Response.json({
-          kind: 'syndic',
-          syndic: { id: owned.id, name: owned.name || '' },
-          member: null,
-          settings: await accessSettings(owned.id),
-        });
+    const resolved = await (async () => {
+      if (user.role === 'admin') {
+        const syndics = pageItems(await service.Syndic.list());
+        const owned = syndics.find((row: any) => row.created_by_id === user.id) || null;
+        if (owned) {
+          return {
+            profile: {
+              kind: 'syndic',
+              syndic: { id: owned.id, name: owned.name || '' },
+              member: null,
+              settings: await accessSettings(owned.id),
+            },
+            scope: 'equipe',
+          };
+        }
+        if (member) return teamProfile(member.syndic_id, member);
+        return { profile: { kind: 'syndic', syndic: null, member: null, settings: { ...ACCESS_DEFAULTS } }, scope: 'equipe' };
       }
+
       if (member) return teamProfile(member.syndic_id, member);
-      return Response.json({ kind: 'syndic', syndic: null, member: null, settings: { ...ACCESS_DEFAULTS } });
-    }
 
-    if (member) return teamProfile(member.syndic_id, member);
+      const providers = pageItems(await service.Provider.filter({ email }, { limit: 1 }));
+      const provider = providers[0];
+      if (provider) {
+        return {
+          profile: {
+            kind: 'technicien',
+            syndic: { id: provider.syndic_id || '', name: '' },
+            member: { role: 'technicien', building_ids: [], status: provider.status || '' },
+            settings: await accessSettings(provider.syndic_id),
+          },
+          scope: 'technicien',
+        };
+      }
 
-    const providers = pageItems(await service.Provider.filter({ email }, { limit: 1 }));
-    const provider = providers[0];
-    if (provider) {
-      return Response.json({
-        kind: 'technicien',
-        syndic: { id: provider.syndic_id || '', name: '' },
-        member: { role: 'technicien', building_ids: [], status: provider.status || '' },
-        settings: await accessSettings(provider.syndic_id),
-      });
-    }
+      const residents = pageItems(await service.Resident.filter({ email }, { limit: 1 }));
+      const resident = residents[0];
+      if (resident) {
+        return {
+          profile: {
+            kind: 'resident',
+            resident_kind: resident.kind || 'coproprietaire',
+            syndic: { id: resident.syndic_id || '', name: '' },
+            member: null,
+            settings: await accessSettings(resident.syndic_id),
+          },
+          scope: 'resident',
+        };
+      }
 
-    const residents = pageItems(await service.Resident.filter({ email }, { limit: 1 }));
-    const resident = residents[0];
-    if (resident) {
-      return Response.json({
-        kind: 'resident',
-        resident_kind: resident.kind || 'coproprietaire',
-        syndic: { id: resident.syndic_id || '', name: '' },
-        member: null,
-        settings: await accessSettings(resident.syndic_id),
-      });
-    }
+      const lots = pageItems(await service.Lot.filter({ owner_email: email }, { limit: 1 }));
+      const lot = lots[0];
+      if (lot) {
+        return {
+          profile: {
+            kind: 'resident',
+            resident_kind: 'coproprietaire',
+            syndic: { id: lot.syndic_id || '', name: '' },
+            member: null,
+            settings: await accessSettings(lot.syndic_id),
+          },
+          scope: 'resident',
+        };
+      }
 
-    const lots = pageItems(await service.Lot.filter({ owner_email: email }, { limit: 1 }));
-    const lot = lots[0];
-    if (lot) {
-      return Response.json({
-        kind: 'resident',
-        resident_kind: 'coproprietaire',
-        syndic: { id: lot.syndic_id || '', name: '' },
-        member: null,
-        settings: await accessSettings(lot.syndic_id),
-      });
-    }
+      return { profile: { kind: 'inconnu', syndic: null, member: null, settings: { ...ACCESS_DEFAULTS } }, scope: '' };
+    })();
 
-    return Response.json({ kind: 'inconnu', syndic: null, member: null, settings: { ...ACCESS_DEFAULTS } });
+    await persistScope(resolved.profile.syndic?.id || '', resolved.scope);
+
+    return Response.json(resolved.profile);
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }
