@@ -36,7 +36,7 @@ export default function TablePanel({
   footer,
 }) {
   return (
-    <section className="overflow-hidden rounded-[24px] border border-border bg-card">
+    <section data-page-list="" className="scroll-mt-6 overflow-hidden rounded-[24px] border border-border bg-card">
       {(title || onSearchChange || filters.length > 0 || actions) && (
       <div className="flex flex-col gap-2 border-b border-border/70 p-3 sm:flex-row sm:items-center sm:gap-2.5">
         {title && (

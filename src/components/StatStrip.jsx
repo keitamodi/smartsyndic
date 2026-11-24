@@ -3,6 +3,15 @@ import { cn } from '@/lib/utils';
 
 export default function StatStrip({ items = [] }) {
   if (!items.length) return null;
+
+  // Un clic applique le filtre de la carte puis amène directement à la liste.
+  const activate = (item) => () => {
+    item.onClick();
+    window.requestAnimationFrame(() => {
+      document.querySelector('[data-page-list]')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  };
+
   return (
     <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
       {items.map((item) => {
@@ -13,7 +22,7 @@ export default function StatStrip({ items = [] }) {
           <Tag
             key={item.label}
             type={clickable ? 'button' : undefined}
-            onClick={item.onClick}
+            onClick={clickable ? activate(item) : undefined}
             aria-pressed={clickable ? Boolean(item.active) : undefined}
             className={cn(
               'rounded-2xl border bg-card px-4 py-3.5 text-left shadow-sm',

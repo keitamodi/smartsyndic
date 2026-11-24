@@ -8,6 +8,7 @@ import StatusBadge from '@/components/StatusBadge';
 import FormDialog from '@/components/FormDialog';
 import WorkspaceRequired from '@/components/WorkspaceRequired';
 import EmptyState from '@/components/EmptyState';
+import LotsOverviewDialog from '@/components/buildings/LotsOverviewDialog';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -99,6 +100,7 @@ export default function Buildings() {
   const [detail, setDetail] = useState(null);
   const [lotFormOpen, setLotFormOpen] = useState(false);
   const [editingLot, setEditingLot] = useState(null);
+  const [lotsView, setLotsView] = useState(null);
 
   const query = useMemo(() => {
     const next = { syndic_id: syndicId };
@@ -201,13 +203,36 @@ export default function Buildings() {
     >
       <StatStrip
         items={[
-          { label: 'Immeubles', value: formatNumber(buildings.length), hint: 'dans cet espace syndic' },
-          { label: 'Lots', value: formatNumber(lots.length), hint: 'appartements, parkings, caves' },
-          { label: 'Lots occupés', value: formatNumber(occupied), hint: `${formatNumber(vacant)} vacant(s)` },
           {
-            label: 'Gestionnaire',
-            value: buildings[0]?.manager_name || '—',
-            hint: buildings.length ? 'référent du premier immeuble' : 'à définir',
+            label: 'Immeubles',
+            value: formatNumber(buildings.length),
+            hint: 'dans cet espace syndic',
+            onClick: () => {
+              setStatusFilter('');
+              setSearch('');
+            },
+            active: !statusFilter && !search,
+          },
+          {
+            label: 'Lots',
+            value: formatNumber(lots.length),
+            hint: 'appartements, parkings, caves',
+            onClick: () => setLotsView('tous'),
+            active: lotsView === 'tous',
+          },
+          {
+            label: 'Lots occupés',
+            value: formatNumber(occupied),
+            hint: 'propriétaires et locataires en place',
+            onClick: () => setLotsView('occupe'),
+            active: lotsView === 'occupe',
+          },
+          {
+            label: 'Lots vacants',
+            value: formatNumber(vacant),
+            hint: 'à relouer ou à vendre',
+            onClick: () => setLotsView('vacant'),
+            active: lotsView === 'vacant',
           },
         ]}
       />
@@ -406,6 +431,19 @@ export default function Buildings() {
         initialValues={editingLot || EMPTY_LOT}
         onSubmit={saveLot}
         submitLabel={editingLot ? 'Mettre à jour' : 'Ajouter le lot'}
+      />
+
+      <LotsOverviewDialog
+        view={lotsView}
+        onViewChange={setLotsView}
+        onOpenChange={() => setLotsView(null)}
+        lots={lots}
+        buildings={buildings}
+        onOpenBuilding={(buildingId) => {
+          const building = buildings.find((item) => item.id === buildingId);
+          setLotsView(null);
+          if (building) setDetail(building);
+        }}
       />
 
       <QuotaLimitDialog quota={quotaBlock} planName={planName} onClose={() => setQuotaBlock(null)} />

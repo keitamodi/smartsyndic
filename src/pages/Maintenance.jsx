@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Plus, Wrench } from 'lucide-react';
 import Page from '@/components/Page';
 import StatStrip from '@/components/StatStrip';
@@ -59,7 +59,6 @@ export default function Maintenance() {
   const [priorityFilter, setPriorityFilter] = useState('');
   const [originFilter, setOriginFilter] = useState('');
   const [quick, setQuick] = useState('');
-  const tableRef = useRef(null);
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [reminding, setReminding] = useState(false);
@@ -184,9 +183,6 @@ export default function Maintenance() {
 
   const toggleQuick = (value) => {
     setQuick((current) => (current === value ? '' : value));
-    window.requestAnimationFrame(() => {
-      tableRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    });
   };
 
   const QUICK_LABELS = {
@@ -336,7 +332,7 @@ export default function Maintenance() {
         />
       </div>
 
-      <div ref={tableRef} className="scroll-mt-6 space-y-2.5">
+      <div className="space-y-2.5">
       <QuickFilterBar
         label={QUICK_LABELS[quick]}
         count={quick ? rows.length : null}
