@@ -65,6 +65,21 @@ export async function stripeDelete(path: string): Promise<any> {
   return data;
 }
 
+// Applique un forfait payant confirmé à l'espace syndic.
+// Utilisé par le webhook Stripe et par la confirmation au retour du paiement,
+// afin que les deux chemins activent exactement les mêmes forfaits.
+export async function applyPaidPlan(
+  entities: any,
+  input: { syndicId: string; planTier: string; customerId?: string; subscriptionId?: string },
+): Promise<string> {
+  if (!PLAN_PRICES[input.planTier]) throw new Error(`Forfait inconnu: ${input.planTier}`);
+  const patch: Record<string, any> = { plan_tier: input.planTier, subscription_status: "actif" };
+  if (input.customerId) patch.stripe_customer_id = input.customerId;
+  if (input.subscriptionId) patch.stripe_subscription_id = input.subscriptionId;
+  await entities.Syndic.update(input.syndicId, patch);
+  return input.planTier;
+}
+
 export function round2(value: number): number {
   return Math.round((Number(value) || 0) * 100) / 100;
 }

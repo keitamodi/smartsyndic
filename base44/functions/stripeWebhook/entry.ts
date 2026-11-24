@@ -1,6 +1,6 @@
 import { createClientFromRequest } from "npm:@base44/sdk@0.8.54";
 import { secrets } from "base44:runtime";
-import { PLAN_PRICES, round2 } from "../../shared/stripe.ts";
+import { PLAN_PRICES, applyPaidPlan, round2 } from "../../shared/stripe.ts";
 
 const CHECKOUT_EVENTS = ["checkout.session.completed", "checkout.session.async_payment_succeeded"];
 const SUBSCRIPTION_EVENTS = ["customer.subscription.updated", "customer.subscription.deleted"];
@@ -77,11 +77,12 @@ export default async function (req: Request): Promise<Response> {
         const syndicId = object.metadata?.syndic_id;
         const planTier = object.metadata?.plan_tier;
         if (!syndicId || !planTier) return Response.json({ received: true, skipped: "metadata" });
-        await entities.Syndic.update(syndicId, {
-          plan_tier: planTier,
-          subscription_status: "actif",
-          stripe_customer_id: object.customer || "",
-          stripe_subscription_id: object.subscription || "",
+        if (!PLAN_PRICES[planTier]) return Response.json({ received: true, skipped: "forfait inconnu" });
+        await applyPaidPlan(entities, {
+          syndicId,
+          planTier,
+          customerId: object.customer || "",
+          subscriptionId: object.subscription || "",
         });
         console.log("stripeWebhook: abonnement activé", syndicId, planTier);
         return Response.json({ received: true, plan_tier: planTier });

@@ -34,26 +34,61 @@ export default function Abonnement() {
 
   const currentPlan = planById(syndic?.plan_tier);
 
-  // Retour de Stripe : le forfait est mis à jour par le paiement confirmé.
+  // Retour de Stripe : le forfait est confirmé auprès de Stripe puis appliqué,
+  // pour que le paiement se termine sans attendre la livraison du webhook.
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const state = params.get('checkout');
     if (!state) return;
-    let timer;
-    if (state === 'success') {
-      toast({ title: 'Paiement confirmé', description: 'Votre forfait est activé dès réception du paiement.' });
-      refresh();
-      reloadQuota();
-      // La confirmation Stripe peut arriver juste après le retour : on réinterroge une fois.
-      timer = setTimeout(() => {
-        refresh();
-        reloadQuota();
-      }, 3000);
-    } else if (state === 'cancel') {
-      toast({ title: 'Paiement annulé', description: 'Aucun montant n’a été prélevé.', variant: 'destructive' });
-    }
+    const sessionId = params.get('session_id') || '';
     window.history.replaceState({}, '', window.location.pathname);
-    return () => clearTimeout(timer);
+
+    if (state === 'cancel') {
+      toast({ title: 'Paiement annulé', description: 'Aucun montant n’a été prélevé.', variant: 'destructive' });
+      return;
+    }
+    if (state !== 'success') return;
+
+    let alive = true;
+    let timer;
+    (async () => {
+      let tier = '';
+      if (sessionId) {
+        try {
+          const response = await base44.functions.invoke('confirmSubscriptionCheckout', { session_id: sessionId });
+          tier = response.data?.plan_tier || '';
+        } catch {
+          /* le webhook Stripe reste la source de vérité */
+        }
+      }
+      if (!alive) return;
+      await refresh();
+      await reloadQuota();
+      toast(
+        tier
+          ? {
+              title: `Forfait ${planById(tier).name} activé`,
+              description: 'Votre abonnement est actif et vos quotas sont à jour.',
+            }
+          : {
+              title: 'Paiement confirmé',
+              description: 'Votre forfait sera activé dès réception du paiement.',
+            },
+      );
+      // Paiement encore en cours de validation : on réinterroge une fois.
+      if (!tier) {
+        timer = setTimeout(() => {
+          if (!alive) return;
+          refresh();
+          reloadQuota();
+        }, 4000);
+      }
+    })();
+
+    return () => {
+      alive = false;
+      clearTimeout(timer);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -74,6 +109,9 @@ export default function Abonnement() {
     setCheckoutUrl('');
     setManualUrl('');
     if (!target || target.id === 'free' || syndic?.stripe_subscription_id) return;
+    // Hors aperçu intégré, le clic peut attendre la création de la session :
+    // inutile de préparer un lien et d'accumuler des sessions Stripe abandonnées.
+    if (window.self === window.top) return;
     let alive = true;
     base44.functions
       .invoke('createSubscriptionCheckout', { plan_id: target.id })
