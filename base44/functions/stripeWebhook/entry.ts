@@ -71,7 +71,9 @@ export default async function (req: Request): Promise<Response> {
 
     // Paiement (ou renouvellement) confirmé d'un abonnement
     if (CHECKOUT_EVENTS.includes(event.type)) {
-      if (object.payment_status !== "paid") return Response.json({ received: true, skipped: "unpaid" });
+      if (!["paid", "no_payment_required"].includes(String(object.payment_status || ""))) {
+        return Response.json({ received: true, skipped: "unpaid" });
+      }
 
       if (object.mode === "subscription") {
         const syndicId = object.metadata?.syndic_id;

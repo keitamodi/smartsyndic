@@ -31,6 +31,8 @@ export default function Abonnement() {
   // si le navigateur bloque l'ouverture automatique de l'onglet Stripe.
   const [checkoutUrl, setCheckoutUrl] = useState('');
   const [manualUrl, setManualUrl] = useState('');
+  // Paiement lancé dans un autre onglet : au retour, le forfait est relu.
+  const [awaitingPayment, setAwaitingPayment] = useState(false);
 
   const currentPlan = planById(syndic?.plan_tier);
 
@@ -52,47 +54,68 @@ export default function Abonnement() {
     setTarget(null);
 
     let alive = true;
-    let timer;
     (async () => {
       let tier = '';
-      if (sessionId) {
+      const confirm = async () => {
+        if (!sessionId) return;
         try {
           const response = await base44.functions.invoke('confirmSubscriptionCheckout', { session_id: sessionId });
           tier = response.data?.plan_tier || '';
         } catch {
           /* le webhook Stripe reste la source de vérité */
         }
-      }
+      };
+
+      await confirm();
       if (!alive) return;
       await refresh();
       await reloadQuota();
-      toast(
-        tier
-          ? {
-              title: `Forfait ${planById(tier).name} activé`,
-              description: 'Votre abonnement est actif et vos quotas sont à jour.',
-            }
-          : {
-              title: 'Paiement confirmé',
-              description: 'Votre forfait sera activé dès réception du paiement.',
-            },
-      );
-      // Paiement encore en cours de validation : on réinterroge une fois.
-      if (!tier) {
-        timer = setTimeout(() => {
-          if (!alive) return;
-          refresh();
-          reloadQuota();
-        }, 4000);
+      // Paiement encore en cours de validation : on réinterroge jusqu'à activation.
+      for (let attempt = 0; alive && !tier && sessionId && attempt < 3; attempt += 1) {
+        await new Promise((resolve) => setTimeout(resolve, 3000));
+        if (!alive) return;
+        await confirm();
       }
+      if (!alive) return;
+      if (tier) {
+        await refresh();
+        await reloadQuota();
+        toast({
+          title: `Forfait ${planById(tier).name} activé`,
+          description: 'Votre abonnement est actif et vos quotas sont à jour.',
+        });
+        return;
+      }
+      toast({
+        title: 'Paiement confirmé',
+        description: 'Votre forfait sera activé dès réception du paiement.',
+      });
     })();
 
     return () => {
       alive = false;
-      clearTimeout(timer);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Le règlement se fait dans un autre onglet : dès que l'on revient sur la page,
+  // le forfait et les quotas sont relus pour afficher la formule activée.
+  useEffect(() => {
+    if (!awaitingPayment) return;
+    const sync = () => {
+      if (document.visibilityState !== 'visible') return;
+      setAwaitingPayment(false);
+      refresh();
+      reloadQuota();
+    };
+    window.addEventListener('focus', sync);
+    document.addEventListener('visibilitychange', sync);
+    return () => {
+      window.removeEventListener('focus', sync);
+      document.removeEventListener('visibilitychange', sync);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [awaitingPayment]);
 
   // Offre choisie depuis la page Tarifs : on ouvre directement le récapitulatif de paiement.
   const [planChecked, setPlanChecked] = useState(false);
@@ -295,13 +318,14 @@ export default function Abonnement() {
                   href={checkoutUrl}
                   target="_blank"
                   rel="noreferrer"
-                  onClick={() =>
+                  onClick={() => {
+                    setAwaitingPayment(true);
                     toast({
                       title: 'Paiement Stripe ouvert',
                       description:
                         'Finalisez le règlement sur la page de paiement : votre forfait s’active dès votre retour.',
-                    })
-                  }
+                    });
+                  }}
                 >
                   Payer avec Stripe
                 </a>

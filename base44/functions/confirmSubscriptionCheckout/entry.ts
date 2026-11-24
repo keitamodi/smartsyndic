@@ -27,7 +27,8 @@ export default async function (req: Request): Promise<Response> {
     if (session?.mode !== "subscription") {
       return Response.json({ paid: false, reason: "mode" });
     }
-    if (session?.payment_status !== "paid") {
+    // Un code promo à 100 % produit « no_payment_required » : le règlement est réglé.
+    if (!["paid", "no_payment_required"].includes(String(session?.payment_status || ""))) {
       return Response.json({ paid: false, reason: String(session?.payment_status || "unpaid") });
     }
 
