@@ -362,6 +362,63 @@
   }
 }
 
+/* ---------- Planning hebdomadaire par technicien ---------- */
+.ivc-ev--compact {
+  min-height: 0;
+  gap: 2px;
+  padding: 5px 6px;
+  border-radius: 7px;
+}
+
+.ivc-ev--compact .ivc-ev-title {
+  font-size: 11px;
+}
+
+.ivc-ev--compact .ivc-ev-time {
+  font-size: 9.5px;
+}
+
+.ivc-plan-add {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  width: 100%;
+  height: 22px;
+  padding: 0;
+  border: 1px dashed hsl(var(--border));
+  border-radius: 6px;
+  background: transparent;
+  color: hsl(var(--muted-foreground));
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 10px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.ivc-plan-cell:hover .ivc-plan-add,
+.ivc-plan-add:focus-visible {
+  opacity: 1;
+}
+
+.ivc-plan-add:hover {
+  border-color: hsl(var(--primary) / 0.5);
+  color: hsl(var(--primary));
+}
+
+.ivc-plan-add:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 1px;
+}
+
+@media (hover: none) {
+  .ivc-plan-add {
+    opacity: 0.6;
+  }
+}
+
 /* ---------- Pastilles de priorité + liste d'heures (dialogue) ---------- */
 .ivc-swatch {
   position: relative;

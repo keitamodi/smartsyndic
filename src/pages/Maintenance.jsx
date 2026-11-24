@@ -287,6 +287,7 @@ export default function Maintenance() {
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_300px]">
         <InterventionCalendar
           interventions={items}
+          providers={providers}
           month={month}
           onMonthChange={setMonth}
           onSave={saveFromCalendar}

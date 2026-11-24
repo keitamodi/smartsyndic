@@ -2,13 +2,23 @@ import { useMemo, useState } from 'react';
 import { ChevronLeft, ChevronRight, Loader2, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import InterventionEventDialog from './InterventionEventDialog';
+import TechnicianWeekPlan from './TechnicianWeekPlan';
 import { MONTHS, PRIORITY_ORDER, WEEKDAYS_SHORT, formatRange, isoDay, startMinutes } from './calendar-utils';
 import { INTERVENTION_PRIORITY, PRIORITY_ICON_TONE } from '@/lib/constants';
 import { cn } from '@/lib/utils';
 import './calendar.css';
 
-export default function InterventionCalendar({ interventions, month, onMonthChange, onSave, onDelete, loading }) {
+export default function InterventionCalendar({
+  interventions,
+  providers = [],
+  month,
+  onMonthChange,
+  onSave,
+  onDelete,
+  loading,
+}) {
   const [draft, setDraft] = useState(null);
+  const [view, setView] = useState('mois');
 
   const todayKey = isoDay(new Date());
   const todayWeekday = (new Date().getDay() + 6) % 7;
@@ -44,24 +54,57 @@ export default function InterventionCalendar({ interventions, month, onMonthChan
     <div>
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-1.5">
-          <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => shift(-1)} aria-label="Mois précédent">
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => shift(1)} aria-label="Mois suivant">
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-          <Button variant="ghost" size="sm" className="h-8 text-[12px]" onClick={() => onMonthChange(new Date())}>
-            Aujourd’hui
-          </Button>
+          {view === 'mois' && (
+            <>
+              <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => shift(-1)} aria-label="Mois précédent">
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => shift(1)} aria-label="Mois suivant">
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+              <Button variant="ghost" size="sm" className="h-8 text-[12px]" onClick={() => onMonthChange(new Date())}>
+                Aujourd’hui
+              </Button>
+            </>
+          )}
+          <div className="flex items-center gap-0.5 rounded-lg border border-border bg-card p-0.5">
+            {[
+              ['mois', 'Mois'],
+              ['semaine', 'Semaine'],
+            ].map(([value, label]) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setView(value)}
+                className={cn(
+                  'rounded-[6px] px-2.5 py-1 text-[11.5px] font-medium transition-colors',
+                  view === value ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground',
+                )}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
         </div>
         <div className="flex items-center gap-2">
           {loading && <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />}
           <p className="font-heading text-[15px] font-semibold capitalize text-foreground">
-            {MONTHS[month.getMonth()]} {month.getFullYear()}
+            {view === 'mois' ? `${MONTHS[month.getMonth()]} ${month.getFullYear()}` : 'Planning des techniciens'}
           </p>
         </div>
       </div>
 
+      {view === 'semaine' ? (
+        <TechnicianWeekPlan
+          interventions={interventions}
+          providers={providers}
+          month={month}
+          onSave={onSave}
+          onDelete={onDelete}
+          loading={loading}
+        />
+      ) : (
+        <>
       <div className="ivc-section">
         <div className="ivc-card rise-in">
           <div className="ivc-head" aria-hidden="true">
@@ -156,6 +199,8 @@ export default function InterventionCalendar({ interventions, month, onMonthChan
           </span>
         ))}
       </div>
+        </>
+      )}
 
       {draft && (
         <InterventionEventDialog

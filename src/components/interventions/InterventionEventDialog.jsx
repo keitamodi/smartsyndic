@@ -28,7 +28,7 @@ const firstFree = (ranges) => {
   return candidate;
 };
 
-export default function InterventionEventDialog({ day, editing, siblings, onClose, onSave, onDelete }) {
+export default function InterventionEventDialog({ day, editing, siblings, onClose, onSave, onDelete, technician = null }) {
   const busy = useMemo(() => siblings.map((item) => [startMinutes(item), endMinutes(item)]), [siblings]);
 
   const [title, setTitle] = useState(editing?.title || '');
@@ -79,6 +79,7 @@ export default function InterventionEventDialog({ day, editing, siblings, onClos
           scheduled_time: `${String(Math.floor(start / 60)).padStart(2, '0')}:${String(start % 60).padStart(2, '0')}`,
           duration_minutes: Math.max(STEP, end - start),
           priority,
+          ...(technician && !editing && technician.id ? { provider_id: technician.id } : {}),
         },
         editing,
       );
@@ -134,6 +135,10 @@ export default function InterventionEventDialog({ day, editing, siblings, onClos
           <p className="text-[13px] font-medium capitalize text-foreground">
             {WEEKDAYS_LONG[(day.getDay() + 6) % 7]} {day.getDate()} {MONTHS[day.getMonth()]}
           </p>
+
+          {technician && !editing && (
+            <p className="text-[11.5px] text-muted-foreground">Intervenant : {technician.name}</p>
+          )}
 
           {startOptions.length === 0 ? (
             <p className="text-[12px] text-destructive">Aucun créneau libre ce jour-là.</p>
