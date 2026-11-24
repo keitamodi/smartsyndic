@@ -9,13 +9,18 @@ export async function startStripeCheckout(createSession) {
   if (checkoutTab) checkoutTab.opener = null;
 
   try {
-    const { url } = await createSession();
-    if (!url) throw new Error('Session de paiement indisponible.');
-    if (checkoutTab) {
-      checkoutTab.location.replace(url);
-    } else {
-      window.location.assign(url);
+    const result = await createSession();
+    // Aucune redirection nécessaire (ex. abonnement existant mis à jour au prorata).
+    if (!result?.url) {
+      checkoutTab?.close();
+      return result;
     }
+    if (checkoutTab) {
+      checkoutTab.location.replace(result.url);
+    } else {
+      window.location.assign(result.url);
+    }
+    return result;
   } catch (error) {
     checkoutTab?.close();
     throw error;

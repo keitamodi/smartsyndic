@@ -1,5 +1,7 @@
 import { createClientFromRequest } from "npm:@base44/sdk@0.8.54";
-import { PLAN_PRICES, appId, getAppUrl, stripePost } from "../../shared/stripe.ts";
+import { PLAN_PRICES, appId, getAppUrl, stripeGet, stripePost } from "../../shared/stripe.ts";
+
+const BILLABLE_STATUSES = ["active", "trialing", "past_due", "unpaid", "incomplete"];
 
 export default async function (req: Request): Promise<Response> {
   try {
@@ -19,6 +21,36 @@ export default async function (req: Request): Promise<Response> {
       e.status === 404 ? null : Promise.reject(e),
     );
     if (!syndic) return Response.json({ error: "Espace syndic introuvable." }, { status: 404 });
+
+    // Cabinet déjà abonné : on change le tarif de l'abonnement existant (prorata)
+    // au lieu d'ouvrir un second abonnement, pour éviter toute double facturation.
+    const existingSubscriptionId = String(syndic.stripe_subscription_id || "");
+    if (existingSubscriptionId) {
+      try {
+        const current = await stripeGet(`/subscriptions/${existingSubscriptionId}`);
+        const itemId = current?.items?.data?.[0]?.id;
+        if (itemId && BILLABLE_STATUSES.includes(String(current.status))) {
+          const update = new URLSearchParams();
+          update.set("items[0][id]", itemId);
+          update.set("items[0][price]", plan.priceId);
+          update.set("proration_behavior", "always_invoice");
+          update.set("cancel_at_period_end", "false");
+          update.set("metadata[base44_app_id]", appId());
+          update.set("metadata[syndic_id]", syndicId);
+          update.set("metadata[plan_tier]", planId);
+          const subscription = await stripePost(`/subscriptions/${existingSubscriptionId}`, update);
+          await base44.asServiceRole.entities.Syndic.update(syndicId, {
+            plan_tier: planId,
+            subscription_status: "actif",
+          });
+          console.log("createSubscriptionCheckout: forfait modifié", syndicId, planId, subscription.id);
+          return Response.json({ updated: true, plan_tier: planId, subscription_id: subscription.id });
+        }
+      } catch (error: any) {
+        // Abonnement introuvable ou clôturé : on retombe sur un nouveau paiement.
+        console.error("createSubscriptionCheckout: abonnement existant ignoré", error?.message);
+      }
+    }
 
     const appUrl = getAppUrl(req);
     const params = new URLSearchParams();

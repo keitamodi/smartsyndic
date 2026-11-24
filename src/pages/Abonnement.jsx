@@ -35,14 +35,21 @@ export default function Abonnement() {
     const params = new URLSearchParams(window.location.search);
     const state = params.get('checkout');
     if (!state) return;
+    let timer;
     if (state === 'success') {
       toast({ title: 'Paiement confirmé', description: 'Votre forfait est activé dès réception du paiement.' });
       refresh();
       reloadQuota();
+      // La confirmation Stripe peut arriver juste après le retour : on réinterroge une fois.
+      timer = setTimeout(() => {
+        refresh();
+        reloadQuota();
+      }, 3000);
     } else if (state === 'cancel') {
       toast({ title: 'Paiement annulé', description: 'Aucun montant n’a été prélevé.', variant: 'destructive' });
     }
     window.history.replaceState({}, '', window.location.pathname);
+    return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -53,14 +60,24 @@ export default function Abonnement() {
     setSaving(true);
     try {
       if (target.id !== 'free') {
-        await startStripeCheckout(async () => {
+        const result = await startStripeCheckout(async () => {
           const response = await base44.functions.invoke('createSubscriptionCheckout', { plan_id: target.id });
           return response.data;
         });
+        // Cabinet déjà abonné : le tarif a été modifié directement, sans nouveau paiement.
+        if (result?.updated) {
+          await refresh();
+          await reloadQuota();
+          toast({
+            title: `Forfait ${target.name} activé`,
+            description: 'Votre abonnement est mis à jour ; la différence est facturée au prorata.',
+          });
+        }
         setTarget(null);
         return;
       }
-      await base44.entities.Syndic.update(syndicId, { plan_tier: target.id, subscription_status: 'aucun' });
+      // Gratuit : on résilie d'abord l'abonnement Stripe pour arrêter les prélèvements.
+      await base44.functions.invoke('cancelSubscription', {});
       await logAction({
         syndicId,
         action: 'Changement de forfait',

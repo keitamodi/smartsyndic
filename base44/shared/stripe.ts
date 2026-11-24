@@ -18,6 +18,20 @@ export function appId(): string {
   return secrets.get("BASE44_APP_ID") || "";
 }
 
+// Lecture Stripe côté serveur (clé secrète jamais exposée au client).
+export async function stripeGet(path: string): Promise<any> {
+  const response = await fetch(`https://api.stripe.com/v1${path}`, {
+    headers: {
+      Authorization: `Bearer ${secrets.get("STRIPE_SECRET_KEY")}`,
+      "Stripe-Version": "2025-10-29.clover",
+    },
+    signal: AbortSignal.timeout(20000),
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data?.error?.message || `Stripe ${response.status}`);
+  return data;
+}
+
 // Appel Stripe côté serveur : la clé secrète ne quitte jamais le backend.
 export async function stripePost(path: string, params: URLSearchParams): Promise<any> {
   const response = await fetch(`https://api.stripe.com/v1${path}`, {
@@ -29,6 +43,21 @@ export async function stripePost(path: string, params: URLSearchParams): Promise
       "Idempotency-Key": crypto.randomUUID(),
     },
     body: params.toString(),
+    signal: AbortSignal.timeout(20000),
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data?.error?.message || `Stripe ${response.status}`);
+  return data;
+}
+
+// Résilie un abonnement Stripe (arrêt immédiat des prélèvements).
+export async function stripeDelete(path: string): Promise<any> {
+  const response = await fetch(`https://api.stripe.com/v1${path}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${secrets.get("STRIPE_SECRET_KEY")}`,
+      "Stripe-Version": "2025-10-29.clover",
+    },
     signal: AbortSignal.timeout(20000),
   });
   const data = await response.json();
