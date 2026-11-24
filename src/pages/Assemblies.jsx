@@ -157,14 +157,20 @@ export default function Assemblies() {
                 label: 'Convoquées',
                 value: formatNumber(items.filter((row) => row.status === 'convoquee').length),
                 hint: 'convocations envoyées',
-                onClick: () => setStatusFilter((current) => (current === 'convoquee' ? '' : 'convoquee')),
+                onClick: () => {
+                  setQuick('');
+                  setStatusFilter((current) => (current === 'convoquee' ? '' : 'convoquee'));
+                },
                 active: statusFilter === 'convoquee',
               },
               {
                 label: 'PV publiés',
                 value: formatNumber(items.filter((row) => row.minutes_uri).length),
                 hint: 'procès-verbaux disponibles',
-                onClick: () => setQuick((current) => (current === 'minutes' ? '' : 'minutes')),
+                onClick: () => {
+                  setStatusFilter('');
+                  setQuick((current) => (current === 'minutes' ? '' : 'minutes'));
+                },
                 active: quick === 'minutes',
               },
               {

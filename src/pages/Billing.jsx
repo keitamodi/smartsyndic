@@ -287,7 +287,11 @@ export default function Billing() {
             label: 'En retard',
             value: formatNumber(impayes.late.length),
             hint: `${formatEUR(impayes.lateTotal, 2)} à relancer`,
-            onClick: () => setQuick((current) => (current === 'late' ? '' : 'late')),
+            onClick: () => {
+              setStatusFilter('');
+              setBuildingFilter('');
+              setQuick((current) => (current === 'late' ? '' : 'late'));
+            },
             active: quick === 'late',
           },
         ]}

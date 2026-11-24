@@ -143,7 +143,10 @@ export default function Devis() {
             label: 'Demandes en cours',
             value: formatNumber(openRequests.length),
             hint: 'envoyées ou en réponse',
-            onClick: () => setQuick((current) => (current === 'open' ? '' : 'open')),
+            onClick: () => {
+              setStatusFilter('');
+              setQuick((current) => (current === 'open' ? '' : 'open'));
+            },
             active: quick === 'open',
           },
           { label: 'Devis reçus', value: formatNumber(offers.length), hint: 'toutes demandes confondues' },
@@ -152,7 +155,10 @@ export default function Devis() {
             label: 'Demandes clôturées',
             value: formatNumber(requests.filter((row) => row.status === 'cloturee').length),
             hint: 'devis retenu',
-            onClick: () => setStatusFilter((current) => (current === 'cloturee' ? '' : 'cloturee')),
+            onClick: () => {
+              setQuick('');
+              setStatusFilter((current) => (current === 'cloturee' ? '' : 'cloturee'));
+            },
             active: statusFilter === 'cloturee',
           },
         ]}

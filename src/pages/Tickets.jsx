@@ -17,12 +17,15 @@ import { logAction } from '@/lib/audit';
 import { formatDate, formatNumber, relativeTime } from '@/lib/format';
 import { TICKET_CATEGORY, TICKET_PRIORITY, TICKET_STATUS, options } from '@/lib/constants';
 
+const CLOSED_STATUSES = ['resolu', 'clos'];
+const URGENT_PRIORITIES = ['haute', 'urgente'];
+
 export default function Tickets() {
   const { syndicId } = useWorkspace();
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
-  const [priorityFilter, setPriorityFilter] = useState('');
-  const [quick, setQuick] = useState('');
+  // Un seul jeu de filtres : cliquer une carte remplace les autres filtres,
+  // pour afficher exactement le nombre annoncé par la carte.
+  const [filters, setFilters] = useState({ status: '', priority: '', scope: '' });
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [detail, setDetail] = useState(null);
@@ -39,16 +42,38 @@ export default function Tickets() {
 
   if (!syndicId) return <WorkspaceRequired />;
 
+  const isClosed = (ticket) => CLOSED_STATUSES.includes(ticket.status);
+  const isUrgent = (ticket) => URGENT_PRIORITIES.includes(ticket.priority || 'normale') && !isClosed(ticket);
+
+  // Applique le filtre d'une carte en effaçant les précédents (ou le retire si déjà actif).
+  const focus = (patch) =>
+    setFilters((current) => {
+      const same =
+        current.status === (patch.status || '') &&
+        current.priority === (patch.priority || '') &&
+        current.scope === (patch.scope || '');
+      return same ? { status: '', priority: '', scope: '' } : { status: '', priority: '', scope: '', ...patch };
+    });
+
   const rows = tickets.filter((ticket) => {
-    if (statusFilter && ticket.status !== statusFilter) return false;
-    if (priorityFilter && (ticket.priority || 'normale') !== priorityFilter) return false;
-    if (quick === 'closed' && !['clos', 'resolu'].includes(ticket.status)) return false;
+    if (filters.status && ticket.status !== filters.status) return false;
+    if (filters.priority && (ticket.priority || 'normale') !== filters.priority) return false;
+    if (filters.scope === 'urgent' && !isUrgent(ticket)) return false;
+    if (filters.scope === 'closed' && !isClosed(ticket)) return false;
     const haystack = `${ticket.title} ${ticket.building_name} ${ticket.requester_name} ${ticket.lot_number}`.toLowerCase();
     return haystack.includes(search.toLowerCase());
   });
 
   const count = (status) => tickets.filter((ticket) => ticket.status === status).length;
-  const urgent = tickets.filter((ticket) => ticket.priority === 'urgente' && ticket.status !== 'clos').length;
+  const closedCount = tickets.filter(isClosed).length;
+  const urgentCount = tickets.filter(isUrgent).length;
+  const hasFilter = Boolean(filters.status || filters.priority || filters.scope);
+  const scopeLabel =
+    filters.scope === 'closed'
+      ? 'Tickets résolus et clos'
+      : filters.scope === 'urgent'
+        ? 'Tickets urgents en cours de traitement'
+        : '';
 
   const remove = async (ticket) => {
     await base44.entities.Ticket.delete(ticket.id);
@@ -80,36 +105,36 @@ export default function Tickets() {
             label: 'Nouvelles',
             value: formatNumber(count('nouveau')),
             hint: 'à qualifier',
-            onClick: () => setStatusFilter((current) => (current === 'nouveau' ? '' : 'nouveau')),
-            active: statusFilter === 'nouveau',
+            onClick: () => focus({ status: 'nouveau' }),
+            active: filters.status === 'nouveau',
           },
           {
             label: 'En cours',
             value: formatNumber(count('en_cours')),
             hint: `${formatNumber(count('en_attente'))} en attente`,
-            onClick: () => setStatusFilter((current) => (current === 'en_cours' ? '' : 'en_cours')),
-            active: statusFilter === 'en_cours',
+            onClick: () => focus({ status: 'en_cours' }),
+            active: filters.status === 'en_cours',
           },
           {
             label: 'Urgentes',
-            value: formatNumber(urgent),
-            hint: 'priorité haute ou urgente',
-            onClick: () => setPriorityFilter((current) => (current === 'urgente' ? '' : 'urgente')),
-            active: priorityFilter === 'urgente',
+            value: formatNumber(urgentCount),
+            hint: 'priorité haute ou urgente, non clôturées',
+            onClick: () => focus({ scope: 'urgent' }),
+            active: filters.scope === 'urgent',
           },
           {
             label: 'Clôturées',
-            value: formatNumber(count('clos') + count('resolu')),
+            value: formatNumber(closedCount),
             hint: 'résolues et closes',
-            onClick: () => setQuick((current) => (current === 'closed' ? '' : 'closed')),
-            active: quick === 'closed',
+            onClick: () => focus({ scope: 'closed' }),
+            active: filters.scope === 'closed',
           },
         ]}
       />
       <QuickFilterBar
-        label={quick === 'closed' ? 'Tickets résolus et clos' : ''}
-        count={quick === 'closed' ? rows.length : null}
-        onClear={() => setQuick('')}
+        label={scopeLabel}
+        count={scopeLabel ? rows.length : null}
+        onClear={() => setFilters((current) => ({ ...current, scope: '' }))}
       />
 
       <TablePanel
@@ -119,16 +144,16 @@ export default function Tickets() {
         filters={[
           {
             key: 'status',
-            value: statusFilter,
-            onChange: setStatusFilter,
+            value: filters.status,
+            onChange: (value) => setFilters((current) => ({ ...current, status: value })),
             placeholder: 'Statut',
             allLabel: 'Tous les statuts',
             options: options(TICKET_STATUS),
           },
           {
             key: 'priority',
-            value: priorityFilter,
-            onChange: setPriorityFilter,
+            value: filters.priority,
+            onChange: (value) => setFilters((current) => ({ ...current, priority: value })),
             placeholder: 'Priorité',
             allLabel: 'Toutes priorités',
             options: options(TICKET_PRIORITY),
@@ -196,17 +221,36 @@ export default function Tickets() {
         loading={loading}
         error={error}
         onRowClick={setDetail}
-        empty={{
-          icon: TicketIcon,
-          title: 'Aucune demande enregistrée',
-          description: 'Créez une première demande pour suivre son traitement de bout en bout.',
-          action: (
-            <Button className="gap-2" onClick={() => setFormOpen(true)}>
-              <Plus className="h-4 w-4" />
-              Nouvelle demande
-            </Button>
-          ),
-        }}
+        empty={
+          hasFilter
+            ? {
+                icon: TicketIcon,
+                title: 'Aucune demande ne correspond à ce filtre',
+                description: 'Retirez le filtre pour retrouver l’ensemble de vos demandes.',
+                action: (
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setFilters({ status: '', priority: '', scope: '' });
+                      setSearch('');
+                    }}
+                  >
+                    Retirer les filtres
+                  </Button>
+                ),
+              }
+            : {
+                icon: TicketIcon,
+                title: 'Aucune demande enregistrée',
+                description: 'Créez une première demande pour suivre son traitement de bout en bout.',
+                action: (
+                  <Button className="gap-2" onClick={() => setFormOpen(true)}>
+                    <Plus className="h-4 w-4" />
+                    Nouvelle demande
+                  </Button>
+                ),
+              }
+        }
       />
 
       <TicketFormDialog

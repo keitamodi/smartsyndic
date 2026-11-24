@@ -156,14 +156,20 @@ export default function Team() {
             label: 'Gestionnaires',
             value: formatNumber(items.filter((row) => row.role === 'gestionnaire').length),
             hint: 'référents de copropriété',
-            onClick: () => setRoleFilter((current) => (current === 'gestionnaire' ? '' : 'gestionnaire')),
+            onClick: () => {
+              setQuick('');
+              setRoleFilter((current) => (current === 'gestionnaire' ? '' : 'gestionnaire'));
+            },
             active: roleFilter === 'gestionnaire',
           },
           {
             label: 'Invitations en attente',
             value: formatNumber(items.filter((row) => row.status === 'invite').length),
             hint: 'accès non encore activé',
-            onClick: () => setQuick((current) => (current === 'invite' ? '' : 'invite')),
+            onClick: () => {
+              setRoleFilter('');
+              setQuick((current) => (current === 'invite' ? '' : 'invite'));
+            },
             active: quick === 'invite',
           },
           { label: 'Immeubles', value: formatNumber(buildings.length), hint: 'périmètre disponible' },

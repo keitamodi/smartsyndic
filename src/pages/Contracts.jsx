@@ -159,14 +159,20 @@ export default function Contracts() {
             label: 'Contrats actifs',
             value: formatNumber(items.filter((row) => row.status === 'actif').length),
             hint: 'en cours d’exécution',
-            onClick: () => setStatusFilter((current) => (current === 'actif' ? '' : 'actif')),
+            onClick: () => {
+              setQuick('');
+              setStatusFilter((current) => (current === 'actif' ? '' : 'actif'));
+            },
             active: statusFilter === 'actif',
           },
           {
             label: 'À renouveler',
             value: formatNumber(expiringSoon.length),
             hint: 'échéance sous 60 jours',
-            onClick: () => setQuick((current) => (current === 'expiring' ? '' : 'expiring')),
+            onClick: () => {
+              setStatusFilter('');
+              setQuick((current) => (current === 'expiring' ? '' : 'expiring'));
+            },
             active: quick === 'expiring',
           },
           { label: 'Engagement annuel', value: formatEUR(annualAmount), hint: 'contrats actifs et à renouveler' },
@@ -174,7 +180,10 @@ export default function Contracts() {
             label: 'Échus / résiliés',
             value: formatNumber(items.filter((row) => ['echu', 'resilie'].includes(row.status)).length),
             hint: 'à archiver',
-            onClick: () => setQuick((current) => (current === 'closed' ? '' : 'closed')),
+            onClick: () => {
+              setStatusFilter('');
+              setQuick((current) => (current === 'closed' ? '' : 'closed'));
+            },
             active: quick === 'closed',
           },
         ]}
