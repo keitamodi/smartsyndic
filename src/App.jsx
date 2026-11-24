@@ -29,6 +29,7 @@ import About from '@/pages/About';
 import Parametres from '@/pages/Parametres';
 import TestAcces from '@/pages/TestAcces';
 import MonEspace from '@/pages/MonEspace';
+import MonImmeuble from '@/pages/MonImmeuble';
 import MesInterventions from '@/pages/MesInterventions';
 import Accueil from '@/pages/Accueil';
 import Pricing from '@/pages/Pricing';
@@ -104,6 +105,7 @@ const AuthenticatedApp = () => {
           <Route path="/parametres" element={<Parametres />} />
           <Route path="/test-acces" element={<TestAcces />} />
           <Route path="/mon-espace" element={<MonEspace />} />
+          <Route path="/mon-immeuble" element={<MonImmeuble />} />
           <Route path="/mes-interventions" element={<MesInterventions />} />
         </Route>
       </Route>

@@ -73,7 +73,7 @@ export default async function (req) {
       buildings.map((building) => service.Lot.filter({ building_id: building.id }, { limit: 300 })),
     );
 
-    const [documentsPage, byEmailTickets, byAuthorTickets] = await Promise.all([
+    const [documentsPage, byEmailTickets, byAuthorTickets, maintenancePage] = await Promise.all([
       buildingIds.length
         ? service.Document.filter(
             { building_id: { $in: buildingIds }, visible_residents: true },
@@ -82,6 +82,12 @@ export default async function (req) {
         : { items: [] },
       service.Ticket.filter({ requester_email: email }, { limit: 50, sort: '-created_date' }),
       service.Ticket.filter({ created_by_id: user.id }, { limit: 50, sort: '-created_date' }),
+      buildingIds.length
+        ? service.Intervention.filter(
+            { building_id: { $in: buildingIds } },
+            { limit: 120, sort: 'scheduled_date' },
+          )
+        : { items: [] },
     ]);
 
     const ticketsMap = new Map();
@@ -122,6 +128,19 @@ export default async function (req) {
         closed_date: row.closed_date,
         resolution_note: row.resolution_note,
         assigned_name: row.assigned_name,
+      })),
+      // Maintenance générale de leurs immeubles : ni coûts, ni coordonnées des intervenants.
+      maintenance: pageItems(maintenancePage).map((row: any) => ({
+        id: row.id,
+        building_id: row.building_id,
+        building_name: row.building_name || '',
+        title: row.title || '',
+        description: row.description || '',
+        kind: row.kind || '',
+        origin: row.origin || '',
+        status: row.status || '',
+        scheduled_date: row.scheduled_date || '',
+        completed_date: row.completed_date || '',
       })),
       syndic: mySyndic
         ? {

@@ -82,25 +82,37 @@ const GROUPS = [
   },
 ];
 
+// Espace technicien : uniquement ses interventions, la messagerie et l'agent IA.
 const TECH_GROUPS = [
   {
     label: 'Mon activité',
     items: [{ to: '/mes-interventions', label: 'Mes interventions', icon: Wrench, module: 'my_interventions' }],
   },
   {
-    label: 'Ressources',
-    items: [{ to: '/aide', label: 'Aide', icon: LifeBuoy, module: 'help' }],
+    label: 'Échanges',
+    items: [
+      { to: '/messagerie', label: 'Messagerie', icon: MessageCircle, module: 'messaging' },
+      { to: '/agent-ia', label: 'Agent IA', icon: Sparkles, module: 'agent' },
+    ],
   },
 ];
 
+// Espace copropriétaire / propriétaire : ses charges, la maintenance de son
+// immeuble et ses dépannages, la messagerie et l'agent IA.
 const RESIDENT_GROUPS = [
   {
     label: 'Mon espace',
-    items: [{ to: '/mon-espace', label: 'Mon espace', icon: UserRound, module: 'portal' }],
+    items: [
+      { to: '/mon-espace', label: 'Mes charges & reçus', icon: Receipt, module: 'portal' },
+      { to: '/mon-immeuble', label: 'Maintenance & dépannages', icon: Wrench, module: 'my_building' },
+    ],
   },
   {
-    label: 'Ressources',
-    items: [{ to: '/aide', label: 'Aide', icon: LifeBuoy, module: 'help' }],
+    label: 'Échanges',
+    items: [
+      { to: '/messagerie', label: 'Messagerie', icon: MessageCircle, module: 'messaging' },
+      { to: '/agent-ia', label: 'Agent IA', icon: Sparkles, module: 'agent' },
+    ],
   },
 ];
 
@@ -110,15 +122,20 @@ export default function AppSidebar({ onNavigate }) {
   const isSyndic = !!access?.isSyndic;
   const allowed = access?.allowed || [];
 
-  const groups =
+  const baseGroups =
     kind === 'technicien'
       ? TECH_GROUPS
       : kind === 'resident' || kind === 'inconnu'
         ? RESIDENT_GROUPS
-        : GROUPS.map((group) => ({
-            ...group,
-            items: group.items.filter((item) => allowed.includes(item.module)),
-          })).filter((group) => group.items.length);
+        : GROUPS;
+
+  // Chaque profil ne voit que les modules que le syndic lui a ouverts.
+  const groups = baseGroups
+    .map((group) => ({
+      ...group,
+      items: group.items.filter((item) => allowed.includes(item.module)),
+    }))
+    .filter((group) => group.items.length);
 
   const scopeLabel = access?.buildingIds
     ? `${access.buildingIds.length} immeuble${access.buildingIds.length > 1 ? 's' : ''}`

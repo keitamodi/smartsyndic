@@ -9,6 +9,8 @@ import { Button } from '@/components/ui/button';
 import useCollection from '@/hooks/useCollection';
 import useRealtimeMessages from '@/hooks/useRealtimeMessages';
 import { useWorkspace } from '@/lib/workspace';
+import useAccess from '@/hooks/useAccess';
+import MemberMessaging from '@/components/member/MemberMessaging';
 import { base44 } from '@/api/base44Client';
 import { PROVIDER_SPECIALTY, TEAM_ROLE } from '@/lib/constants';
 
@@ -20,6 +22,7 @@ const RESIDENT_KINDS = {
 
 export default function Messagerie() {
   const { syndicId, syndic } = useWorkspace();
+  const { access } = useAccess();
   const [selectedId, setSelectedId] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
 
@@ -103,6 +106,9 @@ export default function Messagerie() {
       setSelectedId(threads[0]?.id || '');
     }
   }, [threads, selectedId]);
+
+  // Copropriétaires et techniciens : un seul fil, directement avec le syndic.
+  if (access?.kind === 'resident' || access?.kind === 'technicien') return <MemberMessaging />;
 
   if (!syndicId) return <WorkspaceRequired />;
 

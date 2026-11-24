@@ -24,6 +24,7 @@ export const ALL_MODULES = [
   'settings',
   'subscription',
   'portal',
+  'my_building',
   'my_interventions',
   'access_test',
   ...SHARED_MODULES,
@@ -47,6 +48,7 @@ export const MODULE_LABELS = {
   settings: 'Paramètres',
   subscription: 'Abonnement & tarifs',
   portal: 'Mon espace',
+  my_building: 'Mon immeuble',
   my_interventions: 'Mes interventions',
   access_test: 'Vérifier les accès',
 };
@@ -69,6 +71,7 @@ export const ROUTE_MODULES = {
   '/parametres': 'settings',
   '/abonnement': 'subscription',
   '/mon-espace': 'portal',
+  '/mon-immeuble': 'my_building',
   '/mes-interventions': 'my_interventions',
   '/test-acces': 'access_test',
 };
@@ -154,7 +157,11 @@ function residentAccess(profile, syndicId, settings) {
     role: landlord ? 'proprietaire' : 'coproprietaire',
     level,
     blocked,
-    allowed: blocked ? [...SHARED_MODULES] : ['portal', ...SHARED_MODULES],
+    // Le copropriétaire ne voit que : ses charges et reçus, la maintenance de son
+    // immeuble et ses dépannages, l'agent IA et la messagerie avec le syndic.
+    allowed: blocked
+      ? [...SHARED_MODULES]
+      : ['portal', 'my_building', 'agent', 'messaging', ...SHARED_MODULES],
     caps: blocked
       ? {}
       : {
@@ -179,7 +186,11 @@ function technicianAccess(profile, syndicId, settings) {
     role: 'technicien',
     level,
     blocked,
-    allowed: blocked ? [...SHARED_MODULES] : ['my_interventions', ...SHARED_MODULES],
+    // Le technicien ne voit que : ses interventions et maintenances, la messagerie
+    // avec le syndic et l'agent IA pour ses questions de droits et devoirs.
+    allowed: blocked
+      ? [...SHARED_MODULES]
+      : ['my_interventions', 'agent', 'messaging', ...SHARED_MODULES],
     caps: blocked
       ? {}
       : {

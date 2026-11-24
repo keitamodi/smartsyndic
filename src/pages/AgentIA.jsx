@@ -13,6 +13,8 @@ import QuotaLimitDialog from '@/components/quota/QuotaLimitDialog';
 import useRealtimeMessages from '@/hooks/useRealtimeMessages';
 import { useWorkspace } from '@/lib/workspace';
 import { base44 } from '@/api/base44Client';
+import useAccess from '@/hooks/useAccess';
+import MemberAgent from '@/components/member/MemberAgent';
 import { cn } from '@/lib/utils';
 
 const MODES = [
@@ -37,6 +39,7 @@ const SUGGESTIONS = {
 
 export default function AgentIA() {
   const { syndicId, syndic } = useWorkspace();
+  const { access } = useAccess();
   const { check, limits, planName, reload: reloadQuota } = useQuota();
   const [quotaBlock, setQuotaBlock] = useState(null);
   const [mode, setMode] = useState('syndic');
@@ -89,6 +92,9 @@ export default function AgentIA() {
     () => messages.map((message) => ({ role: message.role, content: message.content })),
     [messages],
   );
+
+  // Copropriétaires et techniciens : uniquement leurs questions de droits et devoirs.
+  if (access?.kind === 'resident' || access?.kind === 'technicien') return <MemberAgent />;
 
   if (!syndicId) return <WorkspaceRequired />;
 

@@ -45,6 +45,7 @@ export default function useResidentSpace() {
     assemblies: [],
     documents: [],
     tickets: [],
+    maintenance: [],
     syndic: null,
   });
 
@@ -75,6 +76,7 @@ export default function useResidentSpace() {
             assemblies: data.assemblies || [],
             documents: data.documents || [],
             tickets: data.tickets || [],
+            maintenance: data.maintenance || [],
             syndic: data.syndic || null,
           });
         }

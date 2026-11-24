@@ -19,11 +19,14 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useWorkspace } from '@/lib/workspace';
+import useAccess from '@/hooks/useAccess';
 import { base44 } from '@/api/base44Client';
 import { initials } from '@/lib/format';
 
 export default function TopBar({ onMenu }) {
   const { syndics, syndic, syndicId, setSyndicId } = useWorkspace();
+  const { access } = useAccess();
+  const isMember = ['resident', 'technicien', 'inconnu'].includes(access?.kind);
   const [user, setUser] = useState(null);
 
   useEffect(() => {
@@ -73,7 +76,7 @@ export default function TopBar({ onMenu }) {
             <span
               className={`truncate text-[13px] font-medium ${syndic ? 'text-foreground/85' : 'text-muted-foreground'}`}
             >
-              {syndic?.name || 'Aucun espace syndic'}
+              {syndic?.name || (isMember ? 'Mon espace' : 'Aucun espace syndic')}
             </span>
           )}
         </div>
@@ -113,11 +116,13 @@ export default function TopBar({ onMenu }) {
                   Mon espace
                 </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link to="/parametres" className="cursor-pointer">
-                  Paramètres
-                </Link>
-              </DropdownMenuItem>
+              {!isMember && (
+                <DropdownMenuItem asChild>
+                  <Link to="/parametres" className="cursor-pointer">
+                    Paramètres
+                  </Link>
+                </DropdownMenuItem>
+              )}
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 onSelect={() => base44.auth.logout('/login')}
