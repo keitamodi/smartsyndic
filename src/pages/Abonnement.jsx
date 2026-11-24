@@ -19,7 +19,7 @@ import useQuota from '@/hooks/useQuota';
 import { base44 } from '@/api/base44Client';
 import { logAction } from '@/lib/audit';
 import { PLANS, planById, planRank } from '@/lib/plans';
-import { startStripeCheckout } from '@/lib/stripeCheckout';
+import { openCheckoutUrl, startStripeCheckout } from '@/lib/stripeCheckout';
 
 export default function Abonnement() {
   const { syndicId, syndic, refresh } = useWorkspace();
@@ -27,6 +27,10 @@ export default function Abonnement() {
   const { usage, reload: reloadQuota } = useQuota();
   const [target, setTarget] = useState(null);
   const [saving, setSaving] = useState(false);
+  // Lien de paiement préparé à l'ouverture du récapitulatif, et lien de secours
+  // si le navigateur bloque l'ouverture automatique de l'onglet Stripe.
+  const [checkoutUrl, setCheckoutUrl] = useState('');
+  const [manualUrl, setManualUrl] = useState('');
 
   const currentPlan = planById(syndic?.plan_tier);
 
@@ -64,6 +68,27 @@ export default function Abonnement() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [syndic]);
 
+  // Le lien de paiement est préparé dès l'ouverture du récapitulatif : le clic
+  // ouvre alors Stripe immédiatement, sans risque d'être bloqué par le navigateur.
+  useEffect(() => {
+    setCheckoutUrl('');
+    setManualUrl('');
+    if (!target || target.id === 'free' || syndic?.stripe_subscription_id) return;
+    let alive = true;
+    base44.functions
+      .invoke('createSubscriptionCheckout', { plan_id: target.id })
+      .then((response) => {
+        if (alive && response.data?.url) setCheckoutUrl(response.data.url);
+      })
+      .catch(() => {
+        /* le clic relancera la création et affichera le message d'erreur */
+      });
+    return () => {
+      alive = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [target?.id, syndic?.stripe_subscription_id]);
+
   if (!syndicId) return <WorkspaceRequired />;
 
   const confirmChange = async () => {
@@ -71,10 +96,20 @@ export default function Abonnement() {
     setSaving(true);
     try {
       if (target.id !== 'free') {
+        // Lien déjà prêt : on ouvre la page de paiement sans attendre.
+        if (checkoutUrl && openCheckoutUrl(checkoutUrl)) {
+          setTarget(null);
+          return;
+        }
         const result = await startStripeCheckout(async () => {
           const response = await base44.functions.invoke('createSubscriptionCheckout', { plan_id: target.id });
           return response.data;
         });
+        // Onglet bloqué : on propose le lien de paiement direct dans la fenêtre.
+        if (result?.manual && result?.url) {
+          setManualUrl(result.url);
+          return;
+        }
         // Cabinet déjà abonné : le tarif a été modifié directement, sans nouveau paiement.
         if (result?.updated) {
           await refresh();
@@ -209,10 +244,18 @@ export default function Abonnement() {
             <Button variant="ghost" onClick={() => setTarget(null)} disabled={saving}>
               Annuler
             </Button>
-            <Button className="gap-2" onClick={confirmChange} disabled={saving}>
-              {saving && <Loader2 className="h-4 w-4 animate-spin" />}
-              {target?.id === 'free' ? 'Confirmer le changement' : 'Payer avec Stripe'}
-            </Button>
+            {manualUrl ? (
+              <Button asChild className="gap-2">
+                <a href={manualUrl} target="_blank" rel="noreferrer">
+                  Ouvrir la page de paiement
+                </a>
+              </Button>
+            ) : (
+              <Button className="gap-2" onClick={confirmChange} disabled={saving}>
+                {saving && <Loader2 className="h-4 w-4 animate-spin" />}
+                {target?.id === 'free' ? 'Confirmer le changement' : 'Payer avec Stripe'}
+              </Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>
