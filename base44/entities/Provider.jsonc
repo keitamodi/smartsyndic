@@ -30,7 +30,10 @@
         "espaces_verts",
         "nettoyage",
         "securite",
-        "multiservices"
+        "multiservices",
+        "serrurerie",
+        "gardiennage",
+        "autre"
       ],
       "enumColors": [
         "blue",
@@ -41,7 +44,10 @@
         "green",
         "green",
         "red",
-        "blue"
+        "blue",
+        "blue",
+        "green",
+        "gray"
       ]
     },
     "contact_name": {

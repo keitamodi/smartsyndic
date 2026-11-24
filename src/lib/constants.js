@@ -87,6 +87,24 @@ export const PROVIDER_SPECIALTY = {
   nettoyage: 'Nettoyage',
   securite: 'Sécurité',
   multiservices: 'Multiservices',
+  serrurerie: 'Serrurerie',
+  gardiennage: 'Gardiennage',
+  autre: 'Autre',
+};
+
+export const PROVIDER_TRADE = {
+  serrurerie: 'Serrurier',
+  gardiennage: 'Gardien',
+  plomberie: 'Plombier',
+  electricite: 'Électricien',
+  chauffage: 'Chauffagiste',
+  ascenseur: 'Ascensoriste',
+  toiture: 'Couvreur',
+  espaces_verts: 'Espaces verts',
+  nettoyage: 'Agent d’entretien',
+  securite: 'Agent de sécurité',
+  multiservices: 'Multiservices',
+  autre: 'Autre',
 };
 
 export const PROVIDER_STATUS = { actif: 'Actif', inactif: 'Inactif' };

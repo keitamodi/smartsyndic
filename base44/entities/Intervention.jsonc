@@ -100,11 +100,20 @@
       "type": "string"
     },
     "provider_name": {
-      "type": "string"
+      "type": "string",
+      "description": "Nom de l'intervenant (annuaire ou saisi librement)"
     },
     "provider_email": {
       "type": "string",
       "description": "Email du compte du technicien : lui ouvre l'intervention dans son espace"
+    },
+    "provider_phone": {
+      "type": "string",
+      "description": "T\u00e9l\u00e9phone de l'intervenant \u00e0 joindre sur place"
+    },
+    "provider_trade": {
+      "type": "string",
+      "description": "M\u00e9tier de l'intervenant : serrurerie, gardiennage, plomberie\u2026 ou autre"
     },
     "cost": {
       "type": "number"

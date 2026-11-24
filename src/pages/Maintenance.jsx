@@ -23,6 +23,8 @@ import {
   INTERVENTION_PRIORITY,
   INTERVENTION_STATUS,
   PRIORITY_TONE,
+  PROVIDER_SPECIALTY,
+  PROVIDER_TRADE,
   options,
 } from '@/lib/constants';
 
@@ -30,6 +32,9 @@ const EMPTY = {
   title: '',
   building_id: '',
   provider_id: '',
+  provider_name: '',
+  provider_phone: '',
+  provider_trade: '',
   origin: 'entretien',
   priority: 'normale',
   kind: 'preventive',
@@ -98,8 +103,10 @@ export default function Maintenance() {
     }
     if ('provider_id' in values) {
       const provider = providers.find((item) => item.id === values.provider_id);
-      payload.provider_name = provider?.name || '';
+      payload.provider_name = provider?.name || String(values.provider_name || '').trim();
       payload.provider_email = provider?.email || '';
+      payload.provider_phone = provider?.phone || String(values.provider_phone || '').trim();
+      if (provider?.specialty) payload.provider_trade = values.provider_trade || provider.specialty;
     }
     if ('duration_minutes' in values) payload.duration_minutes = Number(values.duration_minutes) || 60;
     if ('reminder_days' in values) {
@@ -208,9 +215,32 @@ export default function Maintenance() {
     },
     {
       name: 'provider_id',
-      label: 'Intervenant',
+      label: 'Intervenant de l’annuaire',
       type: 'select',
-      options: providers.map((provider) => ({ value: provider.id, label: provider.name })),
+      options: providers.map((provider) => ({
+        value: provider.id,
+        label: `${provider.name}${provider.specialty ? ` · ${PROVIDER_TRADE[provider.specialty] || PROVIDER_SPECIALTY[provider.specialty]}` : ''}`,
+      })),
+      hint: 'Sélectionnez le prestataire habituel ; sinon renseignez-le ci-dessous.',
+    },
+    {
+      name: 'provider_trade',
+      label: 'Métier de l’intervenant',
+      type: 'select',
+      options: options(PROVIDER_TRADE),
+      hint: 'Serrurier, gardien… ou « Autre ».',
+    },
+    {
+      name: 'provider_name',
+      label: 'Autre intervenant (nom)',
+      placeholder: 'Ex. Serrurerie Martin, gardien de l’immeuble',
+      hint: 'Rempli automatiquement si l’intervenant vient de l’annuaire.',
+    },
+    {
+      name: 'provider_phone',
+      label: 'Téléphone de l’intervenant',
+      placeholder: '06 12 34 56 78',
+      hint: 'Utile pour un serrurier ou un gardien non enregistré.',
     },
     { name: 'origin', label: 'Motif', type: 'select', options: options(INTERVENTION_ORIGIN) },
     { name: 'priority', label: 'Importance (pastille)', type: 'select', options: options(INTERVENTION_PRIORITY) },
@@ -379,7 +409,20 @@ export default function Maintenance() {
               </div>
             ),
           },
-          { key: 'provider_name', header: 'Intervenant', render: (row) => row.provider_name || 'À affecter' },
+          {
+            key: 'provider_name',
+            header: 'Intervenant',
+            render: (row) => (
+              <div className="min-w-0 max-w-[200px]">
+                <p className="truncate text-[12.5px] text-foreground">{row.provider_name || 'À affecter'}</p>
+                {(row.provider_trade || row.provider_phone) && (
+                  <p className="mt-0.5 truncate text-[11px] text-muted-foreground">
+                    {[PROVIDER_TRADE[row.provider_trade], row.provider_phone].filter(Boolean).join(' · ')}
+                  </p>
+                )}
+              </div>
+            ),
+          },
           {
             key: 'contact_email',
             header: 'Propriétaire prévenu',
