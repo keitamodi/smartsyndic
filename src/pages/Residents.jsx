@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { Mail, Phone, Plus, UserPlus, Users } from 'lucide-react';
 import Page from '@/components/Page';
 import StatStrip from '@/components/StatStrip';
+import QuickFilterBar from '@/components/QuickFilterBar';
 import TablePanel from '@/components/TablePanel';
 import RowActions from '@/components/RowActions';
 import StatusBadge from '@/components/StatusBadge';
@@ -53,7 +54,6 @@ export default function Residents() {
 
   const { items, loading, error, reload } = useCollection('Resident', query, { enabled: !!syndicId, limit: 400 });
   const { items: buildings } = useCollection('Building', { syndic_id: syndicId }, { enabled: !!syndicId });
-  const { items: lots } = useCollection('Lot', { syndic_id: syndicId }, { enabled: !!syndicId });
 
   if (!syndicId) return <WorkspaceRequired />;
 
@@ -65,6 +65,26 @@ export default function Residents() {
     const haystack = `${row.full_name} ${row.email} ${row.lot_numbers} ${buildingName(row.building_id)}`.toLowerCase();
     return haystack.includes(search.toLowerCase());
   });
+
+  const countKind = (kind) => items.filter((row) => row.kind === kind).length;
+  const hasFilter = Boolean(kindFilter || buildingFilter || search);
+
+  // Un clic sur une carte applique uniquement ce profil : l'immeuble sélectionné
+  // est retiré pour que la liste affiche exactement le nombre annoncé.
+  const focusKind = (kind) => {
+    setBuildingFilter('');
+    setKindFilter((current) => (current === kind ? '' : kind));
+  };
+
+  const clearFilters = () => {
+    setKindFilter('');
+    setBuildingFilter('');
+    setSearch('');
+  };
+
+  const filterLabel = [kindFilter ? RESIDENT_KIND[kindFilter] : '', buildingFilter ? buildingName(buildingFilter) : '']
+    .filter(Boolean)
+    .join(' · ');
 
   const fields = [
     { name: 'full_name', label: 'Nom complet', required: true, span: 2, placeholder: 'Marie Lambert' },
@@ -144,36 +164,38 @@ export default function Residents() {
           {
             label: 'Personnes',
             value: formatNumber(items.length),
-            hint: 'dans cet espace syndic',
-            onClick: () => {
-              setKindFilter('');
-              setBuildingFilter('');
-            },
-            active: !kindFilter && !buildingFilter,
+            hint: 'toutes les fiches de l’espace',
+            onClick: clearFilters,
+            active: !hasFilter,
           },
           {
             label: 'Copropriétaires',
-            value: formatNumber(items.filter((row) => row.kind === 'coproprietaire').length),
-            hint: 'propriétaires occupants',
-            onClick: () => setKindFilter((current) => (current === 'coproprietaire' ? '' : 'coproprietaire')),
+            value: formatNumber(countKind('coproprietaire')),
+            hint: 'propriétaires occupant leur lot',
+            onClick: () => focusKind('coproprietaire'),
             active: kindFilter === 'coproprietaire',
           },
           {
             label: 'Propriétaires bailleurs',
-            value: formatNumber(items.filter((row) => row.kind === 'proprietaire_bailleur').length),
-            hint: 'lots loués',
-            onClick: () =>
-              setKindFilter((current) => (current === 'proprietaire_bailleur' ? '' : 'proprietaire_bailleur')),
+            value: formatNumber(countKind('proprietaire_bailleur')),
+            hint: 'propriétaires de lots loués',
+            onClick: () => focusKind('proprietaire_bailleur'),
             active: kindFilter === 'proprietaire_bailleur',
           },
           {
             label: 'Occupants',
-            value: formatNumber(items.filter((row) => row.kind === 'occupant').length),
-            hint: `${formatNumber(lots.length)} lots au total`,
-            onClick: () => setKindFilter((current) => (current === 'occupant' ? '' : 'occupant')),
+            value: formatNumber(countKind('occupant')),
+            hint: 'locataires en place',
+            onClick: () => focusKind('occupant'),
             active: kindFilter === 'occupant',
           },
         ]}
+      />
+
+      <QuickFilterBar
+        label={filterLabel || (search ? `Recherche « ${search} »` : '')}
+        count={hasFilter ? rows.length : null}
+        onClear={clearFilters}
       />
 
       <TablePanel
@@ -241,17 +263,30 @@ export default function Residents() {
         loading={loading}
         error={error}
         onRowClick={setDetail}
-        empty={{
-          icon: Users,
-          title: 'Aucune personne enregistrée',
-          description: 'Rattachez les copropriétaires, propriétaires bailleurs et occupants à vos immeubles.',
-          action: (
-            <Button className="gap-2" onClick={() => setFormOpen(true)}>
-              <Plus className="h-4 w-4" />
-              Ajouter une personne
-            </Button>
-          ),
-        }}
+        empty={
+          hasFilter
+            ? {
+                icon: Users,
+                title: 'Aucune personne ne correspond à ce filtre',
+                description: 'Retirez le filtre pour retrouver l’ensemble des copropriétaires, propriétaires et occupants.',
+                action: (
+                  <Button variant="outline" onClick={clearFilters}>
+                    Retirer les filtres
+                  </Button>
+                ),
+              }
+            : {
+                icon: Users,
+                title: 'Aucune personne enregistrée',
+                description: 'Rattachez les copropriétaires, propriétaires bailleurs et occupants à vos immeubles.',
+                action: (
+                  <Button className="gap-2" onClick={() => setFormOpen(true)}>
+                    <Plus className="h-4 w-4" />
+                    Ajouter une personne
+                  </Button>
+                ),
+              }
+        }
       />
 
       <FormDialog
@@ -275,6 +310,10 @@ export default function Residents() {
           </DialogHeader>
 
           <div className="space-y-2 text-[13px]">
+            <p className="flex items-center gap-2 text-foreground/75">
+              <span className="text-muted-foreground">Statut</span>
+              <StatusBadge value={detail?.status} map={RESIDENT_STATUS} />
+            </p>
             {detail?.email && (
               <p className="flex items-center gap-2 text-foreground/75">
                 <Mail className="h-3.5 w-3.5 text-muted-foreground" />
