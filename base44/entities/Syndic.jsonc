@@ -75,6 +75,31 @@
     },
     "notes": {
       "type": "string"
+    },
+    "stripe_customer_id": {
+      "type": "string",
+      "description": "Client Stripe du cabinet (rempli par le paiement en ligne)"
+    },
+    "stripe_subscription_id": {
+      "type": "string",
+      "description": "Abonnement Stripe actif du cabinet"
+    },
+    "subscription_status": {
+      "type": "string",
+      "enum": [
+        "aucun",
+        "actif",
+        "impaye",
+        "resilie"
+      ],
+      "enumColors": [
+        "gray",
+        "green",
+        "red",
+        "gray"
+      ],
+      "default": "aucun",
+      "description": "\u00c9tat de l'abonnement Stripe"
     }
   },
   "required": [

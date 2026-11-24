@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Banknote, Download, Loader2, Plus, Receipt, Send, Sparkles } from 'lucide-react';
+import { Banknote, CreditCard, Download, Loader2, Plus, Receipt, Send, Sparkles } from 'lucide-react';
 import Page from '@/components/Page';
 import StatStrip from '@/components/StatStrip';
 import QuickFilterBar from '@/components/QuickFilterBar';
@@ -12,6 +12,7 @@ import AppelFondsDialog from '@/components/billing/AppelFondsDialog';
 import ImpayesPanel from '@/components/billing/ImpayesPanel';
 import { isLate, outstandingOf, summaryOf } from '@/lib/impayes';
 import { relancerFacture } from '@/lib/relance';
+import { startStripeCheckout } from '@/lib/stripeCheckout';
 import { useToast } from '@/components/ui/use-toast';
 import { downloadAvisPdf } from '@/lib/appelFondsPdf';
 import { Button } from '@/components/ui/button';
@@ -65,6 +66,7 @@ export default function Billing() {
   const [payment, setPayment] = useState({ amount: '', date: today(), method: 'virement', reference: '' });
   const [paymentError, setPaymentError] = useState('');
   const [savingPayment, setSavingPayment] = useState(false);
+  const [payingOnline, setPayingOnline] = useState(false);
   const [appelOpen, setAppelOpen] = useState(false);
 
   const query = useMemo(() => {
@@ -203,6 +205,28 @@ export default function Billing() {
       });
     } finally {
       setRelanceBusy(null);
+    }
+  };
+
+  // Paiement en ligne du reste dû : le règlement est enregistré par le webhook Stripe.
+  const payOnline = async () => {
+    setPayingOnline(true);
+    try {
+      await startStripeCheckout(async () => {
+        const response = await base44.functions.invoke('createInvoiceCheckout', {
+          invoice_id: detail.id,
+          return_path: '/facturation',
+        });
+        return response.data;
+      });
+    } catch (failure) {
+      toast({
+        title: 'Paiement indisponible',
+        description: failure?.message || 'Réessayez dans un instant.',
+        variant: 'destructive',
+      });
+    } finally {
+      setPayingOnline(false);
     }
   };
 
@@ -514,6 +538,12 @@ export default function Billing() {
             {['brouillon', 'envoyee'].includes(detail?.status) && (
               <Button variant="outline" onClick={() => markSent(detail)}>
                 Marquer comme envoyée
+              </Button>
+            )}
+            {outstandingOf(detail) > 0 && (
+              <Button variant="outline" className="gap-2" disabled={payingOnline} onClick={payOnline}>
+                {payingOnline ? <Loader2 className="h-4 w-4 animate-spin" /> : <CreditCard className="h-4 w-4" />}
+                Payer en ligne
               </Button>
             )}
             <Button className="gap-2" onClick={() => setPaymentOpen(true)}>

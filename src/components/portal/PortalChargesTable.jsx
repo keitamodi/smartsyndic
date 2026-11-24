@@ -1,5 +1,10 @@
-import { Download, Receipt } from 'lucide-react';
+import { useState } from 'react';
+import { CreditCard, Download, Receipt } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useToast } from '@/components/ui/use-toast';
+import { base44 } from '@/api/base44Client';
+import { outstandingOf } from '@/lib/impayes';
+import { startStripeCheckout } from '@/lib/stripeCheckout';
 import StatusBadge from '@/components/StatusBadge';
 import EmptyState from '@/components/EmptyState';
 import { formatDate, formatEUR } from '@/lib/format';
@@ -8,6 +13,30 @@ import { isSettled, paidOn } from '@/hooks/useResidentSpace';
 import { downloadQuittancePdf } from '@/lib/quittancePdf';
 
 export default function PortalChargesTable({ invoices = [], lots = [], buildings = [], payments = [] }) {
+  const { toast } = useToast();
+  const [paying, setPaying] = useState('');
+
+  const payInvoice = async (invoice) => {
+    setPaying(invoice.id);
+    try {
+      await startStripeCheckout(async () => {
+        const response = await base44.functions.invoke('createInvoiceCheckout', {
+          invoice_id: invoice.id,
+          return_path: '/mon-espace',
+        });
+        return response.data;
+      });
+    } catch (failure) {
+      toast({
+        title: 'Paiement indisponible',
+        description: failure?.message || 'Réessayez dans un instant.',
+        variant: 'destructive',
+      });
+    } finally {
+      setPaying('');
+    }
+  };
+
   if (!invoices.length) {
     return (
       <div className="rounded-[24px] border border-border bg-card">
@@ -83,6 +112,17 @@ export default function PortalChargesTable({ invoices = [], lots = [], buildings
                       >
                         <Download className="h-3.5 w-3.5" />
                         Reçu
+                      </Button>
+                    ) : outstandingOf(invoice) > 0 ? (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="gap-1 text-[11.5px]"
+                        disabled={paying === invoice.id}
+                        onClick={() => payInvoice(invoice)}
+                      >
+                        <CreditCard className="h-3.5 w-3.5" />
+                        Payer
                       </Button>
                     ) : (
                       <span className="text-[11px] text-muted-foreground">—</span>

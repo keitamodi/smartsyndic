@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { CreditCard, Loader2 } from 'lucide-react';
 import Page from '@/components/Page';
 import PlanCard from '@/components/pricing/PlanCard';
@@ -19,6 +19,7 @@ import useQuota from '@/hooks/useQuota';
 import { base44 } from '@/api/base44Client';
 import { logAction } from '@/lib/audit';
 import { PLANS, planById, planRank } from '@/lib/plans';
+import { startStripeCheckout } from '@/lib/stripeCheckout';
 
 export default function Abonnement() {
   const { syndicId, syndic, refresh } = useWorkspace();
@@ -29,13 +30,37 @@ export default function Abonnement() {
 
   const currentPlan = planById(syndic?.plan_tier);
 
+  // Retour de Stripe : le forfait est mis à jour par le paiement confirmé.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const state = params.get('checkout');
+    if (!state) return;
+    if (state === 'success') {
+      toast({ title: 'Paiement confirmé', description: 'Votre forfait est activé dès réception du paiement.' });
+      refresh();
+      reloadQuota();
+    } else if (state === 'cancel') {
+      toast({ title: 'Paiement annulé', description: 'Aucun montant n’a été prélevé.', variant: 'destructive' });
+    }
+    window.history.replaceState({}, '', window.location.pathname);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   if (!syndicId) return <WorkspaceRequired />;
 
   const confirmChange = async () => {
     if (!target) return;
     setSaving(true);
     try {
-      await base44.entities.Syndic.update(syndicId, { plan_tier: target.id });
+      if (target.id !== 'free') {
+        await startStripeCheckout(async () => {
+          const response = await base44.functions.invoke('createSubscriptionCheckout', { plan_id: target.id });
+          return response.data;
+        });
+        setTarget(null);
+        return;
+      }
+      await base44.entities.Syndic.update(syndicId, { plan_tier: target.id, subscription_status: 'aucun' });
       await logAction({
         syndicId,
         action: 'Changement de forfait',
@@ -128,8 +153,8 @@ export default function Abonnement() {
 
         <p className="rounded-[14px] border border-border/70 bg-secondary/40 p-4 text-[11.5px] leading-relaxed text-muted-foreground">
           Les accès portail des copropriétaires, propriétaires et techniciens restent gratuits et
-          illimités quel que soit le forfait. Le paiement en ligne n'est pas encore activé : le
-          changement de formule met à jour votre espace immédiatement.
+          illimités quel que soit le forfait. Les forfaits payants sont réglés par carte bancaire via
+          Stripe ; le retour au forfait Gratuit se fait immédiatement, sans prélèvement.
         </p>
       </section>
 
@@ -158,7 +183,7 @@ export default function Abonnement() {
             </Button>
             <Button className="gap-2" onClick={confirmChange} disabled={saving}>
               {saving && <Loader2 className="h-4 w-4 animate-spin" />}
-              Confirmer le changement
+              {target?.id === 'free' ? 'Confirmer le changement' : 'Payer avec Stripe'}
             </Button>
           </DialogFooter>
         </DialogContent>
