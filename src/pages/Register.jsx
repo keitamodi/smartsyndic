@@ -22,6 +22,7 @@ const REASONS = {
 export default function Register() {
   const [searchParams] = useSearchParams();
   const token = searchParams.get("invite") || "";
+  const wantedPlan = searchParams.get("plan") || "";
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -106,7 +107,12 @@ export default function Register() {
       if (result?.access_token) {
         base44.auth.setToken(result.access_token);
       }
-      let destination = invite ? "/mon-espace" : "/tableau-de-bord";
+      // Offre choisie sur la page Tarifs : on enchaîne sur son paiement.
+      let destination = invite
+        ? "/mon-espace"
+        : wantedPlan && wantedPlan !== "free"
+          ? `/abonnement?plan=${wantedPlan}`
+          : "/tableau-de-bord";
       try {
         const claimed = await base44.functions.invoke("memberAccess", { action: "claim", token });
         if (claimed?.data?.redirect) destination = claimed.data.redirect;

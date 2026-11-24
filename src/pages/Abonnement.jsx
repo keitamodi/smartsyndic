@@ -53,6 +53,17 @@ export default function Abonnement() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Offre choisie depuis la page Tarifs : on ouvre directement le récapitulatif de paiement.
+  const [planChecked, setPlanChecked] = useState(false);
+  useEffect(() => {
+    if (planChecked || !syndic) return;
+    const wanted = new URLSearchParams(window.location.search).get('plan');
+    const plan = wanted ? PLANS.find((item) => item.id === wanted) : null;
+    if (plan && plan.id !== 'free' && plan.id !== currentPlan.id) setTarget(plan);
+    setPlanChecked(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [syndic]);
+
   if (!syndicId) return <WorkspaceRequired />;
 
   const confirmChange = async () => {

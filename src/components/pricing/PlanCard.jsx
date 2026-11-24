@@ -1,9 +1,13 @@
 import { Link } from 'react-router-dom';
 import { Check, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/lib/AuthContext';
 import { cn } from '@/lib/utils';
 
 export default function PlanCard({ plan, current = false, footer }) {
+  const { user } = useAuth();
+  // Cabinet connecté : l'offre mène au paiement ; visiteur : création de l'espace d'abord.
+  const ctaTarget = user ? `/abonnement?plan=${plan.id}` : `/register?plan=${plan.id}`;
   return (
     <div
       className={cn(
@@ -64,7 +68,7 @@ export default function PlanCard({ plan, current = false, footer }) {
             variant={plan.recommended ? 'default' : 'outline'}
             className="w-full text-[12.5px]"
           >
-            <Link to={`/register?plan=${plan.id}`}>{plan.cta}</Link>
+            <Link to={ctaTarget}>{plan.cta}</Link>
           </Button>
         )}
       </div>
