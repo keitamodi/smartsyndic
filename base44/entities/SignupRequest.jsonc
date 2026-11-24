@@ -60,6 +60,20 @@
     "source": {
       "type": "string",
       "default": "page_accueil"
+    },
+    "alert_sent_at": {
+      "type": "string",
+      "format": "date",
+      "description": "Date d'envoi de l'alerte e-mail \u00e0 l'\u00e9quipe"
+    },
+    "handled_at": {
+      "type": "string",
+      "format": "date",
+      "description": "Date du dernier changement de statut"
+    },
+    "handled_by": {
+      "type": "string",
+      "description": "Administrateur ayant trait\u00e9 la demande"
     }
   },
   "required": [

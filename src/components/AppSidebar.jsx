@@ -20,8 +20,10 @@ import {
   Settings,
   ShieldCheck,
   UserRound,
+  Inbox,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/lib/AuthContext';
 import useAccess from '@/hooks/useAccess';
 import { ROLE_LABELS } from '@/lib/access';
 import { LEGAL_PAGES } from '@/lib/legal';
@@ -106,9 +108,11 @@ const RESIDENT_GROUPS = [
 
 export default function AppSidebar({ onNavigate }) {
   const { access } = useAccess();
+  const { user } = useAuth();
   const kind = access?.kind || 'inconnu';
   const isSyndic = !!access?.isSyndic;
   const allowed = access?.allowed || [];
+  const isAdmin = user?.role === 'admin';
 
   const groups =
     kind === 'technicien'
@@ -119,6 +123,18 @@ export default function AppSidebar({ onNavigate }) {
             ...group,
             items: group.items.filter((item) => allowed.includes(item.module)),
           })).filter((group) => group.items.length);
+
+  // Espace de traitement des prospects : réservé aux administrateurs de la plateforme.
+  const adminGroups = isAdmin
+    ? [
+        {
+          label: 'Administration',
+          items: [{ to: '/demandes-inscription', label: 'Demandes d’inscription', icon: Inbox }],
+        },
+      ]
+    : [];
+
+  const visibleGroups = [...groups, ...adminGroups];
 
   const scopeLabel = access?.buildingIds
     ? `${access.buildingIds.length} immeuble${access.buildingIds.length > 1 ? 's' : ''}`
@@ -139,7 +155,7 @@ export default function AppSidebar({ onNavigate }) {
       </div>
 
       <nav className="thin-scroll flex-1 overflow-y-auto px-3 pb-4">
-        {groups.map((group, index) => (
+        {visibleGroups.map((group, index) => (
           <div key={group.label || `group-${index}`} className="mb-4">
             {group.label && (
               <p className="kicker mb-2 px-3 !text-[9px] !tracking-[0.2em]">{group.label}</p>

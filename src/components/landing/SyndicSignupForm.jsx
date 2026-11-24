@@ -51,7 +51,7 @@ export default function SyndicSignupForm() {
     setSaving(true);
     setError('');
     try {
-      await base44.entities.SignupRequest.create({
+      const created = await base44.entities.SignupRequest.create({
         syndic_name: form.syndic_name.trim(),
         syndic_kind: form.syndic_kind,
         contact_name: form.contact_name.trim(),
@@ -63,6 +63,10 @@ export default function SyndicSignupForm() {
         source: 'page_accueil',
       });
       setDone(true);
+      // L'alerte e-mail ne doit jamais empêcher l'affichage de la confirmation.
+      if (created?.id) {
+        base44.functions.invoke('notifySignupRequest', { request_id: created.id }).catch(() => null);
+      }
     } catch (submitError) {
       setError(submitError?.message || "La demande n'a pas pu être enregistrée. Réessayez dans un instant.");
     } finally {

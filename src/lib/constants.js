@@ -280,6 +280,20 @@ export const THREAD_KIND = {
 
 export const THREAD_TONE = { ouvert: 'blue', en_attente: 'yellow', clos: 'gray' };
 
+export const SIGNUP_REQUEST_STATUS = {
+  nouveau: 'Nouveau',
+  contacte: 'Contacté',
+  qualifie: 'Qualifié',
+  refuse: 'Refusé',
+};
+
+export const SIGNUP_REQUEST_TONE = {
+  nouveau: 'blue',
+  contacte: 'yellow',
+  qualifie: 'green',
+  refuse: 'gray',
+};
+
 export const INTERVENTION_PRIORITY = { basse: 'Basse', normale: 'Normale', haute: 'Haute', urgente: 'Urgente' };
 
 export const INTERVENTION_ORIGIN = { entretien: 'Entretien programmé', depannage: 'Dépannage' };
