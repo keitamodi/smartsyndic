@@ -31,7 +31,6 @@ import TestAcces from '@/pages/TestAcces';
 import MonEspace from '@/pages/MonEspace';
 import MesInterventions from '@/pages/MesInterventions';
 import Accueil from '@/pages/Accueil';
-import DemandesInscription from '@/pages/DemandesInscription';
 import Pricing from '@/pages/Pricing';
 import MentionsLegales from '@/pages/legal/MentionsLegales';
 import CGU from '@/pages/legal/CGU';
@@ -104,7 +103,6 @@ const AuthenticatedApp = () => {
           <Route path="/a-propos" element={<About />} />
           <Route path="/parametres" element={<Parametres />} />
           <Route path="/test-acces" element={<TestAcces />} />
-          <Route path="/demandes-inscription" element={<DemandesInscription />} />
           <Route path="/mon-espace" element={<MonEspace />} />
           <Route path="/mes-interventions" element={<MesInterventions />} />
         </Route>
