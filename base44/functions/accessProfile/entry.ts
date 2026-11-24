@@ -104,10 +104,11 @@ export default async function (req) {
     };
 
     const resolved = await (async () => {
-      if (user.role === 'admin') {
-        const syndics = pageItems(await service.Syndic.list());
-        const ownedRows = syndics.filter((row: any) => row.created_by_id === user.id);
-        if (ownedRows.length) {
+      // Tout compte propriétaire d'un espace syndic le gère, quel que soit son rôle :
+      // c'est ainsi qu'un syndic qui vient d'ouvrir son espace (Google ou email) y accède.
+      const syndics = pageItems(await service.Syndic.list());
+      const ownedRows = syndics.filter((row: any) => row.created_by_id === user.id);
+      if (ownedRows.length) {
           // On conserve le cabinet déjà rattaché au compte : sans cela, le
           // cloisonnement pourrait basculer d'un espace à l'autre entre deux visites.
           const fresh: any = await service.User.get(user.id).catch(() => null);
@@ -124,6 +125,7 @@ export default async function (req) {
             scope: 'equipe',
           };
         }
+      if (user.role === 'admin') {
         if (member) return teamProfile(member.syndic_id, member);
         return { profile: { kind: 'syndic', syndic: null, member: null, settings: { ...ACCESS_DEFAULTS } }, scope: 'equipe' };
       }

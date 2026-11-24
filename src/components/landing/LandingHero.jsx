@@ -3,6 +3,7 @@ import { Image } from '@/components/ui/image';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import GoogleAuthButton from '@/components/GoogleAuthButton';
 
 const PHOTOS = [
   {
@@ -56,6 +57,7 @@ export default function LandingHero() {
             >
               <Link to="/login">Connexion</Link>
             </Button>
+            <GoogleAuthButton className="w-full max-w-[260px]" label="S’inscrire avec Google" />
           </div>
         </div>
 

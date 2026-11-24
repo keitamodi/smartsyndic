@@ -221,7 +221,7 @@ export function resolveAccess(profile = {}) {
     role: 'invite',
     level: 'limite',
     blocked: false,
-    allowed: ['portal', ...SHARED_MODULES],
+    allowed: ['dashboard', 'portal', ...SHARED_MODULES],
     caps: { finances: true, docs: true, tickets: true, assemblies: true },
     buildingIds: null,
   };

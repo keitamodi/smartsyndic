@@ -13,6 +13,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { CheckCircle2, Loader2, Send } from 'lucide-react';
+import GoogleAuthButton from '@/components/GoogleAuthButton';
 
 const EMPTY = {
   syndic_name: '',
@@ -112,7 +113,18 @@ export default function SyndicSignupForm() {
         Deux minutes suffisent. Aucun engagement, aucun moyen de paiement demandé.
       </p>
 
-      <div className="mt-6 grid gap-4 sm:grid-cols-2">
+      <GoogleAuthButton className="mt-5" label="Créer mon espace avec Google" />
+
+      <div className="relative my-5">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-border" />
+        </div>
+        <div className="relative flex justify-center text-[10px] uppercase tracking-[0.16em]">
+          <span className="bg-card px-3 text-muted-foreground">ou remplissez la fiche</span>
+        </div>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2">
         <div className="sm:col-span-2">
           <Label htmlFor="syndic_name">Nom du syndicat</Label>
           <Input
