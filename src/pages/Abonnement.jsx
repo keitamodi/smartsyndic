@@ -48,6 +48,8 @@ export default function Abonnement() {
       return;
     }
     if (state !== 'success') return;
+    // Paiement terminé : on referme le récapitulatif resté ouvert pendant le paiement.
+    setTarget(null);
 
     let alive = true;
     let timer;
@@ -109,9 +111,6 @@ export default function Abonnement() {
     setCheckoutUrl('');
     setManualUrl('');
     if (!target || target.id === 'free' || syndic?.stripe_subscription_id) return;
-    // Hors aperçu intégré, le clic peut attendre la création de la session :
-    // inutile de préparer un lien et d'accumuler des sessions Stripe abandonnées.
-    if (window.self === window.top) return;
     let alive = true;
     base44.functions
       .invoke('createSubscriptionCheckout', { plan_id: target.id })
@@ -286,6 +285,25 @@ export default function Abonnement() {
               <Button asChild className="gap-2">
                 <a href={manualUrl} target="_blank" rel="noreferrer">
                   Ouvrir la page de paiement
+                </a>
+              </Button>
+            ) : checkoutUrl ? (
+              // Lien de paiement prêt : un vrai lien vers Stripe, que les bloqueurs
+              // de fenêtres laissent toujours passer.
+              <Button asChild className="gap-2">
+                <a
+                  href={checkoutUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  onClick={() =>
+                    toast({
+                      title: 'Paiement Stripe ouvert',
+                      description:
+                        'Finalisez le règlement sur la page de paiement : votre forfait s’active dès votre retour.',
+                    })
+                  }
+                >
+                  Payer avec Stripe
                 </a>
               </Button>
             ) : (

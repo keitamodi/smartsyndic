@@ -1,16 +1,43 @@
-// Ouvre la page de paiement Stripe : nouvel onglet dans l'aperçu (iframe),
-// navigation pleine page une fois l'app ouverte directement.
-// Retourne false si le navigateur a bloqué l'ouverture (l'appelant propose alors le lien direct).
+// Ouvre la page de paiement Stripe. Le paiement ne peut jamais s'afficher dans une
+// iframe (aperçu intégré) : on ouvre donc un onglet, et si le navigateur le bloque
+// on fait naviguer la fenêtre supérieure.
+// Retourne false quand aucune ouverture n'a pu être déclenchée (l'appelant propose
+// alors le lien direct).
+function navigateTo(url) {
+  try {
+    if (window.self !== window.top) {
+      window.top.location.href = url;
+    } else {
+      window.location.assign(url);
+    }
+    return true;
+  } catch {
+    try {
+      window.location.assign(url);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+}
+
 export function openCheckoutUrl(url) {
   if (!url) return false;
-  if (window.self !== window.top) {
-    const tab = window.open(url, '_blank');
-    if (!tab) return false;
-    tab.opener = null;
+  if (window.self === window.top) {
+    window.location.assign(url);
     return true;
   }
-  window.location.assign(url);
-  return true;
+  const tab = window.open(url, '_blank');
+  if (tab) {
+    try {
+      tab.opener = null;
+      tab.focus();
+    } catch {
+      /* onglet déjà chargé : rien à faire */
+    }
+    return true;
+  }
+  return navigateTo(url);
 }
 
 // Crée la session de paiement puis redirige vers Stripe.
@@ -40,11 +67,14 @@ export async function startStripeCheckout(createSession) {
     }
     if (tab) {
       tab.location.replace(result.url);
+      tab.focus();
       return result;
     }
-    // Onglet bloqué alors que l'app tourne dans un aperçu : on remonte l'URL
-    // pour afficher un lien de paiement direct à l'utilisateur.
-    if (isFramed) return { ...result, manual: true };
+    if (isFramed) {
+      // Onglet bloqué dans l'aperçu : on ouvre Stripe en pleine page.
+      if (navigateTo(result.url)) return result;
+      return { ...result, manual: true };
+    }
     window.location.assign(result.url);
     return result;
   } catch (error) {
