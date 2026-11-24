@@ -1,13 +1,26 @@
+import { ArrowRight } from 'lucide-react';
+import { cn } from '@/lib/utils';
+
 export default function StatStrip({ items = [] }) {
   if (!items.length) return null;
   return (
     <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
       {items.map((item) => {
         const Icon = item.icon;
+        const clickable = typeof item.onClick === 'function';
+        const Tag = clickable ? 'button' : 'div';
         return (
-          <div
+          <Tag
             key={item.label}
-            className="rounded-2xl border border-border bg-card px-4 py-3.5 shadow-sm"
+            type={clickable ? 'button' : undefined}
+            onClick={item.onClick}
+            aria-pressed={clickable ? Boolean(item.active) : undefined}
+            className={cn(
+              'rounded-2xl border bg-card px-4 py-3.5 text-left shadow-sm',
+              clickable &&
+                'cursor-pointer transition-colors hover:border-primary/40 hover:bg-accent/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+              item.active ? 'border-primary/60 bg-accent/40 ring-1 ring-primary/25' : 'border-border',
+            )}
           >
             <div className="flex items-start justify-between gap-2">
               <p className="kicker !text-[9px]">{item.label}</p>
@@ -23,7 +36,13 @@ export default function StatStrip({ items = [] }) {
             {item.hint && (
               <p className="mt-1.5 text-[11px] leading-snug text-muted-foreground">{item.hint}</p>
             )}
-          </div>
+            {clickable && (
+              <span className="mt-1.5 inline-flex items-center gap-1 font-mono text-[9px] uppercase tracking-[0.12em] text-primary">
+                Voir le détail
+                <ArrowRight className="h-2.5 w-2.5" />
+              </span>
+            )}
+          </Tag>
         );
       })}
     </div>

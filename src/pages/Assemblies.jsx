@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { CalendarDays, Gavel, Plus } from 'lucide-react';
 import Page from '@/components/Page';
 import StatStrip from '@/components/StatStrip';
+import QuickFilterBar from '@/components/QuickFilterBar';
 import TablePanel from '@/components/TablePanel';
 import RowActions from '@/components/RowActions';
 import StatusBadge from '@/components/StatusBadge';
@@ -35,14 +36,14 @@ export default function Assemblies() {
   const { syndicId } = useWorkspace();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [quick, setQuick] = useState('');
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [detail, setDetail] = useState(null);
 
   const query = useMemo(() => {
-    const next = { syndic_id: syndicId };
-    if (statusFilter) next.status = statusFilter;
-    return next;
+    // Filtres appliqués sur la liste : les compteurs des cartes restent stables.
+    return { syndic_id: syndicId };
   }, [syndicId, statusFilter]);
 
   const { items, loading, error, reload } = useCollection('Assembly', query, { enabled: !!syndicId, limit: 200 });
@@ -55,6 +56,8 @@ export default function Assemblies() {
   const buildingName = (id) => buildings.find((building) => building.id === id)?.name || 'Immeuble non précisé';
 
   const rows = items.filter((row) => {
+    if (statusFilter && row.status !== statusFilter) return false;
+    if (quick === 'minutes' && !row.minutes_uri) return false;
     const haystack = `${row.title} ${buildingName(row.building_id)} ${row.location}`.toLowerCase();
     return haystack.includes(search.toLowerCase());
   });
@@ -140,23 +143,43 @@ export default function Assemblies() {
         <TabsContent value="assemblees" className="space-y-4">
           <StatStrip
             items={[
-              { label: 'Assemblées', value: formatNumber(items.length), hint: 'toutes périodes' },
+              {
+                label: 'Assemblées',
+                value: formatNumber(items.length),
+                hint: 'toutes périodes',
+                onClick: () => {
+                  setStatusFilter('');
+                  setQuick('');
+                },
+                active: !statusFilter && !quick,
+              },
               {
                 label: 'Convoquées',
                 value: formatNumber(items.filter((row) => row.status === 'convoquee').length),
                 hint: 'convocations envoyées',
+                onClick: () => setStatusFilter((current) => (current === 'convoquee' ? '' : 'convoquee')),
+                active: statusFilter === 'convoquee',
               },
               {
                 label: 'PV publiés',
                 value: formatNumber(items.filter((row) => row.minutes_uri).length),
                 hint: 'procès-verbaux disponibles',
+                onClick: () => setQuick((current) => (current === 'minutes' ? '' : 'minutes')),
+                active: quick === 'minutes',
               },
               {
                 label: 'Prochaine séance',
                 value: upcoming[0] ? formatDate(upcoming[0].date) : '—',
                 hint: upcoming[0]?.title || 'aucune AG planifiée',
+                onClick: upcoming[0] ? () => setDetail(upcoming[0]) : undefined,
               },
             ]}
+          />
+
+          <QuickFilterBar
+            label={quick === 'minutes' ? 'Assemblées avec procès-verbal publié' : ''}
+            count={quick === 'minutes' ? rows.length : null}
+            onClear={() => setQuick('')}
           />
 
           <TablePanel

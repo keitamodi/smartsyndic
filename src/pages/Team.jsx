@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { Plus, Send, UserCog } from 'lucide-react';
 import Page from '@/components/Page';
 import StatStrip from '@/components/StatStrip';
+import QuickFilterBar from '@/components/QuickFilterBar';
 import TablePanel from '@/components/TablePanel';
 import RowActions from '@/components/RowActions';
 import StatusBadge from '@/components/StatusBadge';
@@ -28,14 +29,12 @@ export default function Team() {
   const [quotaBlock, setQuotaBlock] = useState(null);
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('');
+  const [quick, setQuick] = useState('');
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState(null);
 
-  const query = useMemo(() => {
-    const next = { syndic_id: syndicId };
-    if (roleFilter) next.role = roleFilter;
-    return next;
-  }, [syndicId, roleFilter]);
+  // Filtres appliqués sur la liste : les compteurs des cartes restent stables.
+  const query = useMemo(() => ({ syndic_id: syndicId }), [syndicId]);
 
   const { items, loading, error, reload } = useCollection('TeamMember', query, { enabled: !!syndicId });
   const { items: buildings } = useCollection('Building', { syndic_id: syndicId }, { enabled: !!syndicId });
@@ -43,6 +42,8 @@ export default function Team() {
   if (!syndicId) return <WorkspaceRequired />;
 
   const rows = items.filter((row) => {
+    if (roleFilter && (row.role || '') !== roleFilter) return false;
+    if (quick === 'invite' && row.status !== 'invite') return false;
     const haystack = `${row.full_name} ${row.email} ${row.role}`.toLowerCase();
     return haystack.includes(search.toLowerCase());
   });
@@ -141,19 +142,37 @@ export default function Team() {
     >
       <StatStrip
         items={[
-          { label: 'Membres', value: formatNumber(items.length), hint: `${items.length} / ${limits.seats} sièges` },
+          {
+            label: 'Membres',
+            value: formatNumber(items.length),
+            hint: `${items.length} / ${limits.seats} sièges`,
+            onClick: () => {
+              setRoleFilter('');
+              setQuick('');
+            },
+            active: !roleFilter && !quick,
+          },
           {
             label: 'Gestionnaires',
             value: formatNumber(items.filter((row) => row.role === 'gestionnaire').length),
             hint: 'référents de copropriété',
+            onClick: () => setRoleFilter((current) => (current === 'gestionnaire' ? '' : 'gestionnaire')),
+            active: roleFilter === 'gestionnaire',
           },
           {
             label: 'Invitations en attente',
             value: formatNumber(items.filter((row) => row.status === 'invite').length),
             hint: 'accès non encore activé',
+            onClick: () => setQuick((current) => (current === 'invite' ? '' : 'invite')),
+            active: quick === 'invite',
           },
           { label: 'Immeubles', value: formatNumber(buildings.length), hint: 'périmètre disponible' },
         ]}
+      />
+      <QuickFilterBar
+        label={quick === 'invite' ? 'Invitations en attente' : ''}
+        count={quick === 'invite' ? rows.length : null}
+        onClear={() => setQuick('')}
       />
 
       <TeamGuide />

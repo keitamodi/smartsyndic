@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { Plus, Ticket as TicketIcon } from 'lucide-react';
 import Page from '@/components/Page';
 import StatStrip from '@/components/StatStrip';
+import QuickFilterBar from '@/components/QuickFilterBar';
 import TablePanel from '@/components/TablePanel';
 import RowActions from '@/components/RowActions';
 import StatusBadge from '@/components/StatusBadge';
@@ -21,16 +22,13 @@ export default function Tickets() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [priorityFilter, setPriorityFilter] = useState('');
+  const [quick, setQuick] = useState('');
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [detail, setDetail] = useState(null);
 
-  const query = useMemo(() => {
-    const next = { syndic_id: syndicId };
-    if (statusFilter) next.status = statusFilter;
-    if (priorityFilter) next.priority = priorityFilter;
-    return next;
-  }, [syndicId, statusFilter, priorityFilter]);
+  // Filtres appliqués sur la liste : les compteurs des cartes restent stables.
+  const query = useMemo(() => ({ syndic_id: syndicId }), [syndicId]);
 
   const { items: tickets, loading, error, reload } = useCollection('Ticket', query, {
     enabled: !!syndicId,
@@ -42,6 +40,9 @@ export default function Tickets() {
   if (!syndicId) return <WorkspaceRequired />;
 
   const rows = tickets.filter((ticket) => {
+    if (statusFilter && ticket.status !== statusFilter) return false;
+    if (priorityFilter && (ticket.priority || 'normale') !== priorityFilter) return false;
+    if (quick === 'closed' && !['clos', 'resolu'].includes(ticket.status)) return false;
     const haystack = `${ticket.title} ${ticket.building_name} ${ticket.requester_name} ${ticket.lot_number}`.toLowerCase();
     return haystack.includes(search.toLowerCase());
   });
@@ -75,11 +76,40 @@ export default function Tickets() {
     >
       <StatStrip
         items={[
-          { label: 'Nouvelles', value: formatNumber(count('nouveau')), hint: 'à qualifier' },
-          { label: 'En cours', value: formatNumber(count('en_cours')), hint: `${formatNumber(count('en_attente'))} en attente` },
-          { label: 'Urgentes', value: formatNumber(urgent), hint: 'priorité haute ou urgente' },
-          { label: 'Clôturées', value: formatNumber(count('clos') + count('resolu')), hint: 'résolues et closes' },
+          {
+            label: 'Nouvelles',
+            value: formatNumber(count('nouveau')),
+            hint: 'à qualifier',
+            onClick: () => setStatusFilter((current) => (current === 'nouveau' ? '' : 'nouveau')),
+            active: statusFilter === 'nouveau',
+          },
+          {
+            label: 'En cours',
+            value: formatNumber(count('en_cours')),
+            hint: `${formatNumber(count('en_attente'))} en attente`,
+            onClick: () => setStatusFilter((current) => (current === 'en_cours' ? '' : 'en_cours')),
+            active: statusFilter === 'en_cours',
+          },
+          {
+            label: 'Urgentes',
+            value: formatNumber(urgent),
+            hint: 'priorité haute ou urgente',
+            onClick: () => setPriorityFilter((current) => (current === 'urgente' ? '' : 'urgente')),
+            active: priorityFilter === 'urgente',
+          },
+          {
+            label: 'Clôturées',
+            value: formatNumber(count('clos') + count('resolu')),
+            hint: 'résolues et closes',
+            onClick: () => setQuick((current) => (current === 'closed' ? '' : 'closed')),
+            active: quick === 'closed',
+          },
         ]}
+      />
+      <QuickFilterBar
+        label={quick === 'closed' ? 'Tickets résolus et clos' : ''}
+        count={quick === 'closed' ? rows.length : null}
+        onClear={() => setQuick('')}
       />
 
       <TablePanel

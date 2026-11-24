@@ -68,11 +68,8 @@ export default function Providers() {
   const [inviteOpen, setInviteOpen] = useState(false);
   const [invitePersonId, setInvitePersonId] = useState('');
 
-  const query = useMemo(() => {
-    const next = { syndic_id: syndicId };
-    if (kindFilter) next.kind = kindFilter;
-    return next;
-  }, [syndicId, kindFilter]);
+  // Filtres appliqués sur la liste : les compteurs des cartes restent stables.
+  const query = useMemo(() => ({ syndic_id: syndicId }), [syndicId]);
 
   const { items, loading, error, reload } = useCollection('Provider', query, { enabled: !!syndicId, limit: 300 });
   const { items: interventions } = useCollection('Intervention', { syndic_id: syndicId }, { enabled: !!syndicId });
@@ -80,6 +77,7 @@ export default function Providers() {
   if (!syndicId) return <WorkspaceRequired />;
 
   const rows = items.filter((row) => {
+    if (kindFilter && (row.kind || '') !== kindFilter) return false;
     const haystack = `${row.name} ${row.contact_name} ${row.email} ${row.phone}`.toLowerCase();
     return haystack.includes(search.toLowerCase());
   });
@@ -140,16 +138,27 @@ export default function Providers() {
     >
       <StatStrip
         items={[
-          { label: 'Intervenants', value: formatNumber(items.length), hint: 'techniciens et prestataires' },
+          {
+            label: 'Intervenants',
+            value: formatNumber(items.length),
+            hint: 'techniciens et prestataires',
+            onClick: () => setKindFilter(''),
+            active: !kindFilter,
+          },
           {
             label: 'Techniciens internes',
             value: formatNumber(items.filter((row) => row.kind === 'technicien_interne').length),
             hint: 'salariés du syndic',
+            onClick: () => setKindFilter((current) => (current === 'technicien_interne' ? '' : 'technicien_interne')),
+            active: kindFilter === 'technicien_interne',
           },
           {
             label: 'Prestataires externes',
             value: formatNumber(items.filter((row) => row.kind === 'prestataire_externe').length),
             hint: 'entreprises partenaires',
+            onClick: () =>
+              setKindFilter((current) => (current === 'prestataire_externe' ? '' : 'prestataire_externe')),
+            active: kindFilter === 'prestataire_externe',
           },
           {
             label: 'Interventions suivies',

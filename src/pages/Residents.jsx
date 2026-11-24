@@ -48,12 +48,8 @@ export default function Residents() {
   const [inviteOpen, setInviteOpen] = useState(false);
   const [invitePersonId, setInvitePersonId] = useState('');
 
-  const query = useMemo(() => {
-    const next = { syndic_id: syndicId };
-    if (kindFilter) next.kind = kindFilter;
-    if (buildingFilter) next.building_id = buildingFilter;
-    return next;
-  }, [syndicId, kindFilter, buildingFilter]);
+  // Filtres appliqués sur la liste : les compteurs des cartes restent stables.
+  const query = useMemo(() => ({ syndic_id: syndicId }), [syndicId]);
 
   const { items, loading, error, reload } = useCollection('Resident', query, { enabled: !!syndicId, limit: 400 });
   const { items: buildings } = useCollection('Building', { syndic_id: syndicId }, { enabled: !!syndicId });
@@ -64,6 +60,8 @@ export default function Residents() {
   const buildingName = (id) => buildings.find((building) => building.id === id)?.name || '—';
 
   const rows = items.filter((row) => {
+    if (kindFilter && (row.kind || '') !== kindFilter) return false;
+    if (buildingFilter && row.building_id !== buildingFilter) return false;
     const haystack = `${row.full_name} ${row.email} ${row.lot_numbers} ${buildingName(row.building_id)}`.toLowerCase();
     return haystack.includes(search.toLowerCase());
   });
@@ -143,21 +141,37 @@ export default function Residents() {
     >
       <StatStrip
         items={[
-          { label: 'Personnes', value: formatNumber(items.length), hint: 'dans cet espace syndic' },
+          {
+            label: 'Personnes',
+            value: formatNumber(items.length),
+            hint: 'dans cet espace syndic',
+            onClick: () => {
+              setKindFilter('');
+              setBuildingFilter('');
+            },
+            active: !kindFilter && !buildingFilter,
+          },
           {
             label: 'Copropriétaires',
             value: formatNumber(items.filter((row) => row.kind === 'coproprietaire').length),
             hint: 'propriétaires occupants',
+            onClick: () => setKindFilter((current) => (current === 'coproprietaire' ? '' : 'coproprietaire')),
+            active: kindFilter === 'coproprietaire',
           },
           {
             label: 'Propriétaires bailleurs',
             value: formatNumber(items.filter((row) => row.kind === 'proprietaire_bailleur').length),
             hint: 'lots loués',
+            onClick: () =>
+              setKindFilter((current) => (current === 'proprietaire_bailleur' ? '' : 'proprietaire_bailleur')),
+            active: kindFilter === 'proprietaire_bailleur',
           },
           {
             label: 'Occupants',
             value: formatNumber(items.filter((row) => row.kind === 'occupant').length),
             hint: `${formatNumber(lots.length)} lots au total`,
+            onClick: () => setKindFilter((current) => (current === 'occupant' ? '' : 'occupant')),
+            active: kindFilter === 'occupant',
           },
         ]}
       />

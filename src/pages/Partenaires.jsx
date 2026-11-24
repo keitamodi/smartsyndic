@@ -167,18 +167,27 @@ export default function Partenaires() {
             label: 'Entreprises',
             value: formatNumber(items.length),
             hint: 'au répertoire',
+            onClick: () => {
+              setStatusFilter('');
+              setWorkFilter('');
+            },
+            active: !statusFilter && !workFilter,
           },
           {
             icon: BadgeCheck,
             label: 'Validées',
             value: formatNumber(items.filter((row) => row.status === 'valide').length),
             hint: 'sollicitables pour un devis',
+            onClick: () => setStatusFilter((current) => (current === 'valide' ? '' : 'valide')),
+            active: statusFilter === 'valide',
           },
           {
             icon: Clock3,
             label: 'À vérifier',
             value: formatNumber(items.filter((row) => row.status === 'a_verifier').length),
             hint: 'validation en attente',
+            onClick: () => setStatusFilter((current) => (current === 'a_verifier' ? '' : 'a_verifier')),
+            active: statusFilter === 'a_verifier',
           },
           {
             icon: Star,

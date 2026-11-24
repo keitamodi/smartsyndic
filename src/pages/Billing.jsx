@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { Banknote, Download, Loader2, Plus, Receipt, Send, Sparkles } from 'lucide-react';
 import Page from '@/components/Page';
 import StatStrip from '@/components/StatStrip';
+import QuickFilterBar from '@/components/QuickFilterBar';
 import TablePanel from '@/components/TablePanel';
 import RowActions from '@/components/RowActions';
 import StatusBadge from '@/components/StatusBadge';
@@ -9,7 +10,7 @@ import FormDialog from '@/components/FormDialog';
 import WorkspaceRequired from '@/components/WorkspaceRequired';
 import AppelFondsDialog from '@/components/billing/AppelFondsDialog';
 import ImpayesPanel from '@/components/billing/ImpayesPanel';
-import { outstandingOf, summaryOf } from '@/lib/impayes';
+import { isLate, outstandingOf, summaryOf } from '@/lib/impayes';
 import { relancerFacture } from '@/lib/relance';
 import { useToast } from '@/components/ui/use-toast';
 import { downloadAvisPdf } from '@/lib/appelFondsPdf';
@@ -56,6 +57,7 @@ export default function Billing() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [buildingFilter, setBuildingFilter] = useState('');
+  const [quick, setQuick] = useState('');
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [detail, setDetail] = useState(null);
@@ -66,10 +68,8 @@ export default function Billing() {
   const [appelOpen, setAppelOpen] = useState(false);
 
   const query = useMemo(() => {
-    const next = { syndic_id: syndicId };
-    if (statusFilter) next.status = statusFilter;
-    if (buildingFilter) next.building_id = buildingFilter;
-    return next;
+    // Filtres appliqués sur la liste : les compteurs des cartes restent stables.
+    return { syndic_id: syndicId };
   }, [syndicId, statusFilter, buildingFilter]);
 
   const { items, loading, error, reload } = useCollection('Invoice', query, { enabled: !!syndicId, limit: 400 });
@@ -79,6 +79,9 @@ export default function Billing() {
   if (!syndicId) return <WorkspaceRequired />;
 
   const rows = items.filter((row) => {
+    if (statusFilter && row.status !== statusFilter) return false;
+    if (buildingFilter && row.building_id !== buildingFilter) return false;
+    if (quick === 'late' && !isLate(row)) return false;
     const haystack = `${row.reference} ${row.building_name} ${row.period} ${row.lot_number}`.toLowerCase();
     return haystack.includes(search.toLowerCase());
   });
@@ -243,15 +246,32 @@ export default function Billing() {
     >
       <StatStrip
         items={[
-          { label: 'Montant appelé', value: formatEUR(totalAmount), hint: `${formatNumber(items.length)} document(s)` },
+          {
+            label: 'Montant appelé',
+            value: formatEUR(totalAmount),
+            hint: `${formatNumber(items.length)} document(s)`,
+            onClick: () => {
+              setStatusFilter('');
+              setBuildingFilter('');
+              setQuick('');
+            },
+            active: !statusFilter && !buildingFilter && !quick,
+          },
           { label: 'Encaissé', value: formatEUR(totalPaid), hint: totalAmount ? `${Math.round((totalPaid / totalAmount) * 100)} % du total` : '—' },
           { label: 'Reste à recouvrer', value: formatEUR(Math.max(totalAmount - totalPaid, 0)), hint: 'toutes échéances' },
           {
             label: 'En retard',
             value: formatNumber(impayes.late.length),
             hint: `${formatEUR(impayes.lateTotal, 2)} à relancer`,
+            onClick: () => setQuick((current) => (current === 'late' ? '' : 'late')),
+            active: quick === 'late',
           },
         ]}
+      />
+      <QuickFilterBar
+        label={quick === 'late' ? 'Factures en retard de paiement' : ''}
+        count={quick === 'late' ? rows.length : null}
+        onClear={() => setQuick('')}
       />
 
       <ImpayesPanel

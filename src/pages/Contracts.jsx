@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { AlertTriangle, FileSignature, Plus } from 'lucide-react';
 import Page from '@/components/Page';
 import StatStrip from '@/components/StatStrip';
+import QuickFilterBar from '@/components/QuickFilterBar';
 import TablePanel from '@/components/TablePanel';
 import RowActions from '@/components/RowActions';
 import StatusBadge from '@/components/StatusBadge';
@@ -53,15 +54,13 @@ export default function Contracts() {
   const { syndicId } = useWorkspace();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [quick, setQuick] = useState('');
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [detail, setDetail] = useState(null);
 
-  const query = useMemo(() => {
-    const next = { syndic_id: syndicId };
-    if (statusFilter) next.status = statusFilter;
-    return next;
-  }, [syndicId, statusFilter]);
+  // Filtres appliqués sur la liste : les compteurs des cartes restent stables.
+  const query = useMemo(() => ({ syndic_id: syndicId }), [syndicId]);
 
   const { items, loading, error, reload } = useCollection('Contract', query, { enabled: !!syndicId, limit: 300 });
   const { items: buildings } = useCollection('Building', { syndic_id: syndicId }, { enabled: !!syndicId });
@@ -71,14 +70,17 @@ export default function Contracts() {
 
   const buildingName = (id) => buildings.find((building) => building.id === id)?.name || '';
 
-  const rows = items.filter((row) => {
-    const haystack = `${row.title} ${row.provider_name} ${row.reference} ${buildingName(row.building_id)}`.toLowerCase();
-    return haystack.includes(search.toLowerCase());
-  });
-
   const expiringSoon = items.filter((row) => {
     const days = daysUntil(row.end_date);
     return row.status !== 'resilie' && days !== null && days >= 0 && days <= 60;
+  });
+
+  const rows = items.filter((row) => {
+    if (statusFilter && row.status !== statusFilter) return false;
+    if (quick === 'expiring' && !expiringSoon.some((item) => item.id === row.id)) return false;
+    if (quick === 'closed' && !['echu', 'resilie'].includes(row.status)) return false;
+    const haystack = `${row.title} ${row.provider_name} ${row.reference} ${buildingName(row.building_id)}`.toLowerCase();
+    return haystack.includes(search.toLowerCase());
   });
 
   const annualAmount = items
@@ -153,11 +155,36 @@ export default function Contracts() {
     >
       <StatStrip
         items={[
-          { label: 'Contrats actifs', value: formatNumber(items.filter((row) => row.status === 'actif').length), hint: 'en cours d’exécution' },
-          { label: 'À renouveler', value: formatNumber(expiringSoon.length), hint: 'échéance sous 60 jours' },
+          {
+            label: 'Contrats actifs',
+            value: formatNumber(items.filter((row) => row.status === 'actif').length),
+            hint: 'en cours d’exécution',
+            onClick: () => setStatusFilter((current) => (current === 'actif' ? '' : 'actif')),
+            active: statusFilter === 'actif',
+          },
+          {
+            label: 'À renouveler',
+            value: formatNumber(expiringSoon.length),
+            hint: 'échéance sous 60 jours',
+            onClick: () => setQuick((current) => (current === 'expiring' ? '' : 'expiring')),
+            active: quick === 'expiring',
+          },
           { label: 'Engagement annuel', value: formatEUR(annualAmount), hint: 'contrats actifs et à renouveler' },
-          { label: 'Échus / résiliés', value: formatNumber(items.filter((row) => ['echu', 'resilie'].includes(row.status)).length), hint: 'à archiver' },
+          {
+            label: 'Échus / résiliés',
+            value: formatNumber(items.filter((row) => ['echu', 'resilie'].includes(row.status)).length),
+            hint: 'à archiver',
+            onClick: () => setQuick((current) => (current === 'closed' ? '' : 'closed')),
+            active: quick === 'closed',
+          },
         ]}
+      />
+      <QuickFilterBar
+        label={
+          quick === 'expiring' ? 'Contrats à renouveler sous 60 jours' : quick === 'closed' ? 'Contrats échus ou résiliés' : ''
+        }
+        count={quick ? rows.length : null}
+        onClear={() => setQuick('')}
       />
 
       {expiringSoon.length > 0 && (

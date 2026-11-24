@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { FileText, Plus } from 'lucide-react';
 import Page from '@/components/Page';
 import StatStrip from '@/components/StatStrip';
+import QuickFilterBar from '@/components/QuickFilterBar';
 import TablePanel from '@/components/TablePanel';
 import RowActions from '@/components/RowActions';
 import StatusBadge from '@/components/StatusBadge';
@@ -21,6 +22,7 @@ export default function Devis() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [workFilter, setWorkFilter] = useState('');
+  const [quick, setQuick] = useState('');
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [detailId, setDetailId] = useState(null);
@@ -58,11 +60,12 @@ export default function Devis() {
     return requests.filter((row) => {
       if (statusFilter && row.status !== statusFilter) return false;
       if (workFilter && row.work_type !== workFilter) return false;
+      if (quick === 'open' && !['envoyee', 'reponses_recues'].includes(row.status)) return false;
       return `${row.title} ${row.reference} ${row.city} ${row.postal_code}`
         .toLowerCase()
         .includes(term);
     });
-  }, [requests, search, statusFilter, workFilter]);
+  }, [requests, search, statusFilter, workFilter, quick]);
 
   if (!syndicId) return <WorkspaceRequired />;
 
@@ -136,15 +139,28 @@ export default function Devis() {
     >
       <StatStrip
         items={[
-          { label: 'Demandes en cours', value: formatNumber(openRequests.length), hint: 'envoyées ou en réponse' },
+          {
+            label: 'Demandes en cours',
+            value: formatNumber(openRequests.length),
+            hint: 'envoyées ou en réponse',
+            onClick: () => setQuick((current) => (current === 'open' ? '' : 'open')),
+            active: quick === 'open',
+          },
           { label: 'Devis reçus', value: formatNumber(offers.length), hint: 'toutes demandes confondues' },
           { label: 'Entreprises contactées', value: formatNumber(invites.length), hint: 'par e-mail ou téléphone' },
           {
             label: 'Demandes clôturées',
             value: formatNumber(requests.filter((row) => row.status === 'cloturee').length),
             hint: 'devis retenu',
+            onClick: () => setStatusFilter((current) => (current === 'cloturee' ? '' : 'cloturee')),
+            active: statusFilter === 'cloturee',
           },
         ]}
+      />
+      <QuickFilterBar
+        label={quick === 'open' ? 'Demandes de devis en cours' : ''}
+        count={quick === 'open' ? rows.length : null}
+        onClear={() => setQuick('')}
       />
 
       <TablePanel

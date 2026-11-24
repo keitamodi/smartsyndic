@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Plus, Wrench } from 'lucide-react';
 import Page from '@/components/Page';
 import StatStrip from '@/components/StatStrip';
+import QuickFilterBar from '@/components/QuickFilterBar';
 import TablePanel from '@/components/TablePanel';
 import RowActions from '@/components/RowActions';
 import StatusBadge from '@/components/StatusBadge';
@@ -52,6 +53,8 @@ export default function Maintenance() {
   const [statusFilter, setStatusFilter] = useState('');
   const [priorityFilter, setPriorityFilter] = useState('');
   const [originFilter, setOriginFilter] = useState('');
+  const [quick, setQuick] = useState('');
+  const tableRef = useRef(null);
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [reminding, setReminding] = useState(false);
@@ -145,23 +148,53 @@ export default function Maintenance() {
     await reload();
   };
 
-  const active = items.filter((row) => row.status !== 'terminee' && row.status !== 'annulee');
-  const urgent = active.filter((row) => row.priority === 'urgente').length;
-  const week = active.filter((row) => {
+  const isOpenRow = (row) => row.status !== 'terminee' && row.status !== 'annulee';
+  const isWeekRow = (row) => {
     const days = daysUntil(row.scheduled_date);
     return days != null && days >= 0 && days <= 7;
-  }).length;
-  const late = active.filter((row) => {
+  };
+  const isLateRow = (row) => {
     const days = daysUntil(row.scheduled_date);
     return days != null && days < 0;
-  }).length;
-  const repairs = active.filter((row) => row.origin === 'depannage').length;
+  };
+
+  const active = items.filter(isOpenRow);
+  const urgent = active.filter((row) => (row.priority || 'normale') === 'urgente').length;
+  const week = active.filter(isWeekRow).length;
+  const late = active.filter(isLateRow).length;
+  const repairs = active.filter((row) => (row.origin || 'entretien') === 'depannage').length;
+
+  // Chaque carte de synthèse ouvre la liste correspondante.
+  const matchesQuick = (row) => {
+    if (!quick) return true;
+    if (!isOpenRow(row)) return false;
+    if (quick === 'urgent') return (row.priority || 'normale') === 'urgente';
+    if (quick === 'week') return isWeekRow(row);
+    if (quick === 'late') return isLateRow(row);
+    if (quick === 'repair') return (row.origin || 'entretien') === 'depannage';
+    return true;
+  };
+
+  const toggleQuick = (value) => {
+    setQuick((current) => (current === value ? '' : value));
+    window.requestAnimationFrame(() => {
+      tableRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  };
+
+  const QUICK_LABELS = {
+    urgent: 'Urgences — pastille rouge',
+    week: 'Entretiens des 7 prochains jours',
+    late: 'Interventions à replanifier',
+    repair: 'Dépannages — propriétaire prévenu',
+  };
 
   const rows = items.filter((row) => {
+    if (!matchesQuick(row)) return false;
     if (statusFilter && row.status !== statusFilter) return false;
     if (priorityFilter && (row.priority || 'normale') !== priorityFilter) return false;
     if (originFilter && (row.origin || 'entretien') !== originFilter) return false;
-    const haystack = `${row.title} ${row.building_name} ${row.provider_name}`.toLowerCase();
+    const haystack = `${row.title} ${row.building_name} ${row.provider_name} ${row.contact_email}`.toLowerCase();
     return haystack.includes(search.toLowerCase());
   });
 
@@ -220,10 +253,34 @@ export default function Maintenance() {
     >
       <StatStrip
         items={[
-          { label: 'Urgences', value: formatNumber(urgent), hint: 'pastille rouge' },
-          { label: '7 prochains jours', value: formatNumber(week), hint: 'entretiens à préparer' },
-          { label: 'En retard', value: formatNumber(late), hint: late ? 'à replanifier' : 'aucun retard' },
-          { label: 'Dépannages', value: formatNumber(repairs), hint: 'propriétaire prévenu' },
+          {
+            label: 'Urgences',
+            value: formatNumber(urgent),
+            hint: 'pastille rouge',
+            onClick: () => toggleQuick('urgent'),
+            active: quick === 'urgent',
+          },
+          {
+            label: '7 prochains jours',
+            value: formatNumber(week),
+            hint: 'entretiens à préparer',
+            onClick: () => toggleQuick('week'),
+            active: quick === 'week',
+          },
+          {
+            label: 'En retard',
+            value: formatNumber(late),
+            hint: late ? 'à replanifier' : 'aucun retard',
+            onClick: () => toggleQuick('late'),
+            active: quick === 'late',
+          },
+          {
+            label: 'Dépannages',
+            value: formatNumber(repairs),
+            hint: 'propriétaire prévenu',
+            onClick: () => toggleQuick('repair'),
+            active: quick === 'repair',
+          },
         ]}
       />
 
@@ -248,6 +305,12 @@ export default function Maintenance() {
         />
       </div>
 
+      <div ref={tableRef} className="scroll-mt-6 space-y-2.5">
+      <QuickFilterBar
+        label={QUICK_LABELS[quick]}
+        count={quick ? rows.length : null}
+        onClear={() => setQuick('')}
+      />
       <TablePanel
         search={search}
         onSearchChange={setSearch}
@@ -316,6 +379,33 @@ export default function Maintenance() {
             ),
           },
           { key: 'provider_name', header: 'Intervenant', render: (row) => row.provider_name || 'À affecter' },
+          {
+            key: 'contact_email',
+            header: 'Propriétaire prévenu',
+            render: (row) => {
+              const provider = providers.find((item) => item.id === row.provider_id);
+              const phone = provider?.phone || '';
+              return (
+                <div className="min-w-0 max-w-[210px]">
+                  {row.contact_email ? (
+                    <a
+                      href={`mailto:${row.contact_email}`}
+                      onClick={(event) => event.stopPropagation()}
+                      className="block truncate text-[12.5px] text-primary hover:underline"
+                    >
+                      {row.contact_email}
+                    </a>
+                  ) : (
+                    <p className="text-[12px] text-muted-foreground">Contact non renseigné</p>
+                  )}
+                  <p className="mt-0.5 truncate text-[11px] text-muted-foreground">
+                    {provider?.name || row.provider_name || 'Intervenant à affecter'}
+                    {phone ? ` · ${phone}` : ''}
+                  </p>
+                </div>
+              );
+            },
+          },
           { key: 'status', header: 'Statut', render: (row) => <StatusBadge value={row.status} map={INTERVENTION_STATUS} /> },
           {
             key: 'actions',
@@ -352,6 +442,7 @@ export default function Maintenance() {
           ),
         }}
       />
+      </div>
 
       <FormDialog
         open={formOpen}
