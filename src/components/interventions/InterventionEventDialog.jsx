@@ -28,11 +28,21 @@ const firstFree = (ranges) => {
   return candidate;
 };
 
-export default function InterventionEventDialog({ day, editing, siblings, onClose, onSave, onDelete, technician = null }) {
+export default function InterventionEventDialog({
+  day,
+  editing,
+  siblings,
+  onClose,
+  onSave,
+  onDelete,
+  technician = null,
+  providers = [],
+}) {
   const busy = useMemo(() => siblings.map((item) => [startMinutes(item), endMinutes(item)]), [siblings]);
 
   const [title, setTitle] = useState(editing?.title || '');
   const [priority, setPriority] = useState(editing?.priority || 'normale');
+  const [providerId, setProviderId] = useState(editing?.provider_id || technician?.id || '');
   const [start, setStart] = useState(() => (editing ? startMinutes(editing) : firstFree(busy)));
   const [end, setEnd] = useState(() => {
     if (editing) return endMinutes(editing);
@@ -79,7 +89,7 @@ export default function InterventionEventDialog({ day, editing, siblings, onClos
           scheduled_time: `${String(Math.floor(start / 60)).padStart(2, '0')}:${String(start % 60).padStart(2, '0')}`,
           duration_minutes: Math.max(STEP, end - start),
           priority,
-          ...(technician && !editing && technician.id ? { provider_id: technician.id } : {}),
+          ...(providers.length && (!editing || providerId !== (editing.provider_id || '')) ? { provider_id: providerId } : {}),
         },
         editing,
       );
@@ -136,8 +146,25 @@ export default function InterventionEventDialog({ day, editing, siblings, onClos
             {WEEKDAYS_LONG[(day.getDay() + 6) % 7]} {day.getDate()} {MONTHS[day.getMonth()]}
           </p>
 
-          {technician && !editing && (
-            <p className="text-[11.5px] text-muted-foreground">Intervenant : {technician.name}</p>
+          {providers.length ? (
+            <label className="flex items-center gap-2 text-[12px] text-muted-foreground">
+              <span className="shrink-0">Intervenant</span>
+              <select
+                value={providerId}
+                onChange={(event) => setProviderId(event.target.value)}
+                className="min-w-0 flex-1 rounded-md border border-border bg-card px-2 py-1 text-[12.5px] text-foreground outline-none focus:border-foreground"
+              >
+                <option value="">À affecter</option>
+                {providers.map((provider) => (
+                  <option key={provider.id} value={provider.id}>
+                    {provider.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : (
+            technician &&
+            !editing && <p className="text-[11.5px] text-muted-foreground">Intervenant : {technician.name}</p>
           )}
 
           {startOptions.length === 0 ? (

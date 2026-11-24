@@ -207,6 +207,7 @@ export default function InterventionCalendar({
           key={`${isoDay(draft.day)}-${draft.editing?.id || 'new'}`}
           day={draft.day}
           editing={draft.editing}
+          providers={providers}
           siblings={siblings}
           onClose={() => setDraft(null)}
           onSave={onSave}

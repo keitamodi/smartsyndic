@@ -235,7 +235,7 @@ export default function Maintenance() {
   return (
     <Page
       kicker="Exploitation"
-      title="Interventions"
+      title="Maintenance"
       description="Planifiez les entretiens et les dépannages à l’heure près, suivez les priorités et recevez une alerte avant chaque échéance."
       actions={
         <Button

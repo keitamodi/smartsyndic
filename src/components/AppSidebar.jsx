@@ -38,7 +38,7 @@ const GROUPS = [
     label: 'Gestion',
     items: [
       { to: '/immeubles', label: 'Immeubles', icon: Building2, module: 'buildings' },
-      { to: '/maintenance', label: 'Interventions', icon: Wrench, module: 'interventions' },
+      { to: '/maintenance', label: 'Maintenance', icon: Wrench, module: 'interventions' },
       { to: '/tickets', label: 'Tickets & demandes', icon: Ticket, module: 'tickets' },
       { to: '/contrats', label: 'Contrats', icon: FileSignature, module: 'contracts' },
       { to: '/assemblees', label: 'AG & Documents', icon: Gavel, module: 'assemblies' },
