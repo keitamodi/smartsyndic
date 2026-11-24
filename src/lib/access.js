@@ -25,6 +25,7 @@ export const ALL_MODULES = [
   'subscription',
   'portal',
   'my_interventions',
+  'access_test',
   ...SHARED_MODULES,
 ];
 
@@ -47,6 +48,7 @@ export const MODULE_LABELS = {
   subscription: 'Abonnement & tarifs',
   portal: 'Mon espace',
   my_interventions: 'Mes interventions',
+  access_test: 'Vérifier les accès',
 };
 
 export const ROUTE_MODULES = {
@@ -68,6 +70,7 @@ export const ROUTE_MODULES = {
   '/abonnement': 'subscription',
   '/mon-espace': 'portal',
   '/mes-interventions': 'my_interventions',
+  '/test-acces': 'access_test',
 };
 
 /** Modules du quotidien pour chaque rôle de collaborateur. */

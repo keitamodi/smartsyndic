@@ -34,11 +34,16 @@ export default async function (req) {
       );
     }
 
-    if (channel === 'email' && !EMAIL_RE.test(email)) {
-      return Response.json({ error: 'Renseignez une adresse email valide.' }, { status: 400 });
-    }
+    // Lien préparé depuis l'écran de contrôle des accès : aucune notification n'est envoyée.
+    const prepare = body.prepare === true;
 
-    if (channel !== 'email' && !isPhone(phone)) {
+    if (prepare) {
+      if (!EMAIL_RE.test(email) && !isPhone(phone)) {
+        return Response.json({ error: 'Renseignez un email ou un téléphone pour créer le lien.' }, { status: 400 });
+      }
+    } else if (channel === 'email' && !EMAIL_RE.test(email)) {
+      return Response.json({ error: 'Renseignez une adresse email valide.' }, { status: 400 });
+    } else if (channel !== 'email' && !isPhone(phone)) {
       return Response.json({ error: 'Renseignez un numéro de téléphone valide.' }, { status: 400 });
     }
 
@@ -90,7 +95,7 @@ export default async function (req) {
     let warning = '';
 
     // Le lien part par email : message de marque. Par téléphone, il est transmis par SMS ou WhatsApp.
-    if (channel === 'email') {
+    if (!prepare && channel === 'email') {
       try {
         const sent = await base44.asServiceRole.integrations.Core.SendEmail({
           to: email,

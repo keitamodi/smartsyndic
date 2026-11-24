@@ -18,6 +18,7 @@ import {
   LifeBuoy,
   Info,
   Settings,
+  ShieldCheck,
   UserRound,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -74,7 +75,10 @@ const GROUPS = [
   },
   {
     label: 'Configuration',
-    items: [{ to: '/parametres', label: 'Paramètres', icon: Settings, module: 'settings' }],
+    items: [
+      { to: '/parametres', label: 'Paramètres', icon: Settings, module: 'settings' },
+      { to: '/test-acces', label: 'Vérifier les accès', icon: ShieldCheck, module: 'access_test' },
+    ],
   },
 ];
 

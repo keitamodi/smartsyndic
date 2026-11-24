@@ -1,4 +1,5 @@
-import { HardHat, Home, User, Users } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { HardHat, Home, ShieldCheck, User, Users } from 'lucide-react';
 import AccessCard from '@/components/settings/AccessCard';
 
 const CARD = 'rounded-[18px] border border-border/70 bg-secondary/30 px-4 py-3';
@@ -13,6 +14,19 @@ export default function AccessTab({ settings, update }) {
           fonctionnalités cochées. Les collaborateurs restent cantonnés au rôle et au périmètre
           d’immeubles que vous leur attribuez dans Équipe.
         </p>
+      </div>
+
+      <div className={`${CARD} flex flex-wrap items-center justify-between gap-2`}>
+        <p className="text-[12.5px] leading-snug text-foreground/80">
+          Vérifiez ce que chaque compte résident ou technicien voit réellement.
+        </p>
+        <Link
+          to="/test-acces"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-2.5 py-1.5 text-[12px] font-medium text-primary transition-colors hover:border-primary/40"
+        >
+          <ShieldCheck className="h-3.5 w-3.5" />
+          Vérifier les accès
+        </Link>
       </div>
 
       <AccessCard

@@ -1,6 +1,9 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.54';
+import { normalizeEmail } from '../../shared/memberInvite.ts';
 
 const HISTORY_YEARS = 3;
+
+const pageItems = (page: any) => (Array.isArray(page) ? page : page?.items || []);
 
 const yearsAgo = (years) => {
   const date = new Date();
@@ -14,21 +17,34 @@ export default async function (req) {
     const user = await base44.auth.me().catch((e) => (e.status === 401 ? null : Promise.reject(e)));
     if (!user?.email) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const email = String(user.email).trim();
+    const email = normalizeEmail(user.email);
     const service = base44.asServiceRole.entities;
 
-    const [ownedLots, residents] = await Promise.all([
+    const [ownedLotsPage, residentsPage] = await Promise.all([
       service.Lot.filter({ owner_email: email }, { limit: 100 }),
       service.Resident.filter({ email }, { limit: 20 }),
     ]);
 
-    const residentIds = (residents.items || []).map((row) => row.id);
+    // Les fiches sont saisies à la main : on complète par une comparaison insensible à la casse.
+    let residentRows = pageItems(residentsPage);
+    if (!residentRows.length) {
+      const all = pageItems(await service.Resident.list({ limit: 500 }));
+      residentRows = all.filter((row: any) => normalizeEmail(row.email) === email);
+    }
+
+    let ownedLots = pageItems(ownedLotsPage);
+    if (!ownedLots.length) {
+      const allLots = pageItems(await service.Lot.list({ limit: 500 }));
+      ownedLots = allLots.filter((lot: any) => normalizeEmail(lot.owner_email) === email);
+    }
+
+    const residentIds = residentRows.map((row: any) => row.id);
     const linkedLots = residentIds.length
       ? await service.Lot.filter({ resident_id: { $in: residentIds } }, { limit: 100 })
       : { items: [] };
 
     const lotsMap = new Map();
-    [...(ownedLots.items || []), ...(linkedLots.items || [])].forEach((lot) => lotsMap.set(lot.id, lot));
+    [...ownedLots, ...pageItems(linkedLots)].forEach((lot: any) => lotsMap.set(lot.id, lot));
     const lots = [...lotsMap.values()];
 
     const buildingIds = [...new Set(lots.map((lot) => lot.building_id).filter(Boolean))];
