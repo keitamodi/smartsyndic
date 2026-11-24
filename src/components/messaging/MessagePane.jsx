@@ -92,7 +92,7 @@ export default function MessagePane({ thread, messages, loading, onSend, onDraft
             email={thread.contact_email}
             phone={thread.contact_phone}
             name={thread.contact_name}
-            subject={`SyndicVibe — ${thread.subject}`}
+            subject={`Smartsyndic — ${thread.subject}`}
           />
           <StatusBadge value={thread.status} map={THREAD_STATUS} tone={THREAD_TONE[thread.status]} />
           <Select value={thread.status || 'ouvert'} onValueChange={onStatus}>

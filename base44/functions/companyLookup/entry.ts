@@ -114,7 +114,7 @@ export default async function (req) {
 
     const searchUrl = `https://recherche-entreprises.api.gouv.fr/search?${params.toString()}`;
     const requestInit = {
-      headers: { Accept: 'application/json', 'User-Agent': 'SyndicVibe/1.0 (gestion de copropriete)' },
+      headers: { Accept: 'application/json', 'User-Agent': 'Smartsyndic/1.0 (gestion de copropriete)' },
       signal: AbortSignal.timeout(12000),
     };
 

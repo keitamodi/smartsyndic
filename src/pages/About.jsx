@@ -43,7 +43,7 @@ export default function About() {
   return (
     <Page
       kicker="À propos"
-      title="SyndicVibe"
+      title="Smartsyndic"
       description="La plateforme de gestion de copropriété qui réunit le syndic, son équipe, les résidents et les prestataires autour des mêmes données."
     >
       <section className="overflow-hidden rounded-[28px] border border-border bg-card">
@@ -54,14 +54,14 @@ export default function About() {
               Rendre la gestion de copropriété lisible, traçable et sereine.
             </h2>
             <p className="mt-3 max-w-2xl text-[13.5px] leading-relaxed text-muted-foreground">
-              SyndicVibe centralise la gestion quotidienne des copropriétés : patrimoine, demandes des résidents,
+              Smartsyndic centralise la gestion quotidienne des copropriétés : patrimoine, demandes des résidents,
               maintenance, contrats, assemblées générales et facturation. L’objectif est simple : que chaque acteur
               dispose de la bonne information au bon moment, sans ressaisie ni boîte mail parallèle.
             </p>
           </div>
           <div className="rounded-2xl border border-primary/20 bg-accent/50 p-5">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-              <span className="font-mono text-[12px] font-semibold">SV</span>
+              <span className="font-mono text-[12px] font-semibold">SS</span>
             </div>
             <p className="mt-3 font-mono text-[10px] uppercase tracking-[0.16em] text-accent-foreground">
               Plateforme SaaS
@@ -105,7 +105,7 @@ export default function About() {
       </section>
 
       <p className="px-1 text-[11px] leading-relaxed text-muted-foreground">
-        SyndicVibe est éditée comme un service en ligne. Les fonctionnalités d’envoi d’email transactionnel et de
+        Smartsyndic est éditée comme un service en ligne. Les fonctionnalités d’envoi d’email transactionnel et de
         paiement en ligne nécessitent la configuration d’un fournisseur externe et sont signalées comme telles dans
         l’application.
       </p>

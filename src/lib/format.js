@@ -75,7 +75,7 @@ export const initials = (name = '') =>
     .filter(Boolean)
     .slice(0, 2)
     .map((part) => part[0]?.toUpperCase())
-    .join('') || 'SV';
+    .join('') || 'SS';
 
 export const plural = (count, singular, pluralForm) =>
   `${formatNumber(count)} ${count > 1 ? pluralForm : singular}`;

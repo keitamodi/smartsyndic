@@ -8,10 +8,10 @@ export default function AuthLayout({ icon: Icon, title, subtitle, footer, childr
       <div className="mx-auto flex w-full max-w-[1180px] items-center justify-between gap-4 px-5 py-4 sm:px-8">
         <Link to="/" className="flex items-center gap-2.5">
           <span className="flex h-9 w-9 items-center justify-center rounded-[12px] bg-primary text-primary-foreground shadow-[0_6px_16px_-8px_hsl(var(--primary))]">
-            <span className="font-mono text-[12px] font-semibold tracking-tight">SV</span>
+            <span className="font-mono text-[12px] font-semibold tracking-tight">SS</span>
           </span>
           <span className="min-w-0">
-            <span className="block font-heading text-[15.5px] font-semibold leading-tight">SyndicVibe</span>
+            <span className="block font-heading text-[15.5px] font-semibold leading-tight">Smartsyndic</span>
             <span className="kicker !text-[8.5px] !tracking-[0.16em]">Gestion de copropriété</span>
           </span>
         </Link>

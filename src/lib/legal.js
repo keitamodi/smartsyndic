@@ -1,7 +1,7 @@
 // Informations légales de l'éditeur.
 // Les valeurs entre crochets doivent être complétées par l'exploitant du service.
 export const LEGAL = {
-  product: 'SyndicVibe',
+  product: 'Smartsyndic',
   editor: '[À compléter : raison sociale]',
   legalForm: '[À compléter : forme juridique et capital social]',
   registration: '[À compléter : SIREN / SIRET et RCS]',

@@ -211,12 +211,12 @@ export default function Register() {
       <AuthLayout
         icon={ShieldCheck}
         title="Inscription sur invitation"
-        subtitle="L’accès à SyndicVibe est ouvert par votre syndic."
+        subtitle="L’accès à Smartsyndic est ouvert par votre syndic."
         footer={
           <>
             Vous êtes syndic ?{" "}
             <Link to="/" className="font-medium text-primary hover:underline">
-              Découvrir SyndicVibe
+              Découvrir Smartsyndic
             </Link>
           </>
         }

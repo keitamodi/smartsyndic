@@ -115,7 +115,7 @@ export default function ThreadList({ threads, selectedId, onSelect, loading }) {
                     phone={thread.contact_phone}
                     email={thread.contact_email}
                     name={thread.contact_name}
-                    subject={`SyndicVibe — ${thread.subject}`}
+                    subject={`Smartsyndic — ${thread.subject}`}
                   />
                 </div>
               </div>

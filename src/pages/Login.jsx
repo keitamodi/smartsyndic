@@ -161,7 +161,7 @@ export default function Login() {
       </form>
 
       <p className="mt-5 border-t border-border/70 pt-4 text-center text-[11.5px] leading-relaxed text-muted-foreground">
-        Vous êtes syndic et découvrez SyndicVibe ?{" "}
+        Vous êtes syndic et découvrez Smartsyndic ?{" "}
         <Link to="/" className="font-medium text-primary hover:underline">
           Demander une inscription
         </Link>

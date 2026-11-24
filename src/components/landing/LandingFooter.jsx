@@ -8,7 +8,7 @@ export default function LandingFooter() {
       <div className="mx-auto w-full max-w-[1180px] px-5 py-8 sm:px-8">
         <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <p className="font-heading text-[14.5px] font-semibold">SyndicVibe</p>
+            <p className="font-heading text-[14.5px] font-semibold">Smartsyndic</p>
             <p className="mt-0.5 max-w-[320px] text-[12px] text-muted-foreground">
               Gestion de copropriété pour les syndics et leurs résidents.
             </p>
@@ -26,7 +26,7 @@ export default function LandingFooter() {
           </nav>
         </div>
         <div className="mt-6 flex flex-col gap-3 border-t border-border/60 pt-4 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-[11.5px] text-muted-foreground">© {new Date().getFullYear()} SyndicVibe</p>
+          <p className="text-[11.5px] text-muted-foreground">© {new Date().getFullYear()} Smartsyndic</p>
           <Button variant="outline" size="sm" asChild className="text-[12px]">
             <Link to="/login">Espace syndic</Link>
           </Button>

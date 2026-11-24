@@ -25,7 +25,7 @@ export default function LandingHero() {
 
   return (
     <section
-      aria-label="Présentation de SyndicVibe"
+      aria-label="Présentation de Smartsyndic"
       className="relative overflow-hidden border-b border-border/60 bg-[linear-gradient(180deg,hsl(var(--accent))_0%,hsl(var(--background))_82%)]"
     >
       <div className="mx-auto flex w-full max-w-[1180px] flex-col px-5 pt-14 sm:px-8 sm:pt-20">

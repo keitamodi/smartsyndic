@@ -214,7 +214,7 @@ export default function AgentIA() {
               <Sparkles className="h-4 w-4 text-primary" />
             </span>
             <div className="min-w-0">
-              <p className="text-[13px] font-medium text-foreground">Agent SyndicVibe</p>
+              <p className="text-[13px] font-medium text-foreground">Agent Smartsyndic</p>
               <p className="truncate text-[11px] text-muted-foreground">
                 {mode === 'resident' ? 'Droits et devoirs des copropriétaires' : 'Assistant du syndic'} ·{' '}
                 {syndic?.name || 'espace syndic'} · {visibleDocuments.length} document(s)

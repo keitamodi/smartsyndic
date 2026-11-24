@@ -128,11 +128,11 @@ export default function AppSidebar({ onNavigate }) {
     <div className="flex h-full flex-col">
       <div className="flex items-center gap-3 px-5 py-5">
         <div className="flex h-10 w-10 items-center justify-center rounded-[13px] bg-primary text-primary-foreground shadow-[0_6px_16px_-8px_hsl(var(--primary))]">
-          <span className="font-mono text-[13px] font-semibold tracking-tight">SV</span>
+          <span className="font-mono text-[13px] font-semibold tracking-tight">SS</span>
         </div>
         <div className="min-w-0">
           <p className="truncate font-heading text-[17px] font-semibold leading-tight text-foreground">
-            SyndicVibe
+            Smartsyndic
           </p>
           <p className="kicker mt-0.5 !tracking-[0.14em] !text-[9px]">Gestion de copropriété</p>
         </div>

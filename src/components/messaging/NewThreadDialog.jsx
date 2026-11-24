@@ -115,7 +115,7 @@ export default function NewThreadDialog({ open, onOpenChange, contacts, onCreate
                 email={selectedContact.email}
                 phone={selectedContact.phone}
                 name={selectedContact.name}
-                subject={`SyndicVibe — ${subject || 'Votre copropriété'}`}
+                subject={`Smartsyndic — ${subject || 'Votre copropriété'}`}
               />
             </div>
           )}

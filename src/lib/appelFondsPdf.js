@@ -29,7 +29,7 @@ export const buildAvisPdf = ({ invoice, building, lot, budget, share, tantiemesT
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(11);
   doc.setTextColor(ACCENT);
-  doc.text('SYNDICVIBE', M, y);
+  doc.text('SMARTSYNDIC', M, y);
 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(8.5);
@@ -172,7 +172,7 @@ export const buildAvisPdf = ({ invoice, building, lot, budget, share, tantiemesT
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(7.5);
   doc.setTextColor(MUTED);
-  doc.text(`Document généré le ${clean(formatDate(new Date()))} par SyndicVibe`, M, footerY + 14);
+  doc.text(`Document généré le ${clean(formatDate(new Date()))} par Smartsyndic`, M, footerY + 14);
   doc.text(clean(invoice.reference), RIGHT, footerY + 14, { align: 'right' });
 
   return doc;

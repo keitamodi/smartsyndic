@@ -92,7 +92,7 @@ export default async function (req) {
             to: invite.company_email,
             subject,
             body: buildBody(request, invite),
-            from_name: 'SyndicVibe',
+            from_name: 'Smartsyndic',
           });
           await base44.entities.QuoteInvite.update(invite.id, {
             channel: 'email',

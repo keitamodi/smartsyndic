@@ -18,5 +18,5 @@ export function inviteMessage({ kindLabel, buildingName, lotNumbers, link, days 
   const role = String(kindLabel || 'membre').toLowerCase();
   const place = buildingName ? ` pour ${buildingName}` : '';
   const lots = lotNumbers ? ` (lots ${lotNumbers})` : '';
-  return `Votre syndic vous invite à rejoindre SyndicVibe comme ${role}${place}${lots}. Créez votre mot de passe ici : ${link}. Lien valable ${days} jours.`;
+  return `Votre syndic vous invite à rejoindre Smartsyndic comme ${role}${place}${lots}. Créez votre mot de passe ici : ${link}. Lien valable ${days} jours.`;
 }

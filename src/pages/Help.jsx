@@ -13,7 +13,7 @@ const FAQ = [
   {
     question: 'Comment les résidents reçoivent-ils les notifications ?',
     answer:
-      'Les notifications sont internes à la plateforme : elles apparaissent dans l’espace de chaque personne concernée. L’envoi d’emails transactionnels nécessite la configuration d’un fournisseur d’envoi ; sans cette configuration, aucun email n’est envoyé et SyndicVibe ne le simule pas.',
+      'Les notifications sont internes à la plateforme : elles apparaissent dans l’espace de chaque personne concernée. L’envoi d’emails transactionnels nécessite la configuration d’un fournisseur d’envoi ; sans cette configuration, aucun email n’est envoyé et Smartsyndic ne le simule pas.',
   },
   {
     question: 'Où sont stockés les documents et les pièces jointes ?',
@@ -47,7 +47,7 @@ export default function Help() {
     <Page
       kicker="Ressources"
       title="Aide"
-      description="Les réponses aux questions les plus fréquentes sur la gestion quotidienne de vos copropriétés dans SyndicVibe."
+      description="Les réponses aux questions les plus fréquentes sur la gestion quotidienne de vos copropriétés dans Smartsyndic."
       actions={
         <Button asChild className="gap-2">
           <Link to="/agent-ia">

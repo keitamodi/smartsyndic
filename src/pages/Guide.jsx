@@ -67,7 +67,7 @@ export default function Guide() {
     <Page
       kicker="Ressources"
       title="Guide d’utilisation"
-      description="De la création de votre espace syndic au suivi des finances : les étapes clés pour prendre en main SyndicVibe."
+      description="De la création de votre espace syndic au suivi des finances : les étapes clés pour prendre en main Smartsyndic."
       actions={
         <Button asChild className="gap-2">
           <Link to="/tableau-de-bord">
@@ -116,7 +116,7 @@ export default function Guide() {
 
       <section className="rounded-[26px] border border-border bg-card p-6 sm:p-8">
         <p className="kicker">Rôles & permissions</p>
-        <h2 className="mt-2 text-[20px] text-foreground">Qui fait quoi dans SyndicVibe</h2>
+        <h2 className="mt-2 text-[20px] text-foreground">Qui fait quoi dans Smartsyndic</h2>
         <ul className="mt-4 divide-y divide-border/60">
           {ROLES.map(([role, description]) => (
             <li key={role} className="flex flex-col gap-1 py-2.5 sm:flex-row sm:items-baseline sm:gap-6">
